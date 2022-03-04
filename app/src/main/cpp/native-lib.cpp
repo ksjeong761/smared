@@ -12,8 +12,11 @@ using namespace std;
 
 extern "C"{
 JNIEXPORT void JNICALL
-Java_kr_ac_kpu_block_smared_ImageProcessingActivity_loadImage(JNIEnv *env, jobject instance,
-                                                           jstring imageFileName_, jlong img) {
+Java_kr_ac_kpu_block_smared_ImageProcessingActivity_loadImage(
+        JNIEnv *env,
+        jobject instance,
+        jstring imageFileName_,
+        jlong img) {
     Mat &img_input = *(Mat *) img;
 
     const char *nativeFileNameString = env->GetStringUTFChars(imageFileName_, JNI_FALSE);

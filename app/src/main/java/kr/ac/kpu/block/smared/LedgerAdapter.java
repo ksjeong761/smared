@@ -29,12 +29,21 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     FirebaseUser user;
     String selectChatuid = "";
 
+    public LedgerAdapter(List<Ledger> mLedger , Context context) {
+        this.mLedger = mLedger;
+        this.context = context;
+    }
+
+    public LedgerAdapter(List<Ledger> mLedger , Context context, String selectChatuid) {
+        this.mLedger = mLedger;
+        this.context = context;
+        this.selectChatuid = selectChatuid;
+    }
+
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
     // you provide access to all the views for a data item in a view holder
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
-
         public Button btnDelete;
         public Button btnEdit;
         public Button btnDay;
@@ -55,36 +64,24 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         }
     }
 
-    public LedgerAdapter(List<Ledger> mLedger , Context context) {
-        this.mLedger = mLedger;
-        this.context = context;
-    }
-
-    public LedgerAdapter(List<Ledger> mLedger , Context context, String selectChatuid) {
-        this.mLedger = mLedger;
-        this.context = context;
-        this.selectChatuid = selectChatuid;
-    }
-
-
     @Override
     public int getItemViewType(int position) {
         if (position == 0) {
-         return 2;
+            return 2;
         } else {
-            if (mLedger.get(position).getYear().equals(mLedger.get(position - 1).getYear()) &&
-                    mLedger.get(position).getMonth().equals(mLedger.get(position - 1).getMonth()) &&
-                    mLedger.get(position).getDay().equals(mLedger.get(position - 1).getDay())) {
+            if (mLedger.get(position).getYear().equals(mLedger.get(position - 1).getYear())
+                    && mLedger.get(position).getMonth().equals(mLedger.get(position - 1).getMonth())
+                    && mLedger.get(position).getDay().equals(mLedger.get(position - 1).getDay())) {
                 return 1;
             } else {
                 return 2;
             }
         }
     }
+
     // Create new views (invoked by the layout manager)
     @Override
-    public LedgerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                       int viewType) {
+    public LedgerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v;
 
         database = FirebaseDatabase.getInstance();
@@ -130,13 +127,12 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
                 holder.tvPaymemo.setText("내용 : " + mLedger.get(position).getPaymemo());
             }
         }
+
         holder.btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 EditDialog dialogs = new EditDialog(context, mLedger, position, selectChatuid);
                 dialogs.show();
-
-
             }
         });
 
@@ -178,7 +174,6 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
                     alert.show();
                 }
                 else {
-
                     AlertDialog.Builder alertdialog = new AlertDialog.Builder(context);
                     TextView textView = new TextView(context);
                     alertdialog.setMessage("정말 삭제 하시겠습니까?");
@@ -212,16 +207,9 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
                     AlertDialog alert = alertdialog.create();
                     alert.show();
                 }
-
-
-
-
             }
         });
-
-        }
-
-
+    }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override

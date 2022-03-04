@@ -12,13 +12,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class ShareFragment extends Fragment{
-
-
-        Fragment fragment;
+    Fragment fragment;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
-
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
@@ -39,14 +36,11 @@ public class ShareFragment extends Fragment{
         }
     };
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View v = inflater.inflate(R.layout.fragment_share, container, false);
-
-
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -54,21 +48,15 @@ public class ShareFragment extends Fragment{
         fragmentTransaction.add(R.id.shareledger,fragment);
         fragmentTransaction.commit();
 
-
         BottomNavigationView navigation = (BottomNavigationView) v.findViewById(R.id.sharenavi);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         return v;
     }
 
-
     public void switchFragment(Fragment fragment) {
-
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
         transaction.replace(R.id.shareledger, fragment);
-// Commit the transaction
         transaction.commit();
-
     }
-
-    }
+}

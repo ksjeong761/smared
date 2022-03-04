@@ -21,11 +21,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.Hashtable;
 import java.util.List;
 
-
 /**
  * Created by psycj on 2018-03-28.
  */
-
 public class EditDialog extends Dialog {
 
     List<Ledger> mLedger;
@@ -36,10 +34,23 @@ public class EditDialog extends Dialog {
     DatabaseReference chatRef;
     FirebaseUser user;
 
+    RadioButton rbIncome;
+    RadioButton rbConsume;
+    TextView date;
+    Spinner useitem;
+    EditText price;
+    EditText payMemo;
+    Button submit;
+    Button dismiss;
+
+    String stClassfy = "";
+    String stUseitem = "";
+    String stPrice = "";
+    String stPaymemo = "";
+
     public String getStClassfy() {
         return stClassfy;
     }
-
     public void setStClassfy(String stClassfy) {
         this.stClassfy = stClassfy;
     }
@@ -47,7 +58,6 @@ public class EditDialog extends Dialog {
     public String getStUseitem() {
         return stUseitem;
     }
-
     public void setStUseitem(String stUseitem) {
         this.stUseitem = stUseitem;
     }
@@ -55,7 +65,6 @@ public class EditDialog extends Dialog {
     public String getStPrice() {
         return stPrice;
     }
-
     public void setStPrice(String stPrice) {
         this.stPrice = stPrice;
     }
@@ -63,15 +72,9 @@ public class EditDialog extends Dialog {
     public String getStPaymemo() {
         return stPaymemo;
     }
-
     public void setStPaymemo(String stPaymemo) {
         this.stPaymemo = stPaymemo;
     }
-
-    String stClassfy = "";
-    String stUseitem = "";
-    String stPrice = "";
-    String stPaymemo = "";
 
     public EditDialog(Context context, List<Ledger> mLedger, int position, String selectChatuid) {
         super(context);
@@ -80,14 +83,6 @@ public class EditDialog extends Dialog {
         this.selectChatuid = selectChatuid;
     }
 
-            RadioButton rbIncome;
-            RadioButton rbConsume;
-            TextView date;
-            Spinner useitem;
-            EditText price;
-            EditText payMemo;
-            Button submit;
-            Button dismiss;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,7 +103,6 @@ public class EditDialog extends Dialog {
         chatRef = database.getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-
         if (mLedger.get(position).getClassfy().equals("지출")) {
             rbConsume.setChecked(true);
         } else {
@@ -120,24 +114,28 @@ public class EditDialog extends Dialog {
         price.setText(mLedger.get(position).getPrice());
         payMemo.setText(mLedger.get(position).getPaymemo());
 
-
+        //가계부 수정 버튼 이벤트 - 사용자로부터 데이터를 입력받아 가계부 DB를 수정한다.
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Hashtable<String, String> ledger   // HashTable로 연결
-                        = new Hashtable<String, String>();
+                // HashTable로 연결
+                Hashtable<String, String> ledger = new Hashtable<String, String>();
                 ledger.put("useItem", useitem.getSelectedItem().toString());
                 ledger.put("price", price.getText().toString());
                 ledger.put("paymemo",payMemo.getText().toString());
 
-                if(rbConsume.isChecked()) { stClassfy = "[ 지출 ]"; }
-                else { stClassfy = "[ 수입 ]"; }
+                if (rbConsume.isChecked()) {
+                    stClassfy = "[ 지출 ]";
+                }
+                else {
+                    stClassfy = "[ 수입 ]";
+                }
 
                 stUseitem = useitem.getSelectedItem().toString();
                 stPrice = price.getText().toString();
                 stPaymemo = payMemo.getText().toString();
 
+                //
                 if (selectChatuid.equals("")) {
                     if (rbConsume.isChecked()) {
                         myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
@@ -195,6 +193,7 @@ public class EditDialog extends Dialog {
                                 .setValue(ledger);
                     }
                 }
+
                 Toast.makeText(getContext(), "가계부가 수정되었습니다", Toast.LENGTH_SHORT).show();
                 dismiss();
             }
@@ -207,6 +206,7 @@ public class EditDialog extends Dialog {
             }
         });
     }
+
     public void setSpinner() {
         if(mLedger.get(position).getUseItem().equals("의류비")) {
             useitem.setSelection(0);

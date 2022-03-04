@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 26
@@ -44,45 +45,34 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:26.1.0'
     implementation 'com.android.support:cardview-v7:26.1.0'
-
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.google.firebase:firebase-auth:11.8.0'
-    implementation 'com.google.firebase:firebase-database:11.8.0'
     implementation 'com.android.support:design:26.1.0'
     implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.android.support:recyclerview-v7:26.1.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+
+    //Firebase
+    //https://console.firebase.google.com/project/smared-d6f83/overview?hl=ko
+    //implementation platform('com.google.firebase:firebase-bom:29.1.0')
+    //implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-auth:11.8.0'
+    implementation 'com.google.firebase:firebase-database:11.8.0'
+    implementation 'com.google.firebase:firebase-messaging:11.8.0'
     implementation 'com.google.firebase:firebase-storage:11.8.0'
+
+    //Google Cloud API
+    implementation 'com.google.api-client:google-api-client-android:1.23.0' exclude module: 'httpclient'
+    implementation 'com.google.http-client:google-http-client-gson:1.23.0' exclude module: 'httpclient'
+    implementation 'com.google.apis:google-api-services-vision:v1-rev369-1.23.0'
+
+    implementation 'com.squareup.picasso:picasso:2.5.2'
+    implementation 'com.rmtheis:tess-two:7.0.0'
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
+    implementation 'com.github.PhilJay:MpAndroidChart:v3.0.2'
+
+    implementation files('lib/poi-3.17/poi-3.17.jar')
+    implementation project(':openCVLibrary310')
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile 'com.android.support:recyclerview-v7:26.1.0'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    implementation project(':openCVLibrary310')
-    compile 'com.rmtheis:tess-two:7.0.0'
-    compile 'com.github.PhilJay:MpAndroidChart:v3.0.2'
-    compile 'com.google.api-client:google-api-client-android:1.23.0' exclude module: 'httpclient'
-    compile 'com.google.http-client:google-http-client-gson:1.23.0' exclude module: 'httpclient'
-    compile 'com.google.apis:google-api-services-vision:v1-rev369-1.23.0'
-    compile 'com.google.firebase:firebase-messaging:11.8.0'
-    implementation files('lib/poi-3.17/poi-3.17.jar')
-    implementation 'de.hdodenhof:circleimageview:2.2.0'
-
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-apply plugin: 'com.google.gms.google-services'

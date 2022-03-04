@@ -22,13 +22,10 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.StringTokenizer;
 
-
 /**
  * Created by psycj on 2018-03-28.
  */
-
 public class SMSEditDialog extends Dialog {
-
 
     FirebaseDatabase database;
     DatabaseReference myRef;
@@ -36,10 +33,10 @@ public class SMSEditDialog extends Dialog {
     FirebaseUser user;
     String sms;
     long smsdate;
+
     public String getStClassfy() {
         return stClassfy;
     }
-
     public void setStClassfy(String stClassfy) {
         this.stClassfy = stClassfy;
     }
@@ -47,7 +44,6 @@ public class SMSEditDialog extends Dialog {
     public String getStUseitem() {
         return stUseitem;
     }
-
     public void setStUseitem(String stUseitem) {
         this.stUseitem = stUseitem;
     }
@@ -55,7 +51,6 @@ public class SMSEditDialog extends Dialog {
     public String getStPrice() {
         return stPrice;
     }
-
     public void setStPrice(String stPrice) {
         this.stPrice = stPrice;
     }
@@ -63,7 +58,6 @@ public class SMSEditDialog extends Dialog {
     public String getStPaymemo() {
         return stPaymemo;
     }
-
     public void setStPaymemo(String stPaymemo) {
         this.stPaymemo = stPaymemo;
     }
@@ -75,19 +69,22 @@ public class SMSEditDialog extends Dialog {
     String stYear;
     String stMonth;
     String stDay;
+
     public SMSEditDialog(Context context, String sms, long smsdate) {
         super(context);
         this.sms = sms;
         this.smsdate = smsdate;
     }
-            RadioButton rbIncome;
-            RadioButton rbConsume;
-            TextView date;
-            Spinner useitem;
-            EditText price;
-            EditText payMemo;
-            Button submit;
-            Button dismiss;
+
+    RadioButton rbIncome;
+    RadioButton rbConsume;
+    TextView date;
+    Spinner useitem;
+    EditText price;
+    EditText payMemo;
+    Button submit;
+    Button dismiss;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +115,7 @@ public class SMSEditDialog extends Dialog {
         stYear = sdate.substring(0,4);
         stMonth = sdate.substring(5,7);
         stDay = sdate.substring(8,10);
+
         StringTokenizer tokenizer = new StringTokenizer(sms, " ");
 
         tokenizer.nextToken();
@@ -142,17 +140,14 @@ public class SMSEditDialog extends Dialog {
         payMemo.setText(smspayMemo);
         date.setText(sdate);
 
-
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Hashtable<String, String> ledger   // HashTable로 연결
-                        = new Hashtable<String, String>();
+                // HashTable로 연결
+                Hashtable<String, String> ledger  = new Hashtable<String, String>();
                 ledger.put("useItem", useitem.getSelectedItem().toString());
                 ledger.put("price", price.getText().toString());
                 ledger.put("paymemo",payMemo.getText().toString());
-
 
                 if(rbConsume.isChecked()) {
                     myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child("지출").child(fdate).setValue(ledger);
@@ -160,8 +155,6 @@ public class SMSEditDialog extends Dialog {
                 else {
                     myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child("수입").child(fdate).setValue(ledger);
                 }
-
-
 
                 Toast.makeText(getContext(), "가계부가 추가되었습니다", Toast.LENGTH_SHORT).show();
                 dismiss();
@@ -175,5 +168,4 @@ public class SMSEditDialog extends Dialog {
             }
         });
     }
-
 }

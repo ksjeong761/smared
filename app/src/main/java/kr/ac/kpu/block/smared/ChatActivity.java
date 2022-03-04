@@ -25,6 +25,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 public class ChatActivity extends AppCompatActivity {
+
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
@@ -43,10 +44,10 @@ public class ChatActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
 
-        etText = (EditText) findViewById(R.id.etText);
-        btnSend = (Button) findViewById(R.id.btnSend);
-        btnViewFriend = (Button) findViewById(R.id.btnViewFriend);
-        mRecyclerView = (RecyclerView) findViewById(R.id.rvChat);
+        etText = findViewById(R.id.etText);
+        btnSend = findViewById(R.id.btnSend);
+        btnViewFriend = findViewById(R.id.btnViewFriend);
+        mRecyclerView = findViewById(R.id.rvChat);
 
         // Firebase Database 연결
         database = FirebaseDatabase.getInstance();
@@ -64,50 +65,39 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         // 친구 목록 보기 버튼 이벤트 - FriendActivity로 이동한다.
-        btnViewFriend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent in = new Intent(ChatActivity.this,FriendActivity.class);
-                in.putExtra("chatUid",stChatId);
-                startActivity(in);
-            }
+        btnViewFriend.setOnClickListener(view -> {
+            Intent nextIntent = new Intent(ChatActivity.this,FriendActivity.class);
+            nextIntent.putExtra("chatUid",stChatId);
+            startActivity(nextIntent);
         });
 
         // 메시지 보내기 버튼 이벤트 - DB에 사용자 정보, 사진, 메시지를 저장한다.
-        btnSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String stText = etText.getText().toString();
-
-                if (stText.equals("") || stText.isEmpty()) { // 공백 체크
-                    Toast.makeText(ChatActivity.this, "내용을 입력해 주세요.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Calendar c = Calendar.getInstance(); // Firebase내에 날짜로 저장
-                    SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                    String formattedDate = df.format(c.getTime());
-
-                    DatabaseReference myRef = database.getReference("chats").child(stChatId).child("chat").child(formattedDate);
-
-                    // HashTable로 연결
-                    Hashtable<String, String> chat  = new Hashtable<String, String>();
-                    chat.put("email", email);
-                    chat.put("text", stText);
-                    chat.put("photo", photo);
-                    chat.put("nickname", nickname);
-
-                    myRef.setValue(chat);
-                    etText.setText("");
-                }
+        btnSend.setOnClickListener(view -> {
+            String stText = etText.getText().toString();
+            if (stText.equals("") || stText.isEmpty()) {
+                Toast.makeText(ChatActivity.this, "내용을 입력해 주세요.", Toast.LENGTH_SHORT).show();
+                return;
             }
+
+            // Firebase내에 날짜로 저장
+            String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+            DatabaseReference myRef = database.getReference("chats").child(stChatId).child("chat").child(formattedDate);
+
+            // HashTable로 연결
+            Hashtable<String, String> chat  = new Hashtable<String, String>();
+            chat.put("email", email);
+            chat.put("text", stText);
+            chat.put("photo", photo);
+            chat.put("nickname", nickname);
+
+            myRef.setValue(chat);
+            etText.setText("");
         });
 
         // 닫기 버튼 이벤트
-        Button btnFinish = (Button) findViewById(R.id.btnFinish);
-        btnFinish.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                finish();
-            }
+        Button btnFinish = findViewById(R.id.btnFinish);
+        btnFinish.setOnClickListener(view -> {
+            finish();
         });
 
         // RecyclerView를 통해 채팅 메시지와 이미지를 보여줄 것이다.

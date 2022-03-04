@@ -1,6 +1,7 @@
 package kr.ac.kpu.block.smared;
 
 public class Ledger {
+
     public String year;
     public String month;
     public String day;

@@ -21,69 +21,74 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-/**
- * Created by psycj on 2018-05-16.
- */
+// https://tfincoming.tistory.com/1
+// BroadcaseReceiver를 사용해 SMS를 받았을 경우 이벤트를 동작시킨다.
 public class SMSReceiver extends BroadcastReceiver {
 
-    private static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
-    private static final String SERVER_KEY = "AAAAzHjou4I:APA91bGmqKJ-XhpwAg4VfKkDVkUlBeGLv661C1bCgEz3k-Ak0j89p_zhvyYPb_sx-H9cOlO-g6zcyeWySxPeusz9bpWLORr6RI49F4xaYkPX5G4-kbbVwqiwf7FiBxygzaySIwwuQIIo";
-
-    static final String logTag = "SmsReceiver";
     static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
 
     @Override
-
     public void onReceive(Context context, Intent intent) {
+        // SMS 수신 이외의 이벤트는 무시한다.
+        if (!intent.getAction().equals(ACTION)) {
+            return;
+        }
 
-        if (intent.getAction().equals(ACTION)) {
+        // Bundle 널 체크
+        Bundle bundle = intent.getExtras();
+        if (bundle == null) {
+            return;
+        }
 
+        // pdus 객체 널 체크
+        Object[] pdusObj = (Object[])bundle.get("pdus");
+        if (pdusObj == null) {
+            return;
+        }
 
-            //Bundel 널 체크
+        // SMS 처리
+        for (int i = 0; i < pdusObj.length; i++) {
+            SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
+            String sms = smsMessage.getMessageBody();
+            long smsDate = smsMessage.getTimestampMillis();
 
-            Bundle bundle = intent.getExtras();
+            // 현재 신한 체크카드 메시지만 처리할 수 있다.
+            if (!sms.contains("신한체크승인")) {
+                continue;
+            }
 
-            if (bundle == null) {
-
+            // 푸시 알림 권한 요청
+            NotificationManager notificationManager = (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
+            if (notificationManager == null) {
                 return;
-
             }
 
+            // 푸시 알림을 눌렀을 때 인텐트가 실행되게 한다.
+            // (현재 액티비티를 최상단으로 올린다 | 최상단 액티비티를 제외하고 모든 액티비티를 제거한다)
+            Intent intents = new Intent(context.getApplicationContext(), TabActivity.class);
+            intents.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            intents.putExtra("sms", sms);
+            intents.putExtra("smsdate", smsDate);
+            PendingIntent pendnoti = PendingIntent.getActivity(context, 0, intents, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            //pdu 객체 널 체크
+            // 빌더 패턴을 이용해 푸시 알림 상세를 설정한다.
+            Notification.Builder builder = new Notification.Builder(context.getApplicationContext());
+            builder.setSmallIcon(R.drawable.logo)           // 푸시 알림 왼쪽 아이콘
+                .setTicker("Ticker")                        // 푸시 알림 발생시 잠깐 나오는 텍스트
+                .setWhen(System.currentTimeMillis())        // 푸시 알림 시간 miliSecond 단위 설정
+                .setNumber(1)                               // 확인하지 않은 알림 개수 표시 설정
+                .setContentTitle("SmaRed")                  // 푸시 알림 상단 텍스트(제목)
+                .setContentText("[신한체크카드 사용] 가계부에 추가하시겠습니까?")           // 푸시 알림 내용
+                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)     // 소리와 진동으로 알림
+                .setContentIntent(pendnoti)                 // 푸시 알림 터치시 실행할 작업 인텐트 설정
+                .setAutoCancel(true)                        // 푸시 알림 터치시 자동 삭제 설정
+                .setOngoing(true);                          // 푸시 알림을 지속적으로 띄울 것인지 설정
 
-            Object[] pdusObj = (Object[]) bundle.get("pdus");
+            // 푸시 알림 보내기
+            notificationManager.notify(1, builder.build());
 
-            if (pdusObj == null) {
-
-                return;
-
-            }
-
-
-            //message 처리
-            SmsMessage[] smsMessages = new SmsMessage[pdusObj.length];
-
-            for (int i = 0; i < pdusObj.length; i++) {
-
-                smsMessages[i] = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
-
-                if ( smsMessages[i].getMessageBody().contains("신한체크승인") ) {
-                    NotificationManager notificationManager =
-                            (NotificationManager)context.getSystemService(context.NOTIFICATION_SERVICE);
-                    Intent intents = new Intent(context.getApplicationContext(),TabActivity.class);
-                    intents.putExtra("sms",smsMessages[i].getMessageBody());
-                    intents.putExtra("smsdate",smsMessages[i].getTimestampMillis());
-                    Notification.Builder builder = new Notification.Builder(context.getApplicationContext());
-                    intents.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    PendingIntent pendnoti = PendingIntent.getActivity(context, 0, intents, PendingIntent.FLAG_UPDATE_CURRENT);
-                    builder.setSmallIcon(R.drawable.logo).setTicker("Ticker").setWhen(System.currentTimeMillis())
-                            .setNumber(1).setContentTitle("SmaRed").setContentText("[신한체크카드 사용] 가계부에 추가하시겠습니까?")
-                            .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE).setContentIntent(pendnoti).setAutoCancel(true).setOngoing(true);
-                    notificationManager.notify(1, builder.build());
-                    Toast.makeText(context, smsMessages[i].getMessageBody(), Toast.LENGTH_SHORT).show();
-                }
-            }
+            // SMS 보여주기
+            Toast.makeText(context, sms, Toast.LENGTH_SHORT).show();
         }
     }
 }

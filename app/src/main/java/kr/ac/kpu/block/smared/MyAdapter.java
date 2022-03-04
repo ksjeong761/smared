@@ -14,19 +14,13 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
-    private String[] mDataset;
-    List<Chat> mChat;
-    String stEmail;
+
     Context context;
 
-    public MyAdapter(List<Chat> mChat, String email, Context context) {
-        this.mChat = mChat;
-        this.stEmail = email;
-        this.context = context;
-    }
+    List<Chat> mChat;
+    String stEmail;
 
-    //리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로
-    //findViewById가 매번 호출되는 것을 방지한다.
+    // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public TextView mTextView;
         public TextView tvChatid;
@@ -35,18 +29,25 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         public ViewHolder(View itemView) {
             super(itemView);
 
-            mTextView = (TextView) itemView.findViewById(R.id.mTextView);
-            tvChatid = (TextView) itemView.findViewById(R.id.tvChatid);
-            ivChatimage = (ImageView) itemView.findViewById(R.id.ivChatimage);
+            mTextView = itemView.findViewById(R.id.mTextView);
+            tvChatid = itemView.findViewById(R.id.tvChatid);
+            ivChatimage = itemView.findViewById(R.id.ivChatimage);
         }
     }
 
-    //자신의 뷰 타입은 1 다른 사람은 2
+    public MyAdapter(List<Chat> mChat, String email, Context context) {
+        this.mChat = mChat;
+        this.stEmail = email;
+        this.context = context;
+    }
+
+    // 자신의 뷰 타입은 1 다른 사람은 2
     @Override
     public int getItemViewType(int position) {
         if(mChat.get(position).getEmail().equals(stEmail)) {
             return 1;
-        } else {
+        }
+        else {
             return 2;
         }
     }
@@ -63,7 +64,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         if (viewType == 1) {
             v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.my_text_view, parent, false);
-        } else {
+        }
+        else {
             v = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.they_text_view, parent, false);
         }
@@ -74,16 +76,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
-    // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
         holder.mTextView.setText(mChat.get(position).getText());
         holder.tvChatid.setText(mChat.get(position).getNickname());
-        if (TextUtils.isEmpty(mChat.get(position).getPhoto())) {
-
-        } else {
+        if (!TextUtils.isEmpty(mChat.get(position).getPhoto())) {
             Picasso.with(context).load(mChat.get(position).getPhoto()).fit().centerInside().into(holder.ivChatimage);
         }
     }

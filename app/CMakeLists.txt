@@ -2,9 +2,11 @@
 # library. You should either keep the default value or only pass a
 # value of 3.4.0 or lower.
 
-
+#OpenCV 라이브러리가 설치된 경로를 지정해줘야 한다.
 set(pathOpenCv C:/OpenCV-android-sdk)
-set(pathProject D:/SmaRed)
+
+# CMAKE_CURRENT_SOURCE_DIR은 CMakeLists.txt 파일이 위치한 경로이다.
+set(pathProject ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 cmake_minimum_required(VERSION 3.4.1)
 

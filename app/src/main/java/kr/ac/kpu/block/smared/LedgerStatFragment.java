@@ -425,7 +425,6 @@ public class LedgerStatFragment extends android.app.Fragment {
         pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-
                 PieEntry pe = (PieEntry) e;
 
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
@@ -442,15 +441,13 @@ public class LedgerStatFragment extends android.app.Fragment {
                 } else if (pe.getLabel().equals("기타")) {
                     alertDialog.setMessage("기타 비용 총계 : " + (int)etcPrice + "원");
                 }
+
                 AlertDialog alert = alertDialog.create();
                 alert.show();
-
             }
 
             @Override
-            public void onNothingSelected() {
-
-            }
+            public void onNothingSelected() {}
         });
     }
 }

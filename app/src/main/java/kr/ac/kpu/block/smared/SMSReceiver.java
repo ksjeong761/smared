@@ -24,8 +24,6 @@ import java.net.URL;
 /**
  * Created by psycj on 2018-05-16.
  */
-
-
 public class SMSReceiver extends BroadcastReceiver {
 
     private static final String FCM_MESSAGE_URL = "https://fcm.googleapis.com/fcm/send";
@@ -64,7 +62,6 @@ public class SMSReceiver extends BroadcastReceiver {
 
 
             //message 처리
-
             SmsMessage[] smsMessages = new SmsMessage[pdusObj.length];
 
             for (int i = 0; i < pdusObj.length; i++) {
@@ -85,10 +82,7 @@ public class SMSReceiver extends BroadcastReceiver {
                             .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE).setContentIntent(pendnoti).setAutoCancel(true).setOngoing(true);
                     notificationManager.notify(1, builder.build());
                     Toast.makeText(context, smsMessages[i].getMessageBody(), Toast.LENGTH_SHORT).show();
-
                 }
-
-
             }
         }
     }

@@ -25,18 +25,23 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Hashtable;
 
-
+//가계부 기록 화면
 public class LedgerRegFragment extends android.app.Fragment {
+    //[Refactoring] 값을 사용하지 않는다.
+    Context context;
 
+    //데이터베이스 관련
     FirebaseDatabase database;
     DatabaseReference myRef;
     FirebaseUser user;
-    Context context;
 
+    //사용자로부터 입력받을 값들
     String stUseItem;
     String stPrice;
     String stPaymemo;
-    Calendar c = Calendar.getInstance(); // Firebase내에 날짜로 저장
+
+    //사용자로부터 입력받을 날짜
+    Calendar c = Calendar.getInstance();
     SimpleDateFormat years = new SimpleDateFormat("yyyy");
     SimpleDateFormat months = new SimpleDateFormat("MM");
     SimpleDateFormat days = new SimpleDateFormat("dd");
@@ -45,26 +50,28 @@ public class LedgerRegFragment extends android.app.Fragment {
     String stDay = days.format(c.getTime());
 
     @Override
-
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        //사용자 정보 DB에 접근하기 위한 객체
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
+
+        //현재 로그인한 사용자 가져오기
         user = FirebaseAuth.getInstance().getCurrentUser();
 
+        //Fragment를 화면에 출력하기 위해 뷰를 생성한다.
         View v = inflater.inflate(R.layout.fragment_ledger_reg, container, false);
 
         final Spinner spnUseitem = (Spinner) v.findViewById(R.id.spnUseitem);
-        Button btnSave = (Button) v.findViewById(R.id.btnSave);
         final EditText etPrice = (EditText) v.findViewById(R.id.etPrice);
         final EditText etPaymemo = (EditText) v.findViewById(R.id.etPaymemo);
         CalendarView cvCalender = (CalendarView) v.findViewById(R.id.cvCalender);
         final RadioButton rbConsume = (RadioButton) v.findViewById(R.id.rbConsume);
         RadioButton rbIncome = (RadioButton) v.findViewById(R.id.rbIncome);
+        Button btnSave = (Button) v.findViewById(R.id.btnSave);
         Button btnOcr = (Button)v.findViewById(R.id.btnOcr);
         Button btnSMS = (Button)v.findViewById(R.id.btnSMS) ;
 
+        //드롭다운 메뉴(소비영역 분류) 선택 이벤트 - 선택된 값을 저장한다.
         spnUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -72,21 +79,22 @@ public class LedgerRegFragment extends android.app.Fragment {
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-            }
+            public void onNothingSelected(AdapterView<?> adapterView) {}
         });
 
+        //날짜 선택 이벤트 - 선택된 날짜를 저장하고 사용자에게 텍스트로 보여준다.
         cvCalender.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(@NonNull CalendarView calendarView, int year, int month, int day) {
-
                 stYear = Integer.toString(year);
                 stMonth = String.format("%02d",month+1);
                 stDay =  String.format("%02d",day);
 
-               Toast.makeText(getActivity(), stYear+"-"+stMonth+"-"+stDay, Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), stYear+"-"+stMonth+"-"+stDay, Toast.LENGTH_SHORT).show();
             }
         });
+
+        //저장 버튼 이벤트 - UI에 정보가 모두 입력되었다면 DB에 저장한다.
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -95,8 +103,8 @@ public class LedgerRegFragment extends android.app.Fragment {
                 c = Calendar.getInstance();
                 SimpleDateFormat time = new SimpleDateFormat("HHmmss");
                 String stTime = time.format(c.getTime());
-                Hashtable<String, String> ledger   // HashTable로 연결
-                        = new Hashtable<String, String>();
+                // HashTable로 연결
+                Hashtable<String, String> ledger = new Hashtable<String, String>();
                 ledger.put("useItem", stUseItem);
                 ledger.put("price", stPrice);
                 ledger.put("paymemo",stPaymemo);
@@ -112,13 +120,13 @@ public class LedgerRegFragment extends android.app.Fragment {
                         Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
                     }
                 }
+
                 etPrice.setText("");
                 etPaymemo.setText("");
-
-
             }
         });
 
+        //OCR 버튼 이벤트 - ImageActivity로 이동한다.
         btnOcr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -127,6 +135,7 @@ public class LedgerRegFragment extends android.app.Fragment {
             }
         });
 
+        //SMS 버튼 이벤트 - SMSActivity로 이동한다.
         btnSMS.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -135,9 +144,6 @@ public class LedgerRegFragment extends android.app.Fragment {
             }
         });
 
-
         return v;
     }
-
-
 }

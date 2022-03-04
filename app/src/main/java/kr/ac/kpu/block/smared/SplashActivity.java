@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
+//프로그램 실행했을 때 이미지 보여주는 액티비티
 public class SplashActivity extends Activity {
     int SPLASH_TIME=2000;
     @Override

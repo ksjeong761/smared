@@ -1,6 +1,5 @@
 package kr.ac.kpu.block.smared;
 
-
 public class SMS {
     public String payMemo;
     public String price;
@@ -12,7 +11,6 @@ public class SMS {
     public String getPayMemo() {
         return payMemo;
     }
-
     public void setPayMemo(String payMemo) {
         this.payMemo = payMemo;
     }
@@ -20,7 +18,6 @@ public class SMS {
     public String getPrice() {
         return price;
     }
-
     public void setPrice(String price) {
         this.price = price;
     }
@@ -28,7 +25,6 @@ public class SMS {
     public String getYear() {
         return year;
     }
-
     public void setYear(String year) {
         this.year = year;
     }
@@ -36,7 +32,6 @@ public class SMS {
     public String getMonth() {
         return month;
     }
-
     public void setMonth(String month) {
         this.month = month;
     }
@@ -44,20 +39,18 @@ public class SMS {
     public String getDay() {
         return day;
     }
-
     public void setDay(String day) {
         this.day = day;
-    }
-
-    public SMS() {
-        // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
     }
 
     public String getTime() {
         return time;
     }
-
     public void setTime(String time) {
         this.time = time;
+    }
+
+    public SMS() {
+        // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
     }
 }

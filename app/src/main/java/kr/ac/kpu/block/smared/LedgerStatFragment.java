@@ -4,12 +4,10 @@ import android.app.AlertDialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
@@ -19,8 +17,6 @@ import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.ChartTouchListener;
-import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,17 +33,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class LedgerStatFragment extends android.app.Fragment {
 
     PieChart pieChart;
 
     FirebaseDatabase database;
     DatabaseReference myRef;
-    DatabaseReference chatRef;
     FirebaseUser user;
     LedgerContent ledgerContent = new LedgerContent();
-
 
     int index=0;  // 년,월 인덱스
     Set<String> selectMonth = new HashSet<String>(); // 년,월 중복제거용
@@ -55,7 +48,6 @@ public class LedgerStatFragment extends android.app.Fragment {
     List<Ledger> mLedger ;
     List<Ledger> tempLedger ; // 불러온 전체 가계부 목록
     String parsing;
-
 
     ImageButton ibLastMonth2; // 왼쪽 화살표
     TextView tvLedgerMonth2; // 년,월 출력부
@@ -71,30 +63,27 @@ public class LedgerStatFragment extends android.app.Fragment {
     float marketPrice=0;
     float homePrice=0;
 
-
     float cloth=0f;
     float food=0f;
     float home=0f;
     float trans=0f;
     float market=0f;
     float etc=0f;
-
     float total=0f;
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-
         View v = inflater.inflate(R.layout.fragment_ledger_stat, container, false);
         mLedger = new ArrayList<>();
-        ibLastMonth2 = (ImageButton) v.findViewById(R.id.ibLastMonth2);
-        ibNextMonth2 = (ImageButton) v.findViewById(R.id.ibNextMonth2);
-        tvLedgerMonth2 = (TextView) v.findViewById(R.id.tvLedgerMonth2);
+        ibLastMonth2 = v.findViewById(R.id.ibLastMonth2);
+        ibNextMonth2 = v.findViewById(R.id.ibNextMonth2);
+        tvLedgerMonth2 = v.findViewById(R.id.tvLedgerMonth2);
         i = 0;
-        pieChart = (PieChart)v.findViewById(R.id.piechart);
+        pieChart = v.findViewById(R.id.piechart);
+
         myRef.child(user.getUid()).child("Ledger").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -102,87 +91,63 @@ public class LedgerStatFragment extends android.app.Fragment {
                 ledgerView(dataSnapshot);
                 monthList = new ArrayList(selectMonth); // 년 월만 빼서 따로 리스트 생성
                 Collections.sort(monthList);
-                if(monthList.isEmpty()) {
 
-                } else {
+                if(!monthList.isEmpty()) {
                     parsing = monthList.get(monthList.size() - 1).replaceAll("[^0-9]", "");
                     index = monthList.size() - 1;
                 }
-
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
+            public void onCancelled(DatabaseError databaseError) { }
         });
 
-        ibLastMonth2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mLedger.size() != 0) {
-                    tempLedger = new ArrayList<>();
-                    if (index != 0) { // 년,월이 제일 처음이 아니면
-                        index--;
-                        tvLedgerMonth2.setText(monthList.get(index));
-                        parsing = monthList.get(index).replaceAll("[^0-9]", ""); // 날짜를 20182 이런형식으로 파싱
+        ibLastMonth2.setOnClickListener(view -> {
+            if (mLedger.size() <= 0) {
+                return;
+            }
 
-                        for (int j = 0; j < mLedger.size(); j++) {
-                            if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                                tempLedger.add(mLedger.get(j));
-                            }
+            if (index != 0) { // 년,월이 제일 처음이 아니면
+                index--;
+            } else {   // 년,월이 처음이면
+                index = monthList.size() - 1;
+            }
 
-                        }
-                        selectChart();
-                    } else {   // 년,월이 처음이면
-                        index = monthList.size() - 1;
-                        tvLedgerMonth2.setText(monthList.get(index));
-                        parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            tvLedgerMonth2.setText(monthList.get(index));
+            parsing = monthList.get(index).replaceAll("[^0-9]", "");
 
-                        for (int j = 0; j < mLedger.size(); j++) {
-                            if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                                tempLedger.add(mLedger.get(j));
-
-                            }
-                        }
-                        selectChart();
-                    }
+            tempLedger = new ArrayList<>();
+            for (int j = 0; j < mLedger.size(); j++) {
+                if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
+                    tempLedger.add(mLedger.get(j));
                 }
             }
+            selectChart();
         });
 
-        ibNextMonth2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (mLedger.size() != 0) {
-                    tempLedger = new ArrayList<>();
-                    if (index != monthList.size() - 1) { // 년, 월이 마지막이 아니면
-                        index++;
-                        tvLedgerMonth2.setText(monthList.get(index));
-                        parsing = monthList.get(index).replaceAll("[^0-9]", "");
+        ibNextMonth2.setOnClickListener(view -> {
+            if (mLedger.size() <= 0) {
+                return;
+            }
 
-                        for (int j = 0; j < mLedger.size(); j++) {
-                            if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                                tempLedger.add(mLedger.get(j));
-                            }
-                        }
-                        selectChart();
-                    } else {   // 년,월이 마지막이면
-                        index = 0;
-                        tvLedgerMonth2.setText(monthList.get(index));
-                        parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            if (index != monthList.size() - 1) { // 년, 월이 마지막이 아니면
+                index++;
+            } else {   // 년,월이 마지막이면
+                index = 0;
+            }
 
-                        for (int j = 0; j < mLedger.size(); j++) {
-                            if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                                tempLedger.add(mLedger.get(j));
-                            }
-                        }
-                        selectChart();
-                    }
+            tvLedgerMonth2.setText(monthList.get(index));
+            parsing = monthList.get(index).replaceAll("[^0-9]", "");
+
+            tempLedger = new ArrayList<>();
+            for (int j = 0; j < mLedger.size(); j++) {
+                if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
+                    tempLedger.add(mLedger.get(j));
                 }
             }
-        });
 
+            selectChart();
+        });
 
         return v;
     }
@@ -190,13 +155,9 @@ public class LedgerStatFragment extends android.app.Fragment {
     public void ledgerView(DataSnapshot dataSnapshot) {
         Ledger ledger = new Ledger();
         for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
-
             for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
-
                 for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
-
                     for (DataSnapshot classfySnapshot : daySnapshot.getChildren()) { // 분류
-
                         for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) { //
                             ledgerContent = timesSnapshot.getValue(LedgerContent.class);
 
@@ -204,29 +165,19 @@ public class LedgerStatFragment extends android.app.Fragment {
                             ledger.setYear(yearSnapshot.getKey());
                             ledger.setMonth(monthSnapshot.getKey());
                             selectMonth.add(ledger.getYear()+"년 "+ledger.getMonth()+"월");
-
                             ledger.setDay(daySnapshot.getKey());
                             ledger.setTimes(timesSnapshot.getKey());
-                            //     Toast.makeText(getActivity(),timesSnapshot.getKey(),Toast.LENGTH_SHORT).show();
-
-
                             ledger.setPaymemo(ledgerContent.getPaymemo()); ;
                             ledger.setPrice(ledgerContent.getPrice()); ;
                             ledger.setUseItem(ledgerContent.getUseItem()); ;
 
-
                             mLedger.add(ledger);
                             ledger = new Ledger();
-
-
                         }
                     }
                 }
             }
         }
-
-
-
 
         for (j=0; j<mLedger.size(); j++) {
             if (mLedger.get(j).getClassfy().equals("지출")) {
@@ -305,10 +256,10 @@ public class LedgerStatFragment extends android.app.Fragment {
         pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
-
                 PieEntry pe = (PieEntry) e;
 
                 AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+
                 if (pe.getLabel().equals("의류비")) {
                     alertDialog.setMessage("의류비 총계 : " + (int)clothPrice + "원");
                 } else if (pe.getLabel().equals("식비")) {
@@ -322,15 +273,13 @@ public class LedgerStatFragment extends android.app.Fragment {
                 } else if (pe.getLabel().equals("기타")) {
                     alertDialog.setMessage("기타 비용 총계 : " + (int)etcPrice + "원");
                 }
+
                 AlertDialog alert = alertDialog.create();
                 alert.show();
-
             }
 
             @Override
-            public void onNothingSelected() {
-
-            }
+            public void onNothingSelected() { }
         });
     }
 
@@ -341,7 +290,6 @@ public class LedgerStatFragment extends android.app.Fragment {
         etcPrice=0;
         marketPrice=0;
         homePrice=0;
-
 
         cloth=0f;
         food=0f;

@@ -21,9 +21,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.Hashtable;
 import java.util.List;
 
-/**
- * Created by psycj on 2018-03-28.
- */
 public class EditDialog extends Dialog {
 
     List<Ledger> mLedger;
@@ -89,14 +86,14 @@ public class EditDialog extends Dialog {
         requestWindowFeature(Window.FEATURE_NO_TITLE); //타이틀 바 삭제
         setContentView(R.layout.dialog_edit);
 
-        rbIncome = (RadioButton) findViewById(R.id.rbIncome);
-        rbConsume = (RadioButton) findViewById(R.id.rbConsume);
-        date = (TextView) findViewById(R.id.date);
-        useitem = (Spinner) findViewById(R.id.useitem);
-        price = (EditText) findViewById(R.id.price);
-        payMemo = (EditText) findViewById(R.id.payMemo);
-        submit = (Button) findViewById(R.id.submit);
-        dismiss = (Button) findViewById(R.id.dismiss);
+        rbIncome = findViewById(R.id.rbIncome);
+        rbConsume = findViewById(R.id.rbConsume);
+        date = findViewById(R.id.date);
+        useitem = findViewById(R.id.useitem);
+        price = findViewById(R.id.price);
+        payMemo = findViewById(R.id.payMemo);
+        submit = findViewById(R.id.submit);
+        dismiss = findViewById(R.id.dismiss);
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
@@ -115,96 +112,86 @@ public class EditDialog extends Dialog {
         payMemo.setText(mLedger.get(position).getPaymemo());
 
         //가계부 수정 버튼 이벤트 - 사용자로부터 데이터를 입력받아 가계부 DB를 수정한다.
-        submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // HashTable로 연결
-                Hashtable<String, String> ledger = new Hashtable<String, String>();
-                ledger.put("useItem", useitem.getSelectedItem().toString());
-                ledger.put("price", price.getText().toString());
-                ledger.put("paymemo",payMemo.getText().toString());
+        submit.setOnClickListener(view -> {
+            Hashtable<String, String> ledger = new Hashtable<>();
+            ledger.put("useItem", useitem.getSelectedItem().toString());
+            ledger.put("price", price.getText().toString());
+            ledger.put("paymemo",payMemo.getText().toString());
 
+            if (rbConsume.isChecked()) {
+                stClassfy = "[ 지출 ]";
+            }
+            else {
+                stClassfy = "[ 수입 ]";
+            }
+
+            stUseitem = useitem.getSelectedItem().toString();
+            stPrice = price.getText().toString();
+            stPaymemo = payMemo.getText().toString();
+
+            if (selectChatuid.equals("")) {
                 if (rbConsume.isChecked()) {
-                    stClassfy = "[ 지출 ]";
-                }
-                else {
-                    stClassfy = "[ 수입 ]";
-                }
-
-                stUseitem = useitem.getSelectedItem().toString();
-                stPrice = price.getText().toString();
-                stPaymemo = payMemo.getText().toString();
-
-                //
-                if (selectChatuid.equals("")) {
-                    if (rbConsume.isChecked()) {
-                        myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("수입")
-                                .child(mLedger.get(position).getTimes())
-                                .removeValue();
-                        myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("지출")
-                                .child(mLedger.get(position).getTimes())
-                                .setValue(ledger);
-                    } else {
-                        myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("지출")
-                                .child(mLedger.get(position).getTimes())
-                                .removeValue();
-                        myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("수입")
-                                .child(mLedger.get(position).getTimes())
-                                .setValue(ledger);
-                    }
+                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("수입")
+                            .child(mLedger.get(position).getTimes())
+                            .removeValue();
+                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("지출")
+                            .child(mLedger.get(position).getTimes())
+                            .setValue(ledger);
                 } else {
-                    if (rbConsume.isChecked()) {
-                        chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("수입")
-                                .child(mLedger.get(position).getTimes())
-                                .removeValue();
-                        chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("지출")
-                                .child(mLedger.get(position).getTimes())
-                                .setValue(ledger);
-                    } else {
-                        chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("지출")
-                                .child(mLedger.get(position).getTimes())
-                                .removeValue();
-                        chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                                .child(mLedger.get(position).getMonth())
-                                .child(mLedger.get(position).getDay())
-                                .child("수입")
-                                .child(mLedger.get(position).getTimes())
-                                .setValue(ledger);
-                    }
+                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("지출")
+                            .child(mLedger.get(position).getTimes())
+                            .removeValue();
+                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("수입")
+                            .child(mLedger.get(position).getTimes())
+                            .setValue(ledger);
                 }
-
-                Toast.makeText(getContext(), "가계부가 수정되었습니다", Toast.LENGTH_SHORT).show();
-                dismiss();
+            } else {
+                if (rbConsume.isChecked()) {
+                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("수입")
+                            .child(mLedger.get(position).getTimes())
+                            .removeValue();
+                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("지출")
+                            .child(mLedger.get(position).getTimes())
+                            .setValue(ledger);
+                } else {
+                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("지출")
+                            .child(mLedger.get(position).getTimes())
+                            .removeValue();
+                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
+                            .child(mLedger.get(position).getMonth())
+                            .child(mLedger.get(position).getDay())
+                            .child("수입")
+                            .child(mLedger.get(position).getTimes())
+                            .setValue(ledger);
+                }
             }
+
+            Toast.makeText(getContext(), "가계부가 수정되었습니다", Toast.LENGTH_SHORT).show();
+            dismiss();
         });
 
-        dismiss.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dismiss();
-            }
-        });
+        dismiss.setOnClickListener(view -> dismiss());
     }
 
     public void setSpinner() {

@@ -62,16 +62,13 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
 
         //자신의 뷰 타입은 1 다른 사람은 2
         if (viewType == 1) {
-            v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.my_text_view, parent, false);
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.my_text_view, parent, false);
         }
         else {
-            v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.they_text_view, parent, false);
+            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.they_text_view, parent, false);
         }
 
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.

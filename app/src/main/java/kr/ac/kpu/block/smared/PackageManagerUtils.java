@@ -43,7 +43,8 @@ public class PackageManagerUtils {
             MessageDigest md = MessageDigest.getInstance("SHA1");
             byte[] digest = md.digest(signature);
             return BaseEncoding.base16().lowerCase().encode(digest);
-        } catch (NoSuchAlgorithmException e) {
+        }
+        catch (NoSuchAlgorithmException e) {
             return null;
         }
     }

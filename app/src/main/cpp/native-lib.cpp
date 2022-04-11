@@ -29,32 +29,25 @@ Java_kr_ac_kpu_block_smared_ImageProcessingActivity_loadImage(
 }
 
 JNIEXPORT void JNICALL
-Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing(JNIEnv *env, jobject instance,
-                                                                 jlong inputImage,
-                                                                 jlong outputImage,jint fileCheck) {
+Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing(
+        JNIEnv *env,
+        jobject instance,
+        jlong inputImage,
+        jlong outputImage,
+        jint fileCheck) {
     Mat &img_input = *(Mat *) inputImage;
     Mat &img_output = *(Mat *) outputImage;
     Mat imgCanny;
     Mat element5(5, 5, CV_8U, cv::Scalar(1));
     Mat element3(3, 3, CV_8U, cv::Scalar(1));
     Mat element7(7, 7, CV_8U, cv::Scalar(1));
-    if(fileCheck==1) {
-        cvtColor(img_input, img_output, CV_BGR2GRAY); // 흑백화
-        GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
-        adaptiveThreshold(img_output, img_output, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 5); // 이진화
-        GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
-    } else {
 
-        cvtColor(img_input, img_output, CV_BGR2GRAY); // 흑백화
-        GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
-        adaptiveThreshold(img_output, img_output, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 5); // 이진화
+    cvtColor(img_input, img_output, CV_BGR2GRAY); // 흑백화
+    GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
+    adaptiveThreshold(img_output, img_output, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 5); // 이진화
+    if (fileCheck==1)
         morphologyEx(img_output, img_output, MORPH_CLOSE, element5);
-        GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
-
-    }
-
-
-
+    GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
 
     //morphologyEx(img_input, img_output, MORPH_CLOSE, element5);
     //Sobel(img_input, img_output,2,0,1,1,0,BORDER_DEFAULT);
@@ -65,9 +58,6 @@ Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing(JNIEnv *env,
 
     //erode(img_input, img_input, element5, Point(-1,-1), 1, BORDER_DEFAULT, morphologyDefaultBorderValue());
     //dilate(img_input,img_output, element5, Point(-1,-1), 1, BORDER_DEFAULT, morphologyDefaultBorderValue());
-
-
-
 }
 /*
 apply Otsu threshold to the region in mask

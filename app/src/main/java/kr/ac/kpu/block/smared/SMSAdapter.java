@@ -67,9 +67,7 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
         myRef = database.getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        View v = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.list_sms, parent, false);
-
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_sms, parent, false);
         ViewHolder vh = new ViewHolder(v);
         return vh;
     }

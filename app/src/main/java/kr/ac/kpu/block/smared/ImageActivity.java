@@ -38,13 +38,14 @@ public class ImageActivity extends Activity implements View.OnClickListener
     private static final int PICK_FROM_ALBUM = 2;
     private static final int CROP_FROM_CAMERA = 3;
 
-    private Uri photoUri;
-    private String[] permissions = {Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA};
     private static final int MULTIPLE_PERMISSIONS = 101;
+    private String[] permissions = {
+        Manifest.permission.READ_EXTERNAL_STORAGE,
+        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+        Manifest.permission.CAMERA
+    };
 
-    private String mCurrentPhotoPath;
+    private Uri photoUri;
     private String ImagePath = "";
     Intent intent;
 
@@ -73,11 +74,11 @@ public class ImageActivity extends Activity implements View.OnClickListener
     }
 
     private void initView() {
-        imgMain = (ImageView) findViewById(R.id.imageInput);
-        btnCamera = (Button) findViewById(R.id.buttonI1);
-        btnAlbum = (Button) findViewById(R.id.buttonI2);
-        btnNext = (Button) findViewById(R.id.buttonI3);
-        btnCancel = (Button) findViewById(R.id.buttonI4);
+        imgMain = findViewById(R.id.imageInput);
+        btnCamera = findViewById(R.id.buttonI1);
+        btnAlbum = findViewById(R.id.buttonI2);
+        btnNext = findViewById(R.id.buttonI3);
+        btnCancel = findViewById(R.id.buttonI4);
 
         btnCamera.setOnClickListener(this);
         btnAlbum.setOnClickListener(this);
@@ -110,8 +111,8 @@ public class ImageActivity extends Activity implements View.OnClickListener
         if (!storageDir.exists()) {
             storageDir.mkdirs();
         }
+
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-        mCurrentPhotoPath = "file:" + image.getAbsolutePath();
         ImagePath = image.getName();
         return image;
     }
@@ -142,7 +143,6 @@ public class ImageActivity extends Activity implements View.OnClickListener
             case R.id.buttonI4:
                 finish();
                 break;
-
         }
     }
 
@@ -159,18 +159,17 @@ public class ImageActivity extends Activity implements View.OnClickListener
                         } else if (permissions[i].equals(this.permissions[1])) {
                             if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                                 showNoPermissionToastAndFinish();
-
                             }
                         } else if (permissions[i].equals(this.permissions[2])) {
                             if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                                 showNoPermissionToastAndFinish();
-
                             }
                         }
                     }
                 } else {
                     showNoPermissionToastAndFinish();
                 }
+
                 return;
             }
         }
@@ -187,89 +186,90 @@ public class ImageActivity extends Activity implements View.OnClickListener
             Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
+
         if (requestCode == PICK_FROM_ALBUM) {
             if (data == null) {
                 return;
             }
+
             photoUri = data.getData();
             cropImage();
-        } else if (requestCode == PICK_FROM_CAMERA) {
+        }
+        else if (requestCode == PICK_FROM_CAMERA) {
             cropImage();
             // 갤러리에 나타나게
-            MediaScannerConnection.scanFile(ImageActivity.this,
-                    new String[]{photoUri.getPath()}, null,
-                    new MediaScannerConnection.OnScanCompletedListener() {
-                        public void onScanCompleted(String path, Uri uri) {
-                        }
-                    });
-        } else if (requestCode == CROP_FROM_CAMERA) {
+            MediaScannerConnection.scanFile(ImageActivity.this, new String[]{photoUri.getPath()}, null, (path, uri) -> { });
+        }
+        else if (requestCode == CROP_FROM_CAMERA) {
             imgMain.setImageURI(null);
             imgMain.setImageURI(photoUri);
         }
     }
 
-    //Android N crop image
+    // Android N crop image
     public void cropImage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            this.grantUriPermission("camera", photoUri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            this.grantUriPermission("camera", photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
+
         Intent intent = new Intent("com.android.camera.action.CROP");
         intent.setDataAndType(photoUri, "image/*");
 
         List<ResolveInfo> list = getPackageManager().queryIntentActivities(intent, 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            grantUriPermission(list.get(0).activityInfo.packageName, photoUri,
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            grantUriPermission(list.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
+
         int size = list.size();
         if (size == 0) {
             Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_SHORT).show();
             return;
-        } else {
-            Toast.makeText(this, "용량이 큰 사진의 경우 시간이 오래 걸릴 수 있습니다.", Toast.LENGTH_SHORT).show();
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            }
-            intent.putExtra("crop", "true");
-            //intent.putExtra("aspectX", 0.5);
-            //intent.putExtra("aspectY", 2);
-            intent.putExtra("scale", true);
-            File croppedFileName = null;
-            try {
-                croppedFileName = createImageFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            File folder = new File(Environment.getExternalStorageDirectory() + "/SmaRed/");
-            File tempFile = new File(folder.toString(), croppedFileName.getName());
-
-            photoUri = FileProvider.getUriForFile(ImageActivity.this,
-                    "kr.ac.kpu.block.smared.provider", tempFile);
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            }
-
-            intent.putExtra("return-data", false);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-            intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
-
-            Intent i = new Intent(intent);
-            ResolveInfo res = list.get(0);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-
-                grantUriPermission(res.activityInfo.packageName, photoUri,
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            }
-            i.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            startActivityForResult(i, CROP_FROM_CAMERA);
         }
+
+        Toast.makeText(this, "용량이 큰 사진의 경우 시간이 오래 걸릴 수 있습니다.", Toast.LENGTH_SHORT).show();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        }
+
+        intent.putExtra("crop", "true");
+        //intent.putExtra("aspectX", 0.5);
+        //intent.putExtra("aspectY", 2);
+        intent.putExtra("scale", true);
+
+        File croppedFileName = null;
+        try {
+            croppedFileName = createImageFile();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        File folder = new File(Environment.getExternalStorageDirectory() + "/SmaRed/");
+        File tempFile = new File(folder.toString(), croppedFileName.getName());
+
+        photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", tempFile);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        }
+
+        intent.putExtra("return-data", false);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+        intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
+
+        Intent i = new Intent(intent);
+        ResolveInfo res = list.get(0);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+            grantUriPermission(res.activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+
+        i.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+        startActivityForResult(i, CROP_FROM_CAMERA);
     }
 }

@@ -32,14 +32,13 @@ public class ShareFragment extends Fragment{
                     switchFragment(fragment);
                     return true;
             }
+
             return false;
         }
     };
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_share, container, false);
 
         FragmentManager fragmentManager = getFragmentManager();
@@ -48,7 +47,7 @@ public class ShareFragment extends Fragment{
         fragmentTransaction.add(R.id.shareledger,fragment);
         fragmentTransaction.commit();
 
-        BottomNavigationView navigation = (BottomNavigationView) v.findViewById(R.id.sharenavi);
+        BottomNavigationView navigation = v.findViewById(R.id.sharenavi);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         return v;

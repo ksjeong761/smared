@@ -1,6 +1,5 @@
 package kr.ac.kpu.block.smared;
 
-
 public class LedgerContent {
     public String price;
     public String paymemo;

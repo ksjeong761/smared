@@ -32,13 +32,10 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         public TextView tvNickname;
         public ImageView ivUser;
 
-
-
         public ViewHolder(View itemView) {
             super(itemView);
-            tvNickname  = (TextView) itemView.findViewById(R.id.tvNickname);
-            ivUser = (ImageView)itemView.findViewById(R.id.ivUser);
-
+            tvNickname  = itemView.findViewById(R.id.tvNickname);
+            ivUser = itemView.findViewById(R.id.ivUser);
         }
     }
 
@@ -48,14 +45,10 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         this.context = context;
     }
 
-
     // Create new views (invoked by the layout manager)
     @Override
-    public FriendAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                       int viewType) {
-        View v;
-        v = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.list_friend, parent, false);
+    public FriendAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_friend, parent, false);
 
         sharedPreferences = context.getSharedPreferences("email",Context.MODE_PRIVATE);
         stEmail =  sharedPreferences.getString("email","");
@@ -69,18 +62,13 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
     public void onBindViewHolder(ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
+        holder.tvNickname.setText(mFriend.get(position).getNickname());
+        String stPhoto = mFriend.get(position).getPhoto();
 
-            holder.tvNickname.setText(mFriend.get(position).getNickname());
-            String stPhoto = mFriend.get(position).getPhoto();
-
-            if (TextUtils.isEmpty(stPhoto)) {
-
-            } else {
-                Picasso.with(context).load(stPhoto).fit().centerInside().into(holder.ivUser);
-
-            }
+        if (!TextUtils.isEmpty(stPhoto)) {
+            Picasso.with(context).load(stPhoto).fit().centerInside().into(holder.ivUser);
         }
-
+    }
 
     // Return the size of your dataset (invoked by the layout manager)
     @Override

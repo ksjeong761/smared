@@ -25,24 +25,16 @@ import java.util.Hashtable;
 
 public class ContentActivity extends AppCompatActivity  {
 
-    TextView OCRResult;
-    TextView OCRToast;
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_content);
 
-        String result="";
-        String toast = "";
+        TextView OCRResult = findViewById(R.id.OCRResult);
+        TextView OCRToast = findViewById(R.id.OCRToast);
+
         Intent in = getIntent();
-        OCRResult = (TextView) findViewById(R.id.OCRResult);
-        OCRToast = (TextView) findViewById(R.id.OCRToast);
-
-        result = in.getStringExtra("result");
-        toast = in.getStringExtra("finalResult");
-
-        OCRResult.setText("[ OCR 인식 결과 ]\n" + result);
-        OCRToast.setText(toast);
+        OCRResult.setText("[ OCR 인식 결과 ]\n" + in.getStringExtra("result"));
+        OCRToast.setText(in.getStringExtra("finalResult"));
     }
 }

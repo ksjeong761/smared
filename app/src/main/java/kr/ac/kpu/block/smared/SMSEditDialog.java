@@ -3,7 +3,6 @@ package kr.ac.kpu.block.smared;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,7 +18,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.StringTokenizer;
 
 public class SMSEditDialog extends Dialog {

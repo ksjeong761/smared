@@ -1,14 +1,11 @@
 package kr.ac.kpu.block.smared;
 
 import android.app.Fragment;
-import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
-import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,7 +24,6 @@ public class TabActivity extends AppCompatActivity  {
     DatabaseReference myRef;
     FirebaseUser user;
 
-    // SMS
     String sms = "";         // 문자 메시지
     long smsdate = 0;        // 문자 메시지 수신 시간
 

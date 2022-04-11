@@ -1,7 +1,6 @@
 package kr.ac.kpu.block.smared;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -46,9 +45,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.google.android.gms.internal.zzbfq.NULL;
-
 
 public class ShareLedgerViewFragment extends android.app.Fragment {
 

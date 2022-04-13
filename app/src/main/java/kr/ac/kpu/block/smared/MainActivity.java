@@ -21,8 +21,13 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Hashtable;
 
-//메인 액티비티에서는 로그인을 수행
+import kr.ac.kpu.block.smared.databinding.ActivityMainBinding;
+
+// 메인 액티비티에서는 로그인을 수행
 public class MainActivity extends AppCompatActivity {
+    // findByViewId를 제거하고 뷰 바인딩 적용
+    private ActivityMainBinding binding;
+
     String TAG = "MainActivity";
 
     // 로그인에 필요한 정보들
@@ -30,11 +35,8 @@ public class MainActivity extends AppCompatActivity {
     String stPassword;
     String stNickname;
 
-    // 텍스트 입력받기
-    EditText etEmail;
-    EditText etPassword;
-
-    // 프로그레스바
+    // UI
+    EditText etEmail, etPassword;
     ProgressBar pbLogin;
 
     // 데이터베이스를 통한 사용자 인증
@@ -46,24 +48,16 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 레이아웃 xml 파싱해서 뷰를 생성한다.
-        setContentView(R.layout.activity_main);
-
-        // 파이어베이스 DB에서 users 데이터를 불러온다.
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
-
-        // 파이어베이스 인증 객체 생성
-        mAuth = FirebaseAuth.getInstance();
+        // 뷰 바인딩 적용
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
 
         // 뷰에 등록해둔 id와 액티비티 객체를 매칭시킨다.
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         pbLogin = findViewById(R.id.pbLogin);
 
-        // 화면에 보일 기본 텍스트
-        etEmail.setText("test@naver.com");
-        etPassword.setText("lookup");
+        connectDB();
 
         // 회원가입 버튼에 이벤트 등록
         Button btnRegister = findViewById(R.id.btnRegister);
@@ -138,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
             stPassword = etPassword.getText().toString();
 
             // 값이 없으면 알림 메시지를 보여준다.
-            if(stEmail.isEmpty() || stEmail.equals("") || stPassword.isEmpty() || stPassword.equals("") ) {
+            if (stEmail.isEmpty() || stEmail.equals("") || stPassword.isEmpty() || stPassword.equals("") ) {
                 Toast.makeText(MainActivity.this, "입력이 없습니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -148,10 +142,19 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    private void connectDB() {
+        // 파이어베이스 DB에서 users 데이터를 불러온다.
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        myRef = database.getReference("users");
+
+        // 파이어베이스 인증 객체 생성
+        mAuth = FirebaseAuth.getInstance();
+    }
+
     // 회원 가입 기능
     // https://firebase.google.com/docs/auth/android/password-auth
     public void registerUser(String email, String password) {
-        // 파이어베이스를 통해 회원가입하고 콜백 등록
+        // 파이어베이스를 통해 회원가입 요청을 보내고 응답이 왔을 때 실행할 콜백 등록
         mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             // 회원가입 실패
             if (!task.isSuccessful()) {
@@ -160,7 +163,7 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            //회원가입 성공
+            // 회원가입 성공
             Log.d(TAG, "createUserWithEmail:success");
             Toast.makeText(MainActivity.this, "회원가입 성공", Toast.LENGTH_SHORT).show();
 
@@ -186,8 +189,8 @@ public class MainActivity extends AppCompatActivity {
         // 파이어베이스를 통해 로그인하고 콜백 등록
         mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
             pbLogin.setVisibility(View.GONE);
+            // 로그인 실패
             if (!task.isSuccessful()) {
-                // 로그인 실패
                 Log.w(TAG, "signInWithEmail:failure", task.getException());
                 Toast.makeText(MainActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
                 return;

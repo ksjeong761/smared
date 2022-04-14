@@ -43,34 +43,6 @@ public class EditDialog extends Dialog {
     String stPrice = "";
     String stPaymemo = "";
 
-    public String getStClassfy() {
-        return stClassfy;
-    }
-    public void setStClassfy(String stClassfy) {
-        this.stClassfy = stClassfy;
-    }
-
-    public String getStUseitem() {
-        return stUseitem;
-    }
-    public void setStUseitem(String stUseitem) {
-        this.stUseitem = stUseitem;
-    }
-
-    public String getStPrice() {
-        return stPrice;
-    }
-    public void setStPrice(String stPrice) {
-        this.stPrice = stPrice;
-    }
-
-    public String getStPaymemo() {
-        return stPaymemo;
-    }
-    public void setStPaymemo(String stPaymemo) {
-        this.stPaymemo = stPaymemo;
-    }
-
     public EditDialog(Context context, List<Ledger> mLedger, int position, String selectChatuid) {
         super(context);
         this.mLedger = mLedger;
@@ -127,7 +99,7 @@ public class EditDialog extends Dialog {
             stPrice = price.getText().toString();
             stPaymemo = payMemo.getText().toString();
 
-            if (selectChatuid.equals("")) {
+            if (selectChatuid.isEmpty()) {
                 if (rbConsume.isChecked()) {
                     myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
                             .child(mLedger.get(position).getMonth())

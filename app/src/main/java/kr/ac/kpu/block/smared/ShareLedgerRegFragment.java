@@ -127,7 +127,7 @@ public class ShareLedgerRegFragment extends Fragment {
             ledger.put("price", stPrice);
             ledger.put("paymemo", stPaymemo);
 
-            if (stPrice.equals("")) {
+            if (stPrice.isEmpty()) {
                 Toast.makeText(getActivity(), "금액란을 채워주세요", Toast.LENGTH_SHORT).show();
                 return;
             }

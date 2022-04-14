@@ -14,11 +14,10 @@ import android.widget.Toast;
 // BroadcaseReceiver를 사용해 SMS를 받았을 경우 이벤트를 동작시킨다.
 public class SMSReceiver extends BroadcastReceiver {
 
-    static final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
-
     @Override
     public void onReceive(Context context, Intent intent) {
         // SMS 수신 이외의 이벤트는 무시한다.
+        final String ACTION = "android.provider.Telephony.SMS_RECEIVED";
         if (!intent.getAction().equals(ACTION)) {
             return;
         }
@@ -37,12 +36,12 @@ public class SMSReceiver extends BroadcastReceiver {
 
         // SMS 처리
         for (int i = 0; i < pdusObj.length; i++) {
-            SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
-            String sms = smsMessage.getMessageBody();
-            long smsDate = smsMessage.getTimestampMillis();
+            SmsMessage smsObj = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
+            String smsMessage = smsObj.getMessageBody();
+            long smsReceivedDate = smsObj.getTimestampMillis();
 
             // 현재 신한 체크카드 메시지만 처리할 수 있다.
-            if (!sms.contains("신한체크승인")) {
+            if (!smsMessage.contains("신한체크승인")) {
                 continue;
             }
 
@@ -56,28 +55,28 @@ public class SMSReceiver extends BroadcastReceiver {
             // (현재 액티비티를 최상단으로 올린다 | 최상단 액티비티를 제외하고 모든 액티비티를 제거한다)
             Intent intents = new Intent(context.getApplicationContext(), TabActivity.class);
             intents.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intents.putExtra("sms", sms);
-            intents.putExtra("smsdate", smsDate);
+            intents.putExtra("sms", smsMessage);
+            intents.putExtra("smsdate", smsReceivedDate);
             PendingIntent pendnoti = PendingIntent.getActivity(context, 0, intents, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // 빌더 패턴을 이용해 푸시 알림 상세를 설정한다.
             Notification.Builder builder = new Notification.Builder(context.getApplicationContext());
             builder.setSmallIcon(R.drawable.logo)           // 푸시 알림 왼쪽 아이콘
-                .setTicker("Ticker")                        // 푸시 알림 발생시 잠깐 나오는 텍스트
-                .setWhen(System.currentTimeMillis())        // 푸시 알림 시간 miliSecond 단위 설정
-                .setNumber(1)                               // 확인하지 않은 알림 개수 표시 설정
-                .setContentTitle("SmaRed")                  // 푸시 알림 상단 텍스트(제목)
-                .setContentText("[신한체크카드 사용] 가계부에 추가하시겠습니까?")           // 푸시 알림 내용
-                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)     // 소리와 진동으로 알림
-                .setContentIntent(pendnoti)                 // 푸시 알림 터치시 실행할 작업 인텐트 설정
-                .setAutoCancel(true)                        // 푸시 알림 터치시 자동 삭제 설정
-                .setOngoing(true);                          // 푸시 알림을 지속적으로 띄울 것인지 설정
+                .setTicker("Ticker")                                    // 푸시 알림 발생시 잠깐 나오는 텍스트
+                .setWhen(System.currentTimeMillis())       // 푸시 알림 시간 miliSecond 단위 설정
+                .setNumber(1)                                           // 확인하지 않은 알림 개수 표시 설정
+                .setContentTitle("SmaRed")                       // 푸시 알림 상단 텍스트(제목)
+                .setContentText("[신한체크카드 사용] 가계부에 추가하시겠습니까?")                       // 푸시 알림 내용
+                .setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE)    // 소리와 진동으로 알림
+                .setContentIntent(pendnoti)                     // 푸시 알림 터치시 실행할 작업 인텐트 설정
+                .setAutoCancel(true)                                // 푸시 알림 터치시 자동 삭제 설정
+                .setOngoing(true);                                    // 푸시 알림을 지속적으로 띄울 것인지 설정
 
             // 푸시 알림 보내기
             notificationManager.notify(1, builder.build());
 
             // SMS 보여주기
-            Toast.makeText(context, sms, Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, smsMessage, Toast.LENGTH_SHORT).show();
         }
     }
 }

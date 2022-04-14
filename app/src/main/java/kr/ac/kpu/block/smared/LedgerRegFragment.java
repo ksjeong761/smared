@@ -102,7 +102,7 @@ public class LedgerRegFragment extends android.app.Fragment {
             ledger.put("price", stPrice);
             ledger.put("paymemo",stPaymemo);
 
-            if (stPrice.equals("")) {
+            if (stPrice.isEmpty()) {
                 Toast.makeText(getActivity(), "금액란을 채워주세요", Toast.LENGTH_SHORT).show();
             } else {
                 if (rbConsume.isChecked()) {

@@ -4,7 +4,6 @@ import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
@@ -13,45 +12,42 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.Hashtable;
 
+import kr.ac.kpu.block.smared.databinding.ActivityTabBinding;
+
 public class TabActivity extends AppCompatActivity  {
+    private ActivityTabBinding viewBinding;
 
-    // 데이터베이스 관련
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    FirebaseUser user;
-
-    String sms = "";         // 문자 메시지
-    long smsdate = 0;        // 문자 메시지 수신 시간
-
-    long lastPressedTime;  // 뒤로 가기를 두 번 연속으로 해야 종료되도록 하기 위해 시간을 저장
+    // [Refactor] 전역 변수 두지 말고 다른 방법 찾아보기
+    // 뒤로 가기를 연속으로 했을 경우에만 프로그램을 종료하도록 하기 위해 시간을 저장
+    private long lastPressedTime;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_tab);
+
+        // 뷰 바인딩 적용
+        viewBinding = ActivityTabBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
 
         // SMSReceiver에서 등록한 푸시 알림을 터치했을 경우 PendingIndent를 통해 데이터를 넘겨받는다.
-        Intent in = getIntent();
-        sms = in.getStringExtra("sms");
-        smsdate = in.getLongExtra("smsdate",0);
+        Intent intent = getIntent();
+        String smsMessage = intent.getStringExtra("sms");                                 // 문자 메시지
+        long smsReceivedDate = intent.getLongExtra("smsdate",0); // 문자 메시지 수신 시간
 
-        // 결제 문자 온 게 있다면 SMSEditDialog로 넘어간다.
-        if (sms != null) {
-            SMSEditDialog editDialog = new SMSEditDialog(TabActivity.this, sms, smsdate);
+        // [Refactor] 다른 액티비티 전환 방법, intent 사용으로 바꾸기
+        // 결제 문자가 있다면 SMSEditDialog로 넘어간다.
+        if (smsMessage != null) {
+            SMSEditDialog editDialog = new SMSEditDialog(TabActivity.this, smsMessage, smsReceivedDate);
             editDialog.show();
         }
 
+        // [Refactor] 사용자 정보는 전역으로 1번만 불러오도록 바꾸기
         // DB에서 사용자 정보를 가져온다.
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
-        user = FirebaseAuth.getInstance().getCurrentUser();
-
-        // [???] news는 구글링 해서 그대로 가져다 쓴 문자열, 정확히 뭘 구독했었는지?
-        FirebaseMessaging.getInstance().subscribeToTopic("news");
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         // 토큰으로 로그인 상태를 관리한다.
         Hashtable<String, Object> token = new Hashtable<>();
@@ -59,15 +55,14 @@ public class TabActivity extends AppCompatActivity  {
         myRef.child(user.getUid()).updateChildren(token);
 
         // 홈 액티비티가 기본으로 보여진다.
-        switchFragment(new HomeFragment());
+        switchFragment(new TabHomeFragment());
 
         // 하단 NavigationView 조작으로 다른 Fragment 화면을 보여준다.
-        BottomNavigationView navigation = findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(menuItem -> {
+        viewBinding.navigation.setOnNavigationItemSelectedListener(menuItem -> {
             switch (menuItem.getItemId()) {
                 // 기본 값으로 가계부 기록 화면을 보여주며 가계부 확인, 통계로 전환이 가능한 화면이다.
                 case R.id.navigation_home:
-                    switchFragment(new HomeFragment());
+                    switchFragment(new TabHomeFragment());
                     return true;
 
                 // 가계부 공유 화면
@@ -86,6 +81,13 @@ public class TabActivity extends AppCompatActivity  {
         });
     }
 
+    // 매개변수로 받은 Fragment를 화면에 보여준다.
+    private void switchFragment(Fragment fragment) {
+        FragmentTransaction transaction = getFragmentManager().beginTransaction();
+        transaction.replace(R.id.list, fragment);
+        transaction.commit();
+    }
+
     // 1.5초 이내에 뒤로가기가 연속으로 눌렸다면 액티비티를 종료한다.
     @Override
     public void onBackPressed() {
@@ -93,14 +95,7 @@ public class TabActivity extends AppCompatActivity  {
             finish();
         }
 
-        Toast.makeText(this,"한번 더 누르시면 종료됩니다.",Toast.LENGTH_SHORT).show();
         lastPressedTime = System.currentTimeMillis();
-    }
-
-    // 매개변수로 받은 Fragment를 화면에 보여준다.
-    public void switchFragment(Fragment fragment) {
-        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-        transaction.replace(R.id.list, fragment);
-        transaction.commit();
+        Toast.makeText(this,"한번 더 누르시면 종료됩니다.",Toast.LENGTH_SHORT).show();
     }
 }

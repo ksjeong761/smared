@@ -4,9 +4,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
-    tools:context="kr.ac.kpu.block.smared.HomeFragment">
+    tools:context="kr.ac.kpu.block.smared.TabHomeFragment">
 
-    <fragment android:name="kr.ac.kpu.block.smared.MainFragment"
+    <fragment android:name="kr.ac.kpu.block.smared.TabHomeFragment"
         android:id="@+id/ledger"
         android:layout_below="@+id/lednavi"
         android:layout_width="match_parent"

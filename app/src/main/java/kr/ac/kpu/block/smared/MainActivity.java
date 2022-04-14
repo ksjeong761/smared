@@ -20,16 +20,20 @@ import java.util.Hashtable;
 
 import kr.ac.kpu.block.smared.databinding.ActivityMainBinding;
 
+// 복붙용 임시 코드
+// private final String TAG = getClass().getSimpleName();
+//private ActivityMainBinding viewBinding;
+//viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
+//setContentView(viewBinding.getRoot());
+
 // 메인 액티비티에서는 로그인을 수행
 public class MainActivity extends AppCompatActivity {
-    private final String TAG = getClass().getSimpleName();
-
     // 뷰 바인딩 적용
     private ActivityMainBinding viewBinding;
 
     // 데이터베이스를 통한 사용자 인증
     private FirebaseAuth mAuth;
-    DatabaseReference myRef;
+    private DatabaseReference myRef;
 
     // 안드로이드 생명주기 onCreate() -> onStart() -> onResume() -> onPause() -> onStop() -> onDestory()
     @Override
@@ -159,7 +163,6 @@ public class MainActivity extends AppCompatActivity {
             // 프로그레스바 숨기기
             viewBinding.pbLogin.setVisibility(View.GONE);
 
-            // 로그인 실패
             if (!task.isSuccessful()) {
                 Toast.makeText(MainActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
                 return;
@@ -169,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
 
             // 사용자 정보를 가져온다.
             FirebaseUser user = mAuth.getCurrentUser();
-            SharedPreferences sharedPreferences = getSharedPreferences("email",MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("uid",user.getUid());
             editor.putString("email",user.getEmail());

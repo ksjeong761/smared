@@ -17,8 +17,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.File;
@@ -28,10 +26,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class ImageActivity extends Activity implements View.OnClickListener
-{
-    private ImageView imgMain;
-    private Button btnCamera, btnAlbum, btnNext, btnCancel;
+import kr.ac.kpu.block.smared.databinding.ActivityImageBinding;
+
+public class ImageActivity extends Activity {
+    private ActivityImageBinding viewBinding;
 
     private static final int PICK_FROM_CAMERA = 1;
     private static final int PICK_FROM_ALBUM = 2;
@@ -45,62 +43,63 @@ public class ImageActivity extends Activity implements View.OnClickListener
     };
 
     private Uri photoUri;
-    private String ImagePath = "";
-    Intent intent;
+    private String imagePath = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_image);
-        checkPermissions();
-        initView();
-    }
+        viewBinding = ActivityImageBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
 
-    private boolean checkPermissions() {
-        int result;
-        List<String> permissionList = new ArrayList<>();
-        for (String pm : permissions) {
-            result = ContextCompat.checkSelfPermission(this, pm);
-            if (result != PackageManager.PERMISSION_GRANTED) {
-                permissionList.add(pm);
+        // 필요한 권한이 있는지 확인
+        List<String> notGrantedPermissions = new ArrayList<>();
+        for (String permission : permissions) {
+            if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, permission)) {
+                notGrantedPermissions.add(permission);
             }
         }
-        if (!permissionList.isEmpty()) {
-            ActivityCompat.requestPermissions(this, permissionList.toArray(new String[permissionList.size()]), MULTIPLE_PERMISSIONS);
-            return false;
+
+        // 필요한 권한이 없다면 요청한다.
+        if (!notGrantedPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this, notGrantedPermissions.toArray(new String[notGrantedPermissions.size()]), MULTIPLE_PERMISSIONS);
         }
-        return true;
-    }
 
-    private void initView() {
-        imgMain = findViewById(R.id.imageInput);
-        btnCamera = findViewById(R.id.buttonI1);
-        btnAlbum = findViewById(R.id.buttonI2);
-        btnNext = findViewById(R.id.buttonI3);
-        btnCancel = findViewById(R.id.buttonI4);
+        // 카메라 버튼
+        viewBinding.btnCamera.setOnClickListener(view -> {
+            try {
+                File photoFile = createImageFile();
+                photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", photoFile);
 
-        btnCamera.setOnClickListener(this);
-        btnAlbum.setOnClickListener(this);
-        btnNext.setOnClickListener(this);
-        btnCancel.setOnClickListener(this);
-    }
+                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                startActivityForResult(intent, PICK_FROM_CAMERA);
+            }
+            catch (IOException e) {
+                Toast.makeText(ImageActivity.this, "이미지 처리 오류! 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+        });
 
-    private void takePhoto() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        File photoFile = null;
-        try {
-            photoFile = createImageFile();
-        } catch (IOException e) {
-            Toast.makeText(ImageActivity.this, "이미지 처리 오류! 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+        viewBinding.btnAlbum.setOnClickListener(view -> {
+            Intent intent = new Intent(Intent.ACTION_PICK);
+            intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+            startActivityForResult(intent, PICK_FROM_ALBUM);
+        });
+
+        viewBinding.btnNext.setOnClickListener(view -> {
+            if (imagePath.isEmpty()) {
+                return;
+            }
+
+            Intent intent = new Intent(ImageActivity.this, ImageProcessingActivity.class);
+            intent.putExtra("ipath", imagePath);
+            intent.putExtra("input", photoUri);
+            startActivity(intent);
+        });
+
+        viewBinding.btnCancel.setOnClickListener(view -> {
             finish();
-            e.printStackTrace();
-        }
-        if (photoFile != null) {
-            photoUri = FileProvider.getUriForFile(ImageActivity.this,
-                    "kr.ac.kpu.block.smared.provider", photoFile);
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-            startActivityForResult(intent, PICK_FROM_CAMERA);
-        }
+        });
     }
 
     private File createImageFile() throws IOException {
@@ -112,61 +111,31 @@ public class ImageActivity extends Activity implements View.OnClickListener
         }
 
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-        ImagePath = image.getName();
+        imagePath = image.getName();
         return image;
-    }
-
-    private void goToAlbum() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-        startActivityForResult(intent, PICK_FROM_ALBUM);
-    }
-
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.buttonI1:
-                takePhoto();
-                break;
-            case R.id.buttonI2:
-                goToAlbum();
-                break;
-            case R.id.buttonI3:
-                if (!ImagePath.equals("")) {
-                Intent intent = new Intent(ImageActivity.this, ImageProcessingActivity.class);
-                intent.putExtra("ipath", ImagePath);
-                intent.putExtra("input",photoUri);
-                startActivity(intent); }
-                break;
-            case R.id.buttonI4:
-                finish();
-                break;
-        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MULTIPLE_PERMISSIONS: {
-                if (grantResults.length > 0) {
-                    for (int i = 0; i < permissions.length; i++) {
-                        if (permissions[i].equals(this.permissions[0])) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                showNoPermissionToastAndFinish();
-                            }
-                        } else if (permissions[i].equals(this.permissions[1])) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                showNoPermissionToastAndFinish();
-                            }
-                        } else if (permissions[i].equals(this.permissions[2])) {
-                            if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                                showNoPermissionToastAndFinish();
-                            }
+                if (grantResults.length == 0) {
+                    Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+                    finish();
+                    return;
+                }
+
+                for (int i = 0; i < permissions.length; i++) {
+                    for (int j = 0; j < this.permissions.length; j++) {
+                        if (!permissions[i].equals(this.permissions[j])) {
+                            continue;
+                        }
+
+                        if (PackageManager.PERMISSION_GRANTED != grantResults[i]) {
+                            Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+                            finish();
                         }
                     }
-                } else {
-                    showNoPermissionToastAndFinish();
                 }
 
                 return;
@@ -174,38 +143,35 @@ public class ImageActivity extends Activity implements View.OnClickListener
         }
     }
 
-    private void showNoPermissionToastAndFinish() {
-        Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
-        finish();
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode != RESULT_OK) {
-            Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "취소되었습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (requestCode == PICK_FROM_ALBUM) {
-            if (data == null) {
-                return;
-            }
+        switch (requestCode) {
+            case PICK_FROM_ALBUM:
+                if (data == null) {
+                    return;
+                }
 
-            photoUri = data.getData();
-            cropImage();
-        }
-        else if (requestCode == PICK_FROM_CAMERA) {
-            cropImage();
-            // 갤러리에 나타나게
-            MediaScannerConnection.scanFile(ImageActivity.this, new String[]{photoUri.getPath()}, null, (path, uri) -> { });
-        }
-        else if (requestCode == CROP_FROM_CAMERA) {
-            imgMain.setImageURI(null);
-            imgMain.setImageURI(photoUri);
+                photoUri = data.getData();
+                cropImage();
+                break;
+
+            case PICK_FROM_CAMERA:
+                cropImage();
+                // 갤러리에 나타나게
+                MediaScannerConnection.scanFile(ImageActivity.this, new String[]{photoUri.getPath()}, null, (path, uri) -> { });
+                break;
+            case CROP_FROM_CAMERA:
+                viewBinding.imageInput.setImageURI(null);
+                viewBinding.imageInput.setImageURI(photoUri);
+                break;
         }
     }
 
-    // Android N crop image
     public void cropImage() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             this.grantUriPermission("camera", photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -216,11 +182,10 @@ public class ImageActivity extends Activity implements View.OnClickListener
 
         List<ResolveInfo> list = getPackageManager().queryIntentActivities(intent, 0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            grantUriPermission(list.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            this.grantUriPermission(list.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        int size = list.size();
-        if (size == 0) {
+        if (list.size() == 0) {
             Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -233,8 +198,6 @@ public class ImageActivity extends Activity implements View.OnClickListener
         }
 
         intent.putExtra("crop", "true");
-        //intent.putExtra("aspectX", 0.5);
-        //intent.putExtra("aspectY", 2);
         intent.putExtra("scale", true);
 
         File croppedFileName = null;
@@ -265,7 +228,7 @@ public class ImageActivity extends Activity implements View.OnClickListener
             i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-            grantUriPermission(res.activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            this.grantUriPermission(res.activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
         i.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));

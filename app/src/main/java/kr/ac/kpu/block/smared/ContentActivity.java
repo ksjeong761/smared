@@ -3,20 +3,20 @@ package kr.ac.kpu.block.smared;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.widget.TextView;
+
+import kr.ac.kpu.block.smared.databinding.ActivityContentBinding;
 
 public class ContentActivity extends AppCompatActivity  {
+    private ActivityContentBinding viewBinding;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_content);
+        viewBinding = ActivityContentBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
 
-        TextView OCRResult = findViewById(R.id.OCRResult);
-        TextView OCRToast = findViewById(R.id.OCRToast);
-
-        Intent in = getIntent();
-        OCRResult.setText("[ OCR 인식 결과 ]\n" + in.getStringExtra("result"));
-        OCRToast.setText(in.getStringExtra("finalResult"));
+        Intent intent = getIntent();
+        viewBinding.OCRResult.setText("[ OCR 인식 결과 ]\n" + intent.getStringExtra("result"));
+        viewBinding.OCRToast.setText(intent.getStringExtra("finalResult"));
     }
 }

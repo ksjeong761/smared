@@ -9,9 +9,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
@@ -19,36 +16,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 
+import kr.ac.kpu.block.smared.databinding.ActivitySmsBinding;
+
 public class SMSActivity extends AppCompatActivity {
+    private static final int SMS_RECEIVE_PERMISSION = 1;
 
-    static final int SMS_RECEIVE_PERMISSION = 1;
+    private ActivitySmsBinding viewBinding;
 
-    RecyclerView mRecyclerView;
-    LinearLayoutManager mLayoutManager;
-    SMSAdapter mAdapter;
-    Button btnSMSLoad;
-    TextView tvCountSMS;
-
-    List<SMS> mBody;
-    SMS mSMS;
-
-    boolean isSMSLoaded = false;
+    private List<SMS> mBody = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sms);
+        viewBinding = ActivitySmsBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
 
-        tvCountSMS = findViewById(R.id.tvCountSMS);
-        btnSMSLoad = findViewById(R.id.btnLoadSMS);
-        mRecyclerView = findViewById(R.id.rvSMS);
-
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mBody = new ArrayList<>();
-        mAdapter = new SMSAdapter(mBody, this);
-        mRecyclerView.setAdapter(mAdapter);
+        viewBinding.rvSMS.setHasFixedSize(true);
+        viewBinding.rvSMS.setLayoutManager(new LinearLayoutManager(this));
+        SMSAdapter mAdapter = new SMSAdapter(mBody, this);
+        viewBinding.rvSMS.setAdapter(mAdapter);
 
         // SMS 읽기 권한이 부여되어 있는지 확인
         if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS)) {
@@ -66,12 +52,12 @@ public class SMSActivity extends AppCompatActivity {
 
         // SMS 수신 권한이 부여되어 있는지 확인
         if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)) {
-            Toast.makeText(getApplicationContext(), "SMS 리시버권한 없음", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "SMS 수신 권한 없음", Toast.LENGTH_SHORT).show();
 
             // Dialog를 통해 요청된 권한을 사용자가 거부했을 경우 알림 메시지를 보여준다.
             // 사용자가 "Don't ask again"을 체크한 경우 알림 메시지는 보여지지 않는다.
             if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECEIVE_SMS)) {
-                Toast.makeText(getApplicationContext(), "SMS권한이 필요합니다", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "SMS 수신 권한이 필요합니다", Toast.LENGTH_SHORT).show();
             }
 
             // 다시 권한을 요청한다.
@@ -79,84 +65,74 @@ public class SMSActivity extends AppCompatActivity {
         }
 
         // SMS 불러오기 버튼 이벤트 -> 모든 SMS를 확인해서 신한 체크카드 결제 문자인 경우 파싱 후 리스트로 화면에 보여준다.
-        btnSMSLoad.setOnClickListener(view -> {
+        viewBinding.btnLoadSMS.setOnClickListener(view -> {
             // 한 번만 불러오게 하기
-            if (isSMSLoaded) {
+            if (mBody.size() > 0) {
                 return;
             }
 
             // 전체 문자 받아오기
-            Uri allMessage = Uri.parse("content://sms/inbox");
-            Cursor cur = getContentResolver().query(allMessage, null, null, null, null);
-            int smsCount = 0;
-
+            Cursor cur = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
             while (cur.moveToNext()) {
-                String msg = cur.getString(cur.getColumnIndex("body"));
-
                 // 현재 신한 체크카드 메시지만 처리할 수 있다.
+                String msg = cur.getString(cur.getColumnIndex("body"));
                 if (!msg.contains("신한체크승인")) {
                     continue;
                 }
 
-                // SMS에서 날짜를 파싱한다.
-                long date = cur.getLong(cur.getColumnIndex("date"));
-                String sdate = new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(date);
-                String timedate = new SimpleDateFormat("HH:mm:ss").format(date);
-
-                // SMS에서 결제 금액을 파싱한다.
+                // 결제 금액을 파싱한다.
                 StringTokenizer tokenizer = new StringTokenizer(msg, " ");
                 tokenizer.nextToken();
                 tokenizer.nextToken();
                 tokenizer.nextToken();
                 tokenizer.nextToken();
-                String price = tokenizer.nextToken();
 
                 // 결제 금액 문자열에서 숫자만 남긴다.
+                String price = tokenizer.nextToken();
                 price.trim();
                 price = price.replace(",","");
                 price = price.replace("원","");
 
-                // SMS에서 결제 내역 상세와 가게명을 파싱한다.
-                String payMemo = tokenizer.nextToken();
-                String store = tokenizer.nextToken();
-                if (!store.contains("잔액")) {
-                    payMemo += store;
+                // 결제 내역 상세를 파싱한다.
+                String description = tokenizer.nextToken();
+                String storeName = tokenizer.nextToken();
+                if (!storeName.contains("잔액")) {
+                    description += storeName;
                 }
 
-                mSMS = new SMS();
-                mSMS.setPayMemo(payMemo);
+                // 날짜를 파싱한다.
+                long date = cur.getLong(cur.getColumnIndex("date"));
+                String sdate = new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(date);
+
+                SMS mSMS = new SMS();
+                mSMS.setPayMemo(description);
                 mSMS.setPrice(price);
                 mSMS.setYear(sdate.substring(0,4));
                 mSMS.setMonth(sdate.substring(4,6));
                 mSMS.setDay(sdate.substring(6,8));
-                mSMS.setTime(timedate);
+                mSMS.setTime(sdate.substring(9, 17));
 
-                // RecyclerView에 SMS 목록을 보여준다.
+                // RecyclerView에 문자 목록을 보여준다.
                 mBody.add(mSMS);
-                mRecyclerView.scrollToPosition(0);
                 mAdapter.notifyItemInserted(mBody.size() - 1);
-
-                smsCount++;
+                viewBinding.rvSMS.scrollToPosition(0);
             }
 
-            tvCountSMS.setText(smsCount + "건의 기록이 확인되었습니다.");
-
-            // 한 번만 불러오게 하기
-            isSMSLoaded = true;
+            viewBinding.tvCountSMS.setText(mBody.size() + "건의 기록이 확인되었습니다.");
         });
     }
 
-    // 권한을 요청했을 경우 결과 콜백
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int grantResults[]){
-        switch(requestCode){
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int grantResults[]) {
+        switch (requestCode) {
             case SMS_RECEIVE_PERMISSION:
-                String toastMessage = "SMS 권한 거부됨";
-
-                if((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED)){
-                    toastMessage = "SMS 권한 승인됨";
+                if (grantResults.length > 0 && PackageManager.PERMISSION_GRANTED == grantResults[0]) {
+                    Toast.makeText(getApplicationContext(), "SMS권한 승인함", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "SMS권한 거부함", Toast.LENGTH_SHORT).show();
                 }
 
-                Toast.makeText(getApplicationContext(), toastMessage, Toast.LENGTH_SHORT).show();
                 break;
         }
     }

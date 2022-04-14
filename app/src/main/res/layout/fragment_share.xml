@@ -6,8 +6,7 @@
     android:clickable="true"
     tools:context="kr.ac.kpu.block.smared.ShareFragment">
 
-
-    <fragment android:name="kr.ac.kpu.block.smared.MainFragment"
+    <fragment android:name="kr.ac.kpu.block.smared.TabHomeFragment"
         android:id="@+id/shareledger"
         android:layout_below="@+id/sharenavi"
         android:layout_width="match_parent"

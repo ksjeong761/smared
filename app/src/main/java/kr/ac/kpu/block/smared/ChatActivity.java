@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -23,64 +21,51 @@ import java.util.Calendar;
 import java.util.Hashtable;
 import java.util.List;
 
+import kr.ac.kpu.block.smared.databinding.ActivityChatBinding;
+
 public class ChatActivity extends AppCompatActivity {
-
-    private RecyclerView mRecyclerView;
-    private RecyclerView.Adapter mAdapter;
-    private RecyclerView.LayoutManager mLayoutManager;
-
-    EditText etText;
-    Button btnSend;
-    Button btnViewFriend;
-    String email;
-    String photo;
-    String nickname;
-    FirebaseDatabase database;
-    List<Chat> mChat;
+    private ActivityChatBinding viewBinding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat);
-
-        etText = findViewById(R.id.etText);
-        btnSend = findViewById(R.id.btnSend);
-        btnViewFriend = findViewById(R.id.btnViewFriend);
-        mRecyclerView = findViewById(R.id.rvChat);
+        viewBinding = ActivityChatBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
 
         // Firebase Database 연결
-        database = FirebaseDatabase.getInstance();
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
 
         // 유저 정보 추출
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            return;
+        }
 
         // 인텐트를 통해 이전 액티비티에서 데이터 전달받기
         Intent in = getIntent();
-        final String stChatId = in.getStringExtra("chatUid");
-        photo = in.getStringExtra("photo");
-        nickname = in.getStringExtra("nickname");
-        if (user != null) {
-            email = user.getEmail();
-        }
+        final String chatUid = in.getStringExtra("chatUid");
+        String photo = in.getStringExtra("photo");
+        String nickname = in.getStringExtra("nickname");
+        String email = user.getEmail();
 
         // 친구 목록 보기 버튼 이벤트 - FriendActivity로 이동한다.
-        btnViewFriend.setOnClickListener(view -> {
-            Intent nextIntent = new Intent(ChatActivity.this,FriendActivity.class);
-            nextIntent.putExtra("chatUid",stChatId);
+        viewBinding.btnViewFriend.setOnClickListener(view -> {
+            Intent nextIntent = new Intent(ChatActivity.this, FriendActivity.class);
+            nextIntent.putExtra("chatUid", chatUid);
             startActivity(nextIntent);
         });
 
         // 메시지 보내기 버튼 이벤트 - DB에 사용자 정보, 사진, 메시지를 저장한다.
-        btnSend.setOnClickListener(view -> {
-            String stText = etText.getText().toString();
-            if (stText.equals("") || stText.isEmpty()) {
+        viewBinding.btnSend.setOnClickListener(view -> {
+            String stText = viewBinding.etText.getText().toString();
+            if (stText.isEmpty()) {
                 Toast.makeText(ChatActivity.this, "내용을 입력해 주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // Firebase내에 날짜로 저장
             String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-            DatabaseReference myRef = database.getReference("chats").child(stChatId).child("chat").child(formattedDate);
+            DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat").child(formattedDate);
 
             // HashTable로 연결
             Hashtable<String, String> chat  = new Hashtable<String, String>();
@@ -90,33 +75,31 @@ public class ChatActivity extends AppCompatActivity {
             chat.put("nickname", nickname);
 
             myRef.setValue(chat);
-            etText.setText("");
+            viewBinding.etText.setText("");
         });
 
         // 닫기 버튼 이벤트
-        Button btnFinish = findViewById(R.id.btnFinish);
-        btnFinish.setOnClickListener(view -> {
+        viewBinding.btnFinish.setOnClickListener(view -> {
             finish();
         });
 
         // RecyclerView를 통해 채팅 메시지와 이미지를 보여줄 것이다.
         // 메시지가 추가될 때마다 RecyclerView의 크기가 바뀌게 되고
         // 그 때문에 다시 UI가 로딩되는 것을 방지해야 한다.
-        mRecyclerView.setHasFixedSize(true);
+        viewBinding.rvChat.setHasFixedSize(true);
 
         // 레이아웃을 Linear로 설정한다.
-        mLayoutManager = new LinearLayoutManager(this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+        viewBinding.rvChat.setLayoutManager(new LinearLayoutManager(this));
 
         // 어댑터를 사용해 데이터를 뷰로 만든다.
-        mChat= new ArrayList<>();
-        mAdapter = new MyAdapter(mChat, email,ChatActivity.this);
+        List<Chat> mChat = new ArrayList<>();
+        RecyclerView.Adapter mAdapter = new MyAdapter(mChat, email,ChatActivity.this);
 
         // 어댑터를 적용한다.
-        mRecyclerView.setAdapter(mAdapter);
+        viewBinding.rvChat.setAdapter(mAdapter);
 
         // 새 채팅 메시지가 있다면 DB에서 받아오기 위해 이벤트를 등록한다
-        DatabaseReference myRef = database.getReference("chats").child(stChatId).child("chat");
+        DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat");
         myRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -125,7 +108,7 @@ public class ChatActivity extends AppCompatActivity {
                 mChat.add(chat);
 
                 // 스크롤을 내린다.
-                mRecyclerView.scrollToPosition(mChat.size() - 1);
+                viewBinding.rvChat.scrollToPosition(mChat.size() - 1);
 
                 // 어댑터에 데이터가 변경되었음을 알린다.
                 mAdapter.notifyItemInserted(mChat.size() - 1);

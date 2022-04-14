@@ -1,25 +1,26 @@
 #include <jni.h>
 #include <string>
 #include <opencv2/opencv.hpp>
-#include <android/asset_manager_jni.h>
-#include <android/log.h>
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/highgui.hpp>
+#include <android/asset_manager_jni.h>
+#include <android/log.h>
 
 using namespace cv;
 using namespace std;
 
-extern "C"{
+extern "C" {
+
 JNIEXPORT void JNICALL
 Java_kr_ac_kpu_block_smared_ImageProcessingActivity_loadImage(
         JNIEnv *env,
         jobject instance,
-        jstring imageFileName_,
+        jstring imageFileName,
         jlong img) {
     Mat &img_input = *(Mat *) img;
 
-    const char *nativeFileNameString = env->GetStringUTFChars(imageFileName_, JNI_FALSE);
+    const char *nativeFileNameString = env->GetStringUTFChars(imageFileName, JNI_FALSE);
 
     string baseDir("/storage/emulated/0/SmaRed/");
     baseDir.append(nativeFileNameString);
@@ -33,8 +34,7 @@ Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing(
         JNIEnv *env,
         jobject instance,
         jlong inputImage,
-        jlong outputImage,
-        jint fileCheck) {
+        jlong outputImage) {
     Mat &img_input = *(Mat *) inputImage;
     Mat &img_output = *(Mat *) outputImage;
     Mat imgCanny;
@@ -45,8 +45,7 @@ Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing(
     cvtColor(img_input, img_output, CV_BGR2GRAY); // 흑백화
     GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
     adaptiveThreshold(img_output, img_output, 255, CV_ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 31, 5); // 이진화
-    if (fileCheck==1)
-        morphologyEx(img_output, img_output, MORPH_CLOSE, element5);
+    morphologyEx(img_output, img_output, MORPH_CLOSE, element5);
     GaussianBlur(img_output, img_output, Size(7,7), 1.5, 1.5); // 잡티 제거
 
     //morphologyEx(img_input, img_output, MORPH_CLOSE, element5);
@@ -59,6 +58,7 @@ Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing(
     //erode(img_input, img_input, element5, Point(-1,-1), 1, BORDER_DEFAULT, morphologyDefaultBorderValue());
     //dilate(img_input,img_output, element5, Point(-1,-1), 1, BORDER_DEFAULT, morphologyDefaultBorderValue());
 }
+
 /*
 apply Otsu threshold to the region in mask
 */
@@ -220,4 +220,5 @@ int _tmain(int argc, char* argv[])
 
     return 0;
 }
-}
+
+} // extern "C"

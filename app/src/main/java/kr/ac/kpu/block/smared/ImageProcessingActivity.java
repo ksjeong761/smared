@@ -25,6 +25,7 @@ import kr.ac.kpu.block.smared.databinding.ActivityImageProcessingBinding;
 import static android.view.Gravity.CENTER;
 
 public class ImageProcessingActivity extends AppCompatActivity {
+
     static {
         System.loadLibrary("opencv_java3");
         System.loadLibrary("native-lib");

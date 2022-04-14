@@ -49,6 +49,7 @@ public class LedgerRegFragment extends android.app.Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         // 사용자 정보 DB에 접근하기 위한 객체
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");

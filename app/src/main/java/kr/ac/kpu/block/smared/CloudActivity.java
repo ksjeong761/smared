@@ -64,6 +64,7 @@ import java.util.regex.Pattern;
 import kr.ac.kpu.block.smared.databinding.ActivityCloudBinding;
 
 public class CloudActivity extends Activity {
+
     private static final String CLOUD_VISION_API_KEY = "AIzaSyC6FyPlYCwLuwVhE8s3Td_zbbbwcMr41Oc";
     private static final String ANDROID_CERT_HEADER = "X-Android-Cert";
     private static final String ANDROID_PACKAGE_HEADER = "X-Android-Package";

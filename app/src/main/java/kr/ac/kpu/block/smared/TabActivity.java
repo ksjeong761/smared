@@ -18,6 +18,7 @@ import java.util.Hashtable;
 import kr.ac.kpu.block.smared.databinding.ActivityTabBinding;
 
 public class TabActivity extends AppCompatActivity  {
+
     private ActivityTabBinding viewBinding;
 
     // [Refactor] 전역 변수 두지 말고 다른 방법 찾아보기

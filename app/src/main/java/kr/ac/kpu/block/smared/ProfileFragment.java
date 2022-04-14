@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 
 public class ProfileFragment extends Fragment {
+
     ImageView ivUser;
     TextView tvNickname;
     Button btnChangePhoto;

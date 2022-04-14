@@ -2,10 +2,10 @@ package kr.ac.kpu.block.smared;
 
 public class Friend {
 
-    public String email;
-    public String photo;
-    public String key;
-    public String nickname;
+    private String email;
+    private String photo;
+    private String key;
+    private String nickname;
 
     public String getEmail() {
         return email;

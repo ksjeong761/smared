@@ -2,10 +2,10 @@ package kr.ac.kpu.block.smared;
 
 public class Chat {
 
-    public String email;
-    public String text;
-    public String photo;
-    public String nickname;
+    private String email;
+    private String text;
+    private String photo;
+    private String nickname;
 
     public String getEmail() {
         return email;

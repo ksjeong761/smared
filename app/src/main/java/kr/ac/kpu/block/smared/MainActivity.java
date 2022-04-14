@@ -28,6 +28,7 @@ import kr.ac.kpu.block.smared.databinding.ActivityMainBinding;
 
 // 메인 액티비티에서는 로그인을 수행
 public class MainActivity extends AppCompatActivity {
+
     // 뷰 바인딩 적용
     private ActivityMainBinding viewBinding;
 

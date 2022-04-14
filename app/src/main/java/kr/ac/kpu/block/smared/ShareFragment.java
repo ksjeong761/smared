@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 public class ShareFragment extends Fragment{
+
     Fragment fragment;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener

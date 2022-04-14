@@ -2,14 +2,14 @@ package kr.ac.kpu.block.smared;
 
 public class Ledger {
 
-    public String year;
-    public String month;
-    public String day;
-    public String classfy;
-    public String times;
-    public String price;
-    public String paymemo;
-    public String useItem;
+    private String year;
+    private String month;
+    private String day;
+    private String classfy;
+    private String times;
+    private String price;
+    private String paymemo;
+    private String useItem;
 
     public String getYear() {
         return year;

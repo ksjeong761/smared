@@ -9,7 +9,7 @@
     android:layout_height="match_parent"
     android:clickable="true"
     android:orientation="vertical"
-    tools:context="kr.ac.kpu.block.smared.ShareLedgerRegFragment">
+    tools:context="kr.ac.kpu.block.smared.fragment.ShareLedgerRegFragment">
 
     <!-- TODO: Update blank fragment layout -->
 
@@ -75,7 +75,7 @@
         android:textSize="18sp" />
 
     <Spinner
-        android:id="@+id/spnUseitem2"
+        android:id="@+id/spnUseItem2"
         android:layout_width="185dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/cvCalender2"
@@ -86,7 +86,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spnUseitem2"
+        android:layout_below="@+id/spnUseItem2"
         android:layout_marginLeft="25dp"
         android:layout_marginTop="20dp"
         android:text="금액"
@@ -97,7 +97,7 @@
         android:id="@+id/etPrice2"
         android:layout_width="185dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spnUseitem2"
+        android:layout_below="@+id/spnUseItem2"
         android:layout_marginLeft="85dp"
         android:layout_marginTop="10dp"
         android:hint="금액을 입력해 주세요"
@@ -106,7 +106,7 @@
         android:id="@+id/tvPrice2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spnUseitem2"
+        android:layout_below="@+id/spnUseItem2"
         android:layout_marginLeft="1dp"
         android:layout_marginTop="20dp"
         android:layout_toRightOf="@+id/etPrice2"

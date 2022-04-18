@@ -33,67 +33,39 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import kr.ac.kpu.block.smared.databinding.FragmentLedgerStatBinding;
+
 public class LedgerStatFragment extends android.app.Fragment {
+    private FragmentLedgerStatBinding viewBinding;
 
-    PieChart pieChart;
-
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    FirebaseUser user;
-    LedgerContent ledgerContent = new LedgerContent();
-
-    int index=0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<String>(); // 년,월 중복제거용
+    int index = 0;  // 년,월 인덱스
+    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
     List<String> monthList; // 중복 제거된 년,월 저장
-    List<Ledger> mLedger ;
-    List<Ledger> tempLedger ; // 불러온 전체 가계부 목록
-    String parsing;
+    List<Ledger> mLedger = new ArrayList<>();
 
-    ImageButton ibLastMonth2; // 왼쪽 화살표
-    TextView tvLedgerMonth2; // 년,월 출력부
-    ImageButton ibNextMonth2; // 오른쪽 화살표
-
-    int i =0;
-    int j =0;
-
-    float clothPrice=0;
-    float foodPrice=0;
-    float transPrice=0;
-    float etcPrice=0;
-    float marketPrice=0;
-    float homePrice=0;
-
-    float cloth=0f;
-    float food=0f;
-    float home=0f;
-    float trans=0f;
-    float market=0f;
-    float etc=0f;
-    float total=0f;
+    float clothPrice = 0;
+    float foodPrice = 0;
+    float transPrice = 0;
+    float etcPrice = 0;
+    float marketPrice = 0;
+    float homePrice = 0;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        viewBinding = FragmentLedgerStatBinding.inflate(getActivity().getLayoutInflater());
 
-        View v = inflater.inflate(R.layout.fragment_ledger_stat, container, false);
-        mLedger = new ArrayList<>();
-        ibLastMonth2 = v.findViewById(R.id.ibLastMonth2);
-        ibNextMonth2 = v.findViewById(R.id.ibNextMonth2);
-        tvLedgerMonth2 = v.findViewById(R.id.tvLedgerMonth2);
-        i = 0;
-        pieChart = v.findViewById(R.id.piechart);
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         myRef.child(user.getUid()).child("Ledger").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                tvLedgerMonth2.setText("전체 가계부");
                 ledgerView(dataSnapshot);
+                viewBinding.tvLedgerMonth2.setText("전체 가계부");
+                selectChart();
                 monthList = new ArrayList(selectMonth); // 년 월만 빼서 따로 리스트 생성
                 Collections.sort(monthList);
 
-                if(!monthList.isEmpty()) {
-                    parsing = monthList.get(monthList.size() - 1).replaceAll("[^0-9]", "");
+                if (!monthList.isEmpty()) {
                     index = monthList.size() - 1;
                 }
             }
@@ -102,7 +74,7 @@ public class LedgerStatFragment extends android.app.Fragment {
             public void onCancelled(DatabaseError databaseError) { }
         });
 
-        ibLastMonth2.setOnClickListener(view -> {
+        viewBinding.ibLastMonth2.setOnClickListener(view -> {
             if (mLedger.size() <= 0) {
                 return;
             }
@@ -113,19 +85,20 @@ public class LedgerStatFragment extends android.app.Fragment {
                 index = monthList.size() - 1;
             }
 
-            tvLedgerMonth2.setText(monthList.get(index));
-            parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth2.setText(monthList.get(index));
+            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
 
-            tempLedger = new ArrayList<>();
+            List<Ledger> tempLedger = new ArrayList<>();
             for (int j = 0; j < mLedger.size(); j++) {
                 if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
                     tempLedger.add(mLedger.get(j));
                 }
             }
+
             selectChart();
         });
 
-        ibNextMonth2.setOnClickListener(view -> {
+        viewBinding.ibNextMonth2.setOnClickListener(view -> {
             if (mLedger.size() <= 0) {
                 return;
             }
@@ -136,10 +109,10 @@ public class LedgerStatFragment extends android.app.Fragment {
                 index = 0;
             }
 
-            tvLedgerMonth2.setText(monthList.get(index));
-            parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth2.setText(monthList.get(index));
+            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
 
-            tempLedger = new ArrayList<>();
+            List<Ledger> tempLedger = new ArrayList<>();
             for (int j = 0; j < mLedger.size(); j++) {
                 if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
                     tempLedger.add(mLedger.get(j));
@@ -149,216 +122,80 @@ public class LedgerStatFragment extends android.app.Fragment {
             selectChart();
         });
 
-        return v;
+        return viewBinding.getRoot();
     }
 
     public void ledgerView(DataSnapshot dataSnapshot) {
-        Ledger ledger = new Ledger();
         for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
             for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
                 for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
                     for (DataSnapshot classfySnapshot : daySnapshot.getChildren()) { // 분류
                         for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) { //
-                            ledgerContent = timesSnapshot.getValue(LedgerContent.class);
+                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
 
+                            Ledger ledger = new Ledger();
                             ledger.setClassfy(classfySnapshot.getKey());
                             ledger.setYear(yearSnapshot.getKey());
                             ledger.setMonth(monthSnapshot.getKey());
-                            selectMonth.add(ledger.getYear()+"년 "+ledger.getMonth()+"월");
+                            selectMonth.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
                             ledger.setDay(daySnapshot.getKey());
                             ledger.setTimes(timesSnapshot.getKey());
-                            ledger.setPaymemo(ledgerContent.getPaymemo()); ;
-                            ledger.setPrice(ledgerContent.getPrice()); ;
-                            ledger.setUseItem(ledgerContent.getUseItem()); ;
+                            ledger.setPaymemo(ledgerContent.getPaymemo());
+                            ledger.setPrice(ledgerContent.getPrice());
+                            ledger.setUseItem(ledgerContent.getUseItem());
 
                             mLedger.add(ledger);
-                            ledger = new Ledger();
                         }
                     }
                 }
             }
         }
-
-        for (j=0; j<mLedger.size(); j++) {
-            if (mLedger.get(j).getClassfy().equals("지출")) {
-                if (mLedger.get(j).getUseItem().equals("의류비")) {
-                    clothPrice += Integer.parseInt(mLedger.get(j).getPrice());
-                } else if (mLedger.get(j).getUseItem().equals("식비")) {
-                    foodPrice += Integer.parseInt(mLedger.get(j).getPrice());
-                } else if (mLedger.get(j).getUseItem().equals("주거비")) {
-                    homePrice += Integer.parseInt(mLedger.get(j).getPrice());
-                } else if (mLedger.get(j).getUseItem().equals("교통비")) {
-                    transPrice += Integer.parseInt(mLedger.get(j).getPrice());
-                } else if (mLedger.get(j).getUseItem().equals("생필품")) {
-                    marketPrice += Integer.parseInt(mLedger.get(j).getPrice());
-                } else if (mLedger.get(j).getUseItem().equals("기타")) {
-                    etcPrice += Integer.parseInt(mLedger.get(j).getPrice());
-                }
-            }
-        }
-
-        total = clothPrice + foodPrice + homePrice + transPrice + marketPrice + etcPrice;
-        cloth = (clothPrice / total) * 100;
-        food = (foodPrice / total) * 100;
-        home = (homePrice / total) * 100;
-        trans = (transPrice / total) * 100;
-        market = (marketPrice / total) * 100;
-        etc = (etcPrice / total) * 100;
-
-        pieChart.setUsePercentValues(true);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setExtraOffsets(5,10,5,5);
-
-        pieChart.setDragDecelerationFrictionCoef(0.95f);
-
-        pieChart.setDrawHoleEnabled(false);
-        pieChart.setHoleColor(Color.WHITE);
-        pieChart.setTransparentCircleRadius(61f);
-
-        ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
-
-        if (cloth !=0) {
-            yValues.add(new PieEntry(cloth, "의류비"));
-        }
-        if (food !=0) {
-            yValues.add(new PieEntry(food, "식비"));
-        }
-        if (home !=0) {
-            yValues.add(new PieEntry(home, "주거비"));
-        }
-        if (trans !=0) {
-            yValues.add(new PieEntry(trans, "교통비"));
-        }
-        if (market !=0) {
-            yValues.add(new PieEntry(market, "생필품"));
-        }
-        if (etc !=0) {
-            yValues.add(new PieEntry(etc, "기타"));
-        }
-
-        Description description = new Description();
-        description.setText("소비 분류"); //라벨
-        description.setTextSize(15);
-        pieChart.setDescription(description);
-        pieChart.setEntryLabelColor(Color.BLACK);
-        pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
-
-        PieDataSet dataSet = new PieDataSet(yValues,"");
-        dataSet.setSliceSpace(3f);
-        dataSet.setSelectionShift(5f);
-        dataSet.setColors(ColorTemplate.JOYFUL_COLORS);
-
-        PieData data = new PieData((dataSet));
-        data.setValueTextSize(15f);
-        data.setValueTextColor(Color.BLACK);
-
-        pieChart.setData(data);
-        pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
-            @Override
-            public void onValueSelected(Entry e, Highlight h) {
-                PieEntry pe = (PieEntry) e;
-
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-
-                if (pe.getLabel().equals("의류비")) {
-                    alertDialog.setMessage("의류비 총계 : " + (int)clothPrice + "원");
-                } else if (pe.getLabel().equals("식비")) {
-                    alertDialog.setMessage("식비 총계 : " + (int)foodPrice + "원");
-                } else if (pe.getLabel().equals("주거비")) {
-                    alertDialog.setMessage("주거비 총계 : " + (int)homePrice + "원");
-                } else if (pe.getLabel().equals("교통비")) {
-                    alertDialog.setMessage("교통비 총계 : " + (int)transPrice + "원");
-                } else if (pe.getLabel().equals("생필품")) {
-                    alertDialog.setMessage("생필품비 총계 : " + (int)marketPrice + "원");
-                } else if (pe.getLabel().equals("기타")) {
-                    alertDialog.setMessage("기타 비용 총계 : " + (int)etcPrice + "원");
-                }
-
-                AlertDialog alert = alertDialog.create();
-                alert.show();
-            }
-
-            @Override
-            public void onNothingSelected() { }
-        });
     }
 
     public void selectChart() {
-        clothPrice=0;
-        foodPrice=0;
-        transPrice=0;
-        etcPrice=0;
-        marketPrice=0;
-        homePrice=0;
-
-        cloth=0f;
-        food=0f;
-        home=0f;
-        trans=0f;
-        market=0f;
-        etc=0f;
-        total=0f;
-
-        for (int j = 0; j < tempLedger.size(); j++) {
-            if (tempLedger.get(j).getUseItem().equals("의류비")) {
-                clothPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("식비")) {
-                foodPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("주거비")) {
-                homePrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("교통비")) {
-                transPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("생필품")) {
-                marketPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("기타")) {
-                etcPrice += Integer.parseInt(tempLedger.get(j).getPrice());
+        for (int j = 0; j < mLedger.size(); j++) {
+            if (mLedger.get(j).getUseItem().equals("의류비")) {
+                clothPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("식비")) {
+                foodPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("주거비")) {
+                homePrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("교통비")) {
+                transPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("생필품")) {
+                marketPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("기타")) {
+                etcPrice += Integer.parseInt(mLedger.get(j).getPrice());
             }
         }
-        total = clothPrice + foodPrice + homePrice + transPrice + marketPrice + etcPrice;
-        cloth = (clothPrice / total) * 100;
-        food = (foodPrice / total) * 100;
-        home = (homePrice / total) * 100;
-        trans = (transPrice / total) * 100;
-        market = (marketPrice / total) * 100;
-        etc = (etcPrice / total) * 100;
 
-        pieChart.setUsePercentValues(true);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setExtraOffsets(5,10,5,5);
+        float total = clothPrice + foodPrice + homePrice + transPrice + marketPrice + etcPrice;
+        float cloth = (clothPrice / total) * 100;
+        float food = (foodPrice / total) * 100;
+        float home = (homePrice / total) * 100;
+        float trans = (transPrice / total) * 100;
+        float market = (marketPrice / total) * 100;
+        float etc = (etcPrice / total) * 100;
 
-        pieChart.setDragDecelerationFrictionCoef(0.95f);
-
-        pieChart.setDrawHoleEnabled(false);
-        pieChart.setHoleColor(Color.WHITE);
-        pieChart.setTransparentCircleRadius(61f);
-
-        ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
-
-        if (cloth !=0) {
+        ArrayList<PieEntry> yValues = new ArrayList<>();
+        if (cloth != 0) {
             yValues.add(new PieEntry(cloth, "의류비"));
         }
-        if (food !=0) {
+        if (food != 0) {
             yValues.add(new PieEntry(food, "식비"));
         }
-        if (home !=0) {
+        if (home != 0) {
             yValues.add(new PieEntry(home, "주거비"));
         }
-        if (trans !=0) {
+        if (trans != 0) {
             yValues.add(new PieEntry(trans, "교통비"));
         }
-        if (market !=0) {
+        if (market != 0) {
             yValues.add(new PieEntry(market, "생필품"));
         }
-        if (etc !=0) {
+        if (etc != 0) {
             yValues.add(new PieEntry(etc, "기타"));
         }
-
-        Description description = new Description();
-        description.setText("소비 분류"); //라벨
-        description.setTextSize(15);
-        pieChart.setDescription(description);
-        pieChart.setEntryLabelColor(Color.BLACK);
-        pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
 
         PieDataSet dataSet = new PieDataSet(yValues,"");
         dataSet.setSliceSpace(3f);
@@ -369,8 +206,22 @@ public class LedgerStatFragment extends android.app.Fragment {
         data.setValueTextSize(15f);
         data.setValueTextColor(Color.BLACK);
 
-        pieChart.setData(data);
-        pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+        Description description = new Description();
+        description.setText("소비 분류"); //라벨
+        description.setTextSize(15);
+
+        viewBinding.pieChart.setData(data);
+        viewBinding.pieChart.setDescription(description);
+        viewBinding.pieChart.setEntryLabelColor(Color.BLACK);
+        viewBinding.pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
+        viewBinding.pieChart.setUsePercentValues(true);
+        viewBinding.pieChart.getDescription().setEnabled(false);
+        viewBinding.pieChart.setExtraOffsets(5,10,5,5);
+        viewBinding.pieChart.setDragDecelerationFrictionCoef(0.95f);
+        viewBinding.pieChart.setDrawHoleEnabled(false);
+        viewBinding.pieChart.setHoleColor(Color.WHITE);
+        viewBinding.pieChart.setTransparentCircleRadius(61f);
+        viewBinding.pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
                 PieEntry pe = (PieEntry) e;
@@ -390,8 +241,7 @@ public class LedgerStatFragment extends android.app.Fragment {
                     alertDialog.setMessage("기타 비용 총계 : " + (int)etcPrice + "원");
                 }
 
-                AlertDialog alert = alertDialog.create();
-                alert.show();
+                alertDialog.create().show();
             }
 
             @Override

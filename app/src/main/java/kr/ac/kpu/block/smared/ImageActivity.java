@@ -16,7 +16,6 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
-import android.view.View;
 import android.widget.Toast;
 
 import java.io.File;
@@ -37,7 +36,7 @@ public class ImageActivity extends Activity {
     private static final int CROP_FROM_CAMERA = 3;
 
     private static final int MULTIPLE_PERMISSIONS = 101;
-    private String[] permissions = {
+    private String[] necessaryPermissions = {
         Manifest.permission.READ_EXTERNAL_STORAGE,
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.CAMERA
@@ -54,7 +53,7 @@ public class ImageActivity extends Activity {
 
         // 필요한 권한이 있는지 확인
         List<String> notGrantedPermissions = new ArrayList<>();
-        for (String permission : permissions) {
+        for (String permission : necessaryPermissions) {
             if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, permission)) {
                 notGrantedPermissions.add(permission);
             }
@@ -71,9 +70,9 @@ public class ImageActivity extends Activity {
                 File photoFile = createImageFile();
                 photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", photoFile);
 
-                Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-                startActivityForResult(intent, PICK_FROM_CAMERA);
+                Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                startActivityForResult(cameraIntent, PICK_FROM_CAMERA);
             }
             catch (IOException e) {
                 Toast.makeText(ImageActivity.this, "이미지 처리 오류! 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
@@ -92,10 +91,10 @@ public class ImageActivity extends Activity {
                 return;
             }
 
-            Intent intent = new Intent(ImageActivity.this, ImageProcessingActivity.class);
-            intent.putExtra("ipath", imagePath);
-            intent.putExtra("input", photoUri);
-            startActivity(intent);
+            Intent nextIntent = new Intent(ImageActivity.this, ImageProcessingActivity.class);
+            nextIntent.putExtra("ipath", imagePath);
+            nextIntent.putExtra("input", photoUri);
+            startActivity(nextIntent);
         });
 
         viewBinding.btnCancel.setOnClickListener(view -> {
@@ -117,7 +116,7 @@ public class ImageActivity extends Activity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String requestedPermissions[], int[] grantResults) {
         switch (requestCode) {
             case MULTIPLE_PERMISSIONS: {
                 if (grantResults.length == 0) {
@@ -126,9 +125,9 @@ public class ImageActivity extends Activity {
                     return;
                 }
 
-                for (int i = 0; i < permissions.length; i++) {
-                    for (int j = 0; j < this.permissions.length; j++) {
-                        if (!permissions[i].equals(this.permissions[j])) {
+                for (int i = 0; i < requestedPermissions.length; i++) {
+                    for (int j = 0; j < this.necessaryPermissions.length; j++) {
+                        if (!requestedPermissions[i].equals(this.necessaryPermissions[j])) {
                             continue;
                         }
 
@@ -164,75 +163,61 @@ public class ImageActivity extends Activity {
             case PICK_FROM_CAMERA:
                 cropImage();
                 // 갤러리에 나타나게
-                MediaScannerConnection.scanFile(ImageActivity.this, new String[]{photoUri.getPath()}, null, (path, uri) -> { });
+                MediaScannerConnection.scanFile(ImageActivity.this, new String[]{ photoUri.getPath() }, null, (path, uri) -> { });
                 break;
+
             case CROP_FROM_CAMERA:
-                viewBinding.imageInput.setImageURI(null);
                 viewBinding.imageInput.setImageURI(photoUri);
                 break;
         }
     }
 
     public void cropImage() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            this.grantUriPermission("camera", photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }
+        Intent cameraIntent = new Intent("com.android.camera.action.CROP");
+        cameraIntent.setDataAndType(photoUri, "image/*");
 
-        Intent intent = new Intent("com.android.camera.action.CROP");
-        intent.setDataAndType(photoUri, "image/*");
-
-        List<ResolveInfo> list = getPackageManager().queryIntentActivities(intent, 0);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            this.grantUriPermission(list.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        }
-
+        List<ResolveInfo> list = getPackageManager().queryIntentActivities(cameraIntent, 0);
         if (list.size() == 0) {
             Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        this.grantUriPermission("camera", photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        this.grantUriPermission(list.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+
         Toast.makeText(this, "용량이 큰 사진의 경우 시간이 오래 걸릴 수 있습니다.", Toast.LENGTH_SHORT).show();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        }
+        cameraIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        cameraIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+        cameraIntent.putExtra("crop", "true");
+        cameraIntent.putExtra("scale", true);
 
-        intent.putExtra("crop", "true");
-        intent.putExtra("scale", true);
-
-        File croppedFileName = null;
+        File croppedFileName;
         try {
             croppedFileName = createImageFile();
         }
         catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "이미지 자르기 준비에 실패했습니다.", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        File folder = new File(Environment.getExternalStorageDirectory() + "/SmaRed/");
-        File tempFile = new File(folder.toString(), croppedFileName.getName());
+        photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", croppedFileName);
 
-        photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", tempFile);
+        cameraIntent.putExtra("return-data", false);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+        cameraIntent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        }
-
-        intent.putExtra("return-data", false);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-        intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
-
-        Intent i = new Intent(intent);
+        Intent cropIntent = new Intent(cameraIntent);
         ResolveInfo res = list.get(0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            cropIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            cropIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
             this.grantUriPermission(res.activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        i.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-        startActivityForResult(i, CROP_FROM_CAMERA);
+        cropIntent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+        startActivityForResult(cropIntent, CROP_FROM_CAMERA);
     }
 }

@@ -20,12 +20,6 @@ import java.util.Hashtable;
 
 import kr.ac.kpu.block.smared.databinding.ActivityMainBinding;
 
-// 복붙용 임시 코드
-// private final String TAG = getClass().getSimpleName();
-//private ActivityMainBinding viewBinding;
-//viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
-//setContentView(viewBinding.getRoot());
-
 // 메인 액티비티에서는 로그인을 수행
 public class MainActivity extends AppCompatActivity {
 
@@ -39,9 +33,8 @@ public class MainActivity extends AppCompatActivity {
     // 안드로이드 생명주기 onCreate() -> onStart() -> onResume() -> onPause() -> onStop() -> onDestory()
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
         // 뷰 바인딩 적용
+        super.onCreate(savedInstanceState);
         viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 

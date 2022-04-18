@@ -23,8 +23,6 @@ public class SMSActivity extends AppCompatActivity {
 
     private ActivitySmsBinding viewBinding;
 
-    private List<SMS> mBody = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +31,7 @@ public class SMSActivity extends AppCompatActivity {
 
         viewBinding.rvSMS.setHasFixedSize(true);
         viewBinding.rvSMS.setLayoutManager(new LinearLayoutManager(this));
+        List<SMS> mBody = new ArrayList<>();
         SMSAdapter mAdapter = new SMSAdapter(mBody, this);
         viewBinding.rvSMS.setAdapter(mAdapter);
 

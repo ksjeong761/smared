@@ -32,7 +32,8 @@ public class PackageManagerUtils {
                 return null;
             }
             return signatureDigest(packageInfo.signatures[0]);
-        } catch (PackageManager.NameNotFoundException e) {
+        }
+        catch (PackageManager.NameNotFoundException e) {
             return null;
         }
     }

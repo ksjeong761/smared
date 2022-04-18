@@ -43,78 +43,46 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import kr.ac.kpu.block.smared.databinding.FragmentLedgerViewBinding;
+
 public class LedgerViewFragment extends android.app.Fragment {
+    private FragmentLedgerViewBinding viewBinding;
 
     String TAG = getClass().getSimpleName();
-    RecyclerView mRecyclerView;
-    LinearLayoutManager mLayoutManager;
     LedgerAdapter mAdapter;
-    LedgerAdapter tempAdapter;
 
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
-
-    int totalIncome=0;
-    int totalConsume=0;
-    LedgerContent ledgerContent = new LedgerContent();
-    List<Ledger> mLedger ; // 불러온 전체 가계부 목록
-    List<Ledger> tempLedger ; // 불러온 부분 가계부 목록
+    List<Ledger> mLedger = new ArrayList<>(); // 불러온 전체 가계부 목록
 
     int index=0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<String>(); // 년,월 중복제거용
+    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
     List<String> monthList; // 중복 제거된 년,월 저장
-    String parsing;
 
-    ImageButton ibLastMonth; // 왼쪽 화살표
-    TextView tvLedgerMonth; // 년,월 출력부
-    ImageButton ibNextMonth; // 오른쪽 화살표
-    TextView tvTotalconsume;
-    TextView tvTotalincome;
-    TextView tvPlusMinus;
-    Button btnExport;
-
+    private static final int MULTIPLE_PERMISSIONS = 101;
     private String[] permissions = {
         android.Manifest.permission.READ_EXTERNAL_STORAGE,
         android.Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    private static final int MULTIPLE_PERMISSIONS = 101;
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewBinding = FragmentLedgerViewBinding.inflate(getActivity().getLayoutInflater());
 
         //사용자 정보 DB에 접근하기 위한 객체
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
-        chatRef = database.getReference("chats");
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("users");
 
         //현재 로그인한 사용자 가져오기
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         checkPermissions();
 
-        View v = inflater.inflate(R.layout.fragment_ledger_view, container, false);
-
-        ibLastMonth = v.findViewById(R.id.ibLastMonth);
-        ibNextMonth = v.findViewById(R.id.ibNextMonth);
-        tvLedgerMonth = v.findViewById(R.id.tvLedgerMonth);
-        tvTotalincome = v.findViewById(R.id.tvTotalincome);
-        tvTotalconsume = v.findViewById(R.id.tvTotalconsume);
-        tvPlusMinus = v.findViewById(R.id.tvPlusMinus);
-        btnExport = v.findViewById(R.id.btnExport);
-
-        mRecyclerView = v.findViewById(R.id.rvLedger);
-        mRecyclerView.setHasFixedSize(true);
-        mLayoutManager = new LinearLayoutManager(getActivity());
-        mRecyclerView.setLayoutManager(mLayoutManager);
-        mLedger = new ArrayList<>();
+        viewBinding.rvLedger.setHasFixedSize(true);
+        viewBinding.rvLedger.setLayoutManager(new LinearLayoutManager(getActivity()));
         mAdapter = new LedgerAdapter(mLedger, getActivity());
-        mRecyclerView.setAdapter(mAdapter);
-        mRecyclerView.scrollToPosition(0);
+        viewBinding.rvLedger.setAdapter(mAdapter);
+        viewBinding.rvLedger.scrollToPosition(0);
 
         // 이전 달 버튼 이벤트
-        ibLastMonth.setOnClickListener(view -> {
+        viewBinding.ibLastMonth.setOnClickListener(view -> {
             if (mLedger.size() <= 0) {
                 return;
             }
@@ -125,9 +93,12 @@ public class LedgerViewFragment extends android.app.Fragment {
                 index = monthList.size() - 1;
             }
 
-            tempLedger = new ArrayList<>();
-            tvLedgerMonth.setText(monthList.get(index));
-            parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth.setText(monthList.get(index));
+            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
+
+            int totalIncome = 0;
+            int totalConsume = 0;
+            List<Ledger> tempLedger = new ArrayList<>();
 
             for (int j = 0; j < mLedger.size(); j++) {
                 if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
@@ -140,17 +111,14 @@ public class LedgerViewFragment extends android.app.Fragment {
                 }
             }
 
-            tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
-            tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
-            tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
-            totalIncome = 0;
-            totalConsume = 0;
-            tempAdapter = new LedgerAdapter(tempLedger, getActivity());
-            mRecyclerView.setAdapter(tempAdapter);
+            viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
+            viewBinding.tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
+            viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
+            viewBinding.rvLedger.setAdapter(new LedgerAdapter(tempLedger, getActivity()));
         });
 
         // 다음 달 버튼 이벤트
-        ibNextMonth.setOnClickListener(view -> {
+        viewBinding.ibNextMonth.setOnClickListener(view -> {
             if (mLedger.size() <= 0) {
                 return;
             }
@@ -161,9 +129,12 @@ public class LedgerViewFragment extends android.app.Fragment {
                 index = 0;
             }
 
-            tempLedger = new ArrayList<>();
-            tvLedgerMonth.setText(monthList.get(index));
-            parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth.setText(monthList.get(index));
+            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
+
+            int totalIncome = 0;
+            int totalConsume = 0;
+            List<Ledger> tempLedger = new ArrayList<>();
 
             for (int j = 0; j < mLedger.size(); j++) {
                 if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
@@ -177,19 +148,16 @@ public class LedgerViewFragment extends android.app.Fragment {
                 }
             }
 
-            tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
-            tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
-            tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
-            totalIncome = 0;
-            totalConsume = 0;
-            tempAdapter = new LedgerAdapter(tempLedger, getActivity());
-            mRecyclerView.setAdapter(tempAdapter);
+            viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
+            viewBinding.tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
+            viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
+            viewBinding.rvLedger.setAdapter(new LedgerAdapter(tempLedger, getActivity()));
         });
 
         myRef.child(user.getUid()).child("Ledger").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                tvLedgerMonth.setText("전체 가계부");
+                viewBinding.tvLedgerMonth.setText("전체 가계부");
                 mLedger.clear();
                 selectMonth.clear();
                 mAdapter.notifyDataSetChanged();
@@ -199,7 +167,6 @@ public class LedgerViewFragment extends android.app.Fragment {
                 Collections.sort(monthList);              // 정렬
                 if (!monthList.isEmpty()) {
                     // 숫자가 아닌 문자를 전부 제거한다.
-                    parsing = monthList.get(monthList.size() - 1).replaceAll("[^0-9]", "");
                     index = monthList.size() - 1;
                 }
             }
@@ -211,7 +178,7 @@ public class LedgerViewFragment extends android.app.Fragment {
         });
 
         // 엑셀 내보내기 버튼 이벤트 - 가계부를 지정한 이름의 엑셀 파일로 저장하고 공유한다.
-        btnExport.setOnClickListener(view -> {
+        viewBinding.btnExport.setOnClickListener(view -> {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
             alertDialog.setTitle("저장할 가계부 이름을 설정해주세요");
             EditText editName = new EditText(getActivity());
@@ -231,18 +198,21 @@ public class LedgerViewFragment extends android.app.Fragment {
             alert.show();
         });
 
-        return v;
+        return viewBinding.getRoot();
     }
 
     // [Refactor] for문 갯수 줄일 방법 찾아야 함
     // DB에서 사용자의 전체 가계부 목록을 얻어오고 총 수입,지출을 EditText에 출력한다.
     public void ledgerView(DataSnapshot dataSnapshot) {
-        Ledger ledger = new Ledger();
+        int totalIncome = 0;
+        int totalConsume = 0;
+
         for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
             for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
                 for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
                     for (DataSnapshot classfySnapshot : daySnapshot.getChildren()) { // 소비 분류
                         for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) {
+                            Ledger ledger = new Ledger();
                             ledger.setClassfy(classfySnapshot.getKey());        //분류
 
                             ledger.setYear(yearSnapshot.getKey());              //년
@@ -251,19 +221,19 @@ public class LedgerViewFragment extends android.app.Fragment {
                             ledger.setDay(daySnapshot.getKey());                //일
                             ledger.setTimes(timesSnapshot.getKey());            //시간
 
-                            ledgerContent = timesSnapshot.getValue(LedgerContent.class);
+                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
                             ledger.setPaymemo(ledgerContent.getPaymemo()); ;   //내용
                             ledger.setPrice(ledgerContent.getPrice()); ;       //금액
                             ledger.setUseItem(ledgerContent.getUseItem()); ;   //물품 분류
 
                             if (ledger.getClassfy().equals("지출")) {
                                 totalConsume += Integer.parseInt(ledger.getPrice());
-                            } else if (ledger.getClassfy().equals("수입")) {
+                            }
+                            else if (ledger.getClassfy().equals("수입")) {
                                 totalIncome += Integer.parseInt(ledger.getPrice());
                             }
 
                             mLedger.add(ledger);
-                            ledger = new Ledger();
                             mAdapter.notifyItemInserted(mLedger.size() - 1);
                         }
                     }
@@ -271,12 +241,9 @@ public class LedgerViewFragment extends android.app.Fragment {
             }
         }
 
-        tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
-        tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
-        tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
-
-        totalIncome=0;
-        totalConsume=0;
+        viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
+        viewBinding.tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
+        viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
     }
 
     // Apache POI 3.17 라이브러리를 사용해 가계부 정보를 액셀 파일로 만들어 공유한다.
@@ -332,7 +299,8 @@ public class LedgerViewFragment extends android.app.Fragment {
         try {
             FileOutputStream os = new FileOutputStream(xlsFile);
             workbook.write(os);
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
 
@@ -387,7 +355,8 @@ public class LedgerViewFragment extends android.app.Fragment {
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             showNoPermissionToastAndFinish();
                         }
-                    } else if (permissions[i].equals(this.permissions[1])) {
+                    }
+                    else if (permissions[i].equals(this.permissions[1])) {
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             showNoPermissionToastAndFinish();
                         }

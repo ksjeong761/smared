@@ -17,11 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,50 +37,37 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
 
+import kr.ac.kpu.block.smared.databinding.FragmentProfileBinding;
+
 public class ProfileFragment extends Fragment {
 
-    ImageView ivUser;
-    TextView tvNickname;
-    Button btnChangePhoto;
-    Button btnChangeNickname;
-    Button btnLogout;
-    Button btnWithdrawal;
+    private FragmentProfileBinding viewBinding;
+
+    private String TAG = getClass().getSimpleName();
+
+    DatabaseReference myRef;
+    DatabaseReference chatRef;
+    FirebaseUser user;
     private StorageReference mStorageRef;
+
     Bitmap bitmap;
     String stUid;
     String stEmail;
     String stNickname;
-    String TAG = getClass().getSimpleName();
     int regStatus = 1;
-    ProgressBar pbLogin;
-
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_profile, container, false);
-        tvNickname = v.findViewById(R.id.tvNickname);
-        btnChangePhoto = v.findViewById(R.id.btnChangePhoto);
-        btnLogout = v.findViewById(R.id.btnLogout);
-        btnChangeNickname = v.findViewById(R.id.btnChangeNickname);
-        btnWithdrawal = v.findViewById(R.id.btnWithdrawal);
-
-        ivUser  = v.findViewById(R.id.ivUser);
+        viewBinding = FragmentProfileBinding.inflate(getActivity().getLayoutInflater());
 
         user = FirebaseAuth.getInstance().getCurrentUser();
         mStorageRef = FirebaseStorage.getInstance().getReference();
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
         stUid = sharedPreferences.getString("uid","");
         stEmail = sharedPreferences.getString("email","");
 
-        pbLogin = v.findViewById(R.id.pbLogin);
-
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference();
-        chatRef = database.getReference("chats");
+        myRef = FirebaseDatabase.getInstance().getReference();
+        chatRef = FirebaseDatabase.getInstance().getReference("chats");
 
         // 데이터 변경 및 취소 이벤트
         myRef.child("users").child(stUid).addValueEventListener(new ValueEventListener() {
@@ -98,21 +81,21 @@ public class ProfileFragment extends Fragment {
                 String value = dataSnapshot.getValue().toString();
                 String stPhoto = dataSnapshot.child("photo").getValue().toString();
                 stNickname = dataSnapshot.child("nickname").getValue().toString();
-                tvNickname.setText(stNickname);
+                viewBinding.tvNickname.setText(stNickname);
 
                 Log.d(TAG, "Value is: " + value);
 
                 if (TextUtils.isEmpty(stPhoto)) {
-                    pbLogin.setVisibility(getView().GONE);
+                    viewBinding.pbLogin.setVisibility(getView().GONE);
                     return;
                 }
 
-                Picasso.with(getActivity()).load(stPhoto).fit().centerInside().into(ivUser, new Callback.EmptyCallback() {
+                Picasso.with(getActivity()).load(stPhoto).fit().centerInside().into(viewBinding.ivUser, new Callback.EmptyCallback() {
                     @Override
                     public void onSuccess() {
                         // Index 0 is the image view.
                         Log.d(TAG, "SUCCESS");
-                        pbLogin.setVisibility(getView().GONE);
+                        viewBinding.pbLogin.setVisibility(getView().GONE);
                     }
                 });
             }
@@ -134,21 +117,21 @@ public class ProfileFragment extends Fragment {
         }
 
         // 프로필 사진 변경 버튼 이벤트
-        btnChangePhoto.setOnClickListener(view -> {
+        viewBinding.btnChangePhoto.setOnClickListener(view -> {
             Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(i,1);
-            pbLogin.setVisibility(getView().VISIBLE);
+            viewBinding.pbLogin.setVisibility(getView().VISIBLE);
         });
 
         // 로그아웃 버튼 이벤트
-        btnLogout.setOnClickListener(view -> {
+        viewBinding.btnLogout.setOnClickListener(view -> {
             FirebaseAuth.getInstance().signOut();
             Toast.makeText(getActivity(),"로그아웃 되었습니다",Toast.LENGTH_SHORT).show();
             getActivity().finish();
         });
 
         // 닉네임 변경 버튼 이벤트
-        btnChangeNickname.setOnClickListener(view -> {
+        viewBinding.btnChangeNickname.setOnClickListener(view -> {
             AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
             final EditText etNickname = new EditText(getActivity());
             alertdialog.setTitle("닉네임 변경");
@@ -156,7 +139,7 @@ public class ProfileFragment extends Fragment {
 
             alertdialog.setPositiveButton("확인", (dialog, which) -> {
                 stNickname = etNickname.getText().toString();
-                tvNickname.setText("닉네임 : "+ stNickname);
+                viewBinding.tvNickname.setText("닉네임 : "+ stNickname);
                 myRef.child("users").child(stUid).child("nickname").setValue(stNickname);
             });
 
@@ -165,7 +148,7 @@ public class ProfileFragment extends Fragment {
         });
 
         // 회원탈퇴 버튼 이벤트
-        btnWithdrawal.setOnClickListener(view -> {
+        viewBinding.btnWithdrawal.setOnClickListener(view -> {
             AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
             alertdialog.setMessage("정말 탈퇴하시겠습니까?");
 
@@ -204,7 +187,7 @@ public class ProfileFragment extends Fragment {
             alertdialog.show();
         });
 
-        return v;
+        return viewBinding.getRoot();
     }
 
     // 이미지뷰 파일 업로드
@@ -222,7 +205,7 @@ public class ProfileFragment extends Fragment {
                 e.printStackTrace();
             }
         } catch (NullPointerException e) {
-            pbLogin.setVisibility(getView().GONE);
+            viewBinding.pbLogin.setVisibility(getView().GONE);
         }
     }
 
@@ -278,7 +261,7 @@ public class ProfileFragment extends Fragment {
                     }
 
                     Toast.makeText(getActivity(), "사진 업로드 완료",Toast.LENGTH_SHORT).show();
-                    ivUser.setImageBitmap(bitmap);
+                    viewBinding.ivUser.setImageBitmap(bitmap);
                 }
 
                 @Override

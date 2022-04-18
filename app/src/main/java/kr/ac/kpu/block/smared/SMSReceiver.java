@@ -53,11 +53,11 @@ public class SMSReceiver extends BroadcastReceiver {
 
             // 푸시 알림을 눌렀을 때 인텐트가 실행되게 한다.
             // (현재 액티비티를 최상단으로 올린다 | 최상단 액티비티를 제외하고 모든 액티비티를 제거한다)
-            Intent intents = new Intent(context.getApplicationContext(), TabActivity.class);
-            intents.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            intents.putExtra("sms", smsMessage);
-            intents.putExtra("smsdate", smsReceivedDate);
-            PendingIntent pendnoti = PendingIntent.getActivity(context, 0, intents, PendingIntent.FLAG_UPDATE_CURRENT);
+            Intent nextIntent = new Intent(context.getApplicationContext(), TabActivity.class);
+            nextIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            nextIntent.putExtra("sms", smsMessage);
+            nextIntent.putExtra("smsdate", smsReceivedDate);
+            PendingIntent pendnoti = PendingIntent.getActivity(context, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
             // 빌더 패턴을 이용해 푸시 알림 상세를 설정한다.
             Notification.Builder builder = new Notification.Builder(context.getApplicationContext());

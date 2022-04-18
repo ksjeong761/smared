@@ -10,11 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.CalendarView;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,63 +29,47 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegShareBinding;
+
 public class ShareLedgerRegFragment extends Fragment {
 
-    FirebaseDatabase database;
+    private FragmentLedgerRegShareBinding viewBinding;
+
     DatabaseReference myRef;
     DatabaseReference chatRef;
     FirebaseUser user;
-    Context context;
 
     String stUseItem;
-    String stPrice; // 금액
-    String stPaymemo; // 내용
-    String stChatname;// 채팅방 이름 = 가계부 이름
     String stEmail;
     String stUid;
 
-    CharSequence selectChatname = "";
-    String selectChatuid;
-    String joinChatname;
+    String selectedChatRoomName = "";
+    String selectedChatUid = "";
 
     Calendar c = Calendar.getInstance();
-    SimpleDateFormat years = new SimpleDateFormat("yyyy");
-    SimpleDateFormat months = new SimpleDateFormat("MM");
-    SimpleDateFormat days = new SimpleDateFormat("dd");
-    String stYear = years.format(c.getTime());
-    String stMonth = months.format(c.getTime());
-    String stDay = days.format(c.getTime());
+    String stYear = new SimpleDateFormat("yyyy").format(c.getTime());
+    String stMonth = new SimpleDateFormat("MM").format(c.getTime());
+    String stDay = new SimpleDateFormat("dd").format(c.getTime());
 
     int saveItem;
-    List<String> listItems = new ArrayList<String>();
+    List<String> listItems = new ArrayList<>();
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        database = FirebaseDatabase.getInstance();
+        viewBinding = FragmentLedgerRegShareBinding.inflate(getActivity().getLayoutInflater());
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
         chatRef = database.getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
-        stChatname = "NULL";
 
-        View v = inflater.inflate(R.layout.fragment_ledger_reg_share, container, false);
-
-        Spinner spnUseitem = v.findViewById(R.id.spnUseitem2);
-        Button btnSave = v.findViewById(R.id.btnSave2);
-        final EditText etPrice = v.findViewById(R.id.etPrice2);
-        final EditText etPaymemo = v.findViewById(R.id.etPaymemo2);
-        CalendarView cvCalender = v.findViewById(R.id.cvCalender2);
-        final RadioButton rbConsume = v.findViewById(R.id.rbConsume2);
-        Button btnChoiceLed = v.findViewById(R.id.btnChoiceLed);
-        Button btnOpenChat = v.findViewById(R.id.btnOpenChat);
-        Button btnInvite = v.findViewById(R.id.btnInvite);
-
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
         stEmail = sharedPreferences.getString("email","");
         stUid = sharedPreferences.getString("uid","");
 
         viewLedgerName();
 
         // 분류 스피너 선택 이벤트
-        spnUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        viewBinding.spnUseitem2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 stUseItem = (String) adapterView.getItemAtPosition(i);
@@ -100,27 +80,25 @@ public class ShareLedgerRegFragment extends Fragment {
         });
 
         // 달력 선택, 날짜 입력
-        cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
+        viewBinding.cvCalender2.setOnDateChangeListener((calendarView, year, month, day) -> {
             stYear = Integer.toString(year);
-            stMonth = String.format("%02d",month+1);
-            stDay =  String.format("%02d",day);
+            stMonth = String.format("%02d", month+1);
+            stDay =  String.format("%02d", day);
 
            Toast.makeText(getActivity(), stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
         });
 
         // 저장 버튼 이벤트
-        btnSave.setOnClickListener(view -> {
-            if (selectChatname.toString().isEmpty()) {
+        viewBinding.btnSave2.setOnClickListener(view -> {
+            if (selectedChatRoomName.isEmpty()) {
                 Toast.makeText(getActivity(), "가계부를 선택후 이용해주세요", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            stPrice = etPrice.getText().toString();
-            stPaymemo = etPaymemo.getText().toString();
+            String stPrice = viewBinding.etPrice2.getText().toString();
+            String stPaymemo = viewBinding.etPayMemo2.getText().toString();
 
-            c = Calendar.getInstance();
-            SimpleDateFormat time = new SimpleDateFormat("HHmmss");
-            String stTime = time.format(c.getTime());
+            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 
             Hashtable<String, String> ledger = new Hashtable<>();
             ledger.put("useItem", stUseItem);
@@ -132,24 +110,24 @@ public class ShareLedgerRegFragment extends Fragment {
                 return;
             }
 
-            if (rbConsume.isChecked()) {
-                chatRef.child(selectChatuid).child("Ledger").child(stYear).child(stMonth).child(stDay).child("지출").child(stTime).setValue(ledger);
+            if (viewBinding.rbConsume2.isChecked()) {
+                chatRef.child(selectedChatUid).child("Ledger").child(stYear).child(stMonth).child(stDay).child("지출").child(stTime).setValue(ledger);
                 Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
             } else {
-                chatRef.child(selectChatuid).child("Ledger").child(stYear).child(stMonth).child(stDay).child("수입").child(stTime).setValue(ledger);
+                chatRef.child(selectedChatUid).child("Ledger").child(stYear).child(stMonth).child(stDay).child("수입").child(stTime).setValue(ledger);
                 Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
             }
 
-            etPaymemo.setText("");
-            etPrice.setText("");
+            viewBinding.etPayMemo2.setText("");
+            viewBinding.etPrice2.setText("");
         });
 
         // 가계부 선택 버튼 이벤트
-        btnChoiceLed.setOnClickListener(view -> {
+        viewBinding.btnChoiceLed.setOnClickListener(view -> {
             viewLedgerName();
             final CharSequence[] select = listItems.toArray(new CharSequence[listItems.size()]);
 
-            AlertDialog.Builder alertdialog= new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
             alertdialog.setTitle("가계부를 골라주세요");
             alertdialog.setSingleChoiceItems(select, -1, (dialog, item) -> saveItem = item);
 
@@ -164,9 +142,8 @@ public class ShareLedgerRegFragment extends Fragment {
                     String chatId = pushedRef.getKey();
 
                     Hashtable<String, String> makeChat = new Hashtable<>();
-                    stChatname = editText.getText().toString();
-                    selectChatname = stChatname;
-                    makeChat.put("chatname",stChatname);
+                    selectedChatRoomName = editText.getText().toString();
+                    makeChat.put("chatname", selectedChatRoomName);
 
                     chatRef.child(chatId).setValue(makeChat);
                     chatRef.child(chatId).child("user").child(stUid).setValue(stEmail);
@@ -185,7 +162,7 @@ public class ShareLedgerRegFragment extends Fragment {
             });
 
             alertdialog.setPositiveButton("선택", (dialogInterface, i) -> {
-                selectChatname = select[saveItem];
+                selectedChatRoomName = select[saveItem].toString();
                 setChatUid();
             });
 
@@ -197,8 +174,8 @@ public class ShareLedgerRegFragment extends Fragment {
         });
 
         // 초대 버튼 이벤트
-        btnInvite.setOnClickListener(view -> {
-            if (selectChatname.toString().isEmpty()) {
+        viewBinding.btnInvite.setOnClickListener(view -> {
+            if (selectedChatRoomName.isEmpty()) {
                 Toast.makeText(getActivity(), "가계부를 선택후 이용해주세요", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -214,7 +191,7 @@ public class ShareLedgerRegFragment extends Fragment {
                     for (DataSnapshot emailSnapshot : dataSnapshot.getChildren()) {
                         if (editText.getText().toString().equals(emailSnapshot.child("email").getValue(String.class))) {
                             inviteUser(emailSnapshot.child("key").getValue(String.class), emailSnapshot.child("email").getValue(String.class));  // CHATS에 UID 키 저장, 이메일 값 저장
-                            Toast.makeText(getActivity(), emailSnapshot.child("nickname").getValue(String.class) + "님을 " + selectChatname + " 가계부에 초대하였습니다.", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getActivity(), emailSnapshot.child("nickname").getValue(String.class) + "님을 " + selectedChatRoomName + " 가계부에 초대하였습니다.", Toast.LENGTH_SHORT).show();
                             check = 1;
                         }
                     }
@@ -233,8 +210,8 @@ public class ShareLedgerRegFragment extends Fragment {
             alert.show();
         });
 
-        btnOpenChat.setOnClickListener(view -> {
-            if (selectChatname.toString().isEmpty()) {
+        viewBinding.btnOpenChat.setOnClickListener(view -> {
+            if (selectedChatRoomName.isEmpty()) {
                 Toast.makeText(getActivity(), "가계부를 선택후 이용해주세요", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -245,13 +222,12 @@ public class ShareLedgerRegFragment extends Fragment {
                     String photo = dataSnapshot.child("photo").getValue(String.class);
                     String nickname = dataSnapshot.child("nickname").getValue(String.class);
 
-                    Intent in = new Intent(getActivity(), ChatActivity.class);
-                    in.putExtra("chatUid", selectChatuid);
-                    in.putExtra("chatName", selectChatname);
-                    in.putExtra("photo",photo);
-                    in.putExtra("nickname",nickname);
-
-                    startActivity(in);
+                    Intent nextIntent = new Intent(getActivity(), ChatActivity.class);
+                    nextIntent.putExtra("chatUid", selectedChatUid);
+                    nextIntent.putExtra("chatName", selectedChatRoomName);
+                    nextIntent.putExtra("photo",photo);
+                    nextIntent.putExtra("nickname",nickname);
+                    startActivity(nextIntent);
                 }
 
                 @Override
@@ -259,7 +235,7 @@ public class ShareLedgerRegFragment extends Fragment {
             });
         });
 
-        return v;
+        return viewBinding.getRoot();
     }
 
     public void viewLedgerName() {
@@ -270,8 +246,7 @@ public class ShareLedgerRegFragment extends Fragment {
                     for (DataSnapshot userSnapshot : chatSnapshot.getChildren()) {
                         for (DataSnapshot uidSnapshot : userSnapshot.getChildren()) {
                             if (uidSnapshot.getKey().equals(stUid)) {
-                                joinChatname = chatSnapshot.child("chatname").getValue(String.class);
-                                listItems.add(joinChatname);
+                                listItems.add(chatSnapshot.child("chatname").getValue(String.class));
                             }
                         }
                     }
@@ -286,7 +261,7 @@ public class ShareLedgerRegFragment extends Fragment {
     public void inviteUser(String uid, String email) {
         Map<String, Object> invite = new HashMap<>();
         invite.put(uid, email);
-        chatRef.child(selectChatuid).child("user").updateChildren(invite);
+        chatRef.child(selectedChatUid).child("user").updateChildren(invite);
     }
 
     public void setChatUid() {
@@ -294,8 +269,8 @@ public class ShareLedgerRegFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-                    if (chatSnapshot.child("chatname").getValue(String.class).equals(selectChatname)) {
-                        selectChatuid = chatSnapshot.getKey();
+                    if (chatSnapshot.child("chatname").getValue(String.class).equals(selectedChatRoomName)) {
+                        selectedChatUid = chatSnapshot.getKey();
                     }
                 }
             }

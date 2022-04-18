@@ -16,8 +16,8 @@ public class ContentActivity extends AppCompatActivity  {
         viewBinding = ActivityContentBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        Intent intent = getIntent();
-        viewBinding.OCRResult.setText("[ OCR 인식 결과 ]\n" + intent.getStringExtra("result"));
-        viewBinding.OCRToast.setText(intent.getStringExtra("finalResult"));
+        Intent previousIntent = getIntent();
+        viewBinding.OCRResult.setText("[ OCR 인식 결과 ]\n" + previousIntent.getStringExtra("result"));
+        viewBinding.OCRToast.setText(previousIntent.getStringExtra("finalResult"));
     }
 }

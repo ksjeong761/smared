@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
-    tools:context="kr.ac.kpu.block.smared.ShareLedgerStatFragment">
+    tools:context="kr.ac.kpu.block.smared.fragment.ShareLedgerStatFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <ImageButton
@@ -38,7 +38,7 @@
         android:background="@android:color/transparent"
         />
     <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/pieChart"
+        android:id="@+id/piechart"
         android:layout_width="match_parent"
         android:layout_height="420dp"
         android:layout_below="@id/ibLastMonth2"

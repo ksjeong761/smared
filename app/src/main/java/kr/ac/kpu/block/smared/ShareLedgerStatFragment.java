@@ -9,12 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
@@ -37,11 +33,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import kr.ac.kpu.block.smared.databinding.FragmentLedgerStatShareBinding;
+
 import static android.content.ContentValues.TAG;
 
 public class ShareLedgerStatFragment extends android.app.Fragment {
 
-    PieChart pieChart;
+    private FragmentLedgerStatShareBinding viewBinding;
 
     FirebaseDatabase database;
     DatabaseReference myRef;
@@ -50,21 +48,16 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
     LedgerContent ledgerContent = new LedgerContent();
 
     int index=0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<String>(); // 년,월 중복제거용
+    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
     List<String> monthList; // 중복 제거된 년,월 저장
-    List<Ledger> mLedger ;
-    List<Ledger> tempLedger ; // 불러온 전체 가계부 목록
-    List<String> listItems = new ArrayList<String>();
+    List<Ledger> mLedger = new ArrayList<>();
+    List<String> listItems = new ArrayList<>();
     String parsing;
     String selectChatuid="";
     String joinChatname;
 
-    ImageButton ibLastMonth2; // 왼쪽 화살표
-    TextView tvLedgerMonth2; // 년,월 출력부
-    ImageButton ibNextMonth2; // 오른쪽 화살표
-    Spinner spnSelectLedger;
-    CharSequence selectChatname = "";
-    ArrayAdapter<String> spinneradapter;
+    String selectedChatRoomName = "";
+    ArrayAdapter<String> spinnerAdapter;
 
     int count =0;
 
@@ -84,22 +77,15 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
     float total=0f;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewBinding = FragmentLedgerStatShareBinding.inflate(getActivity().getLayoutInflater());
+
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
         chatRef = database.getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        View v = inflater.inflate(R.layout.fragment_ledger_stat_share, container, false);
-        mLedger = new ArrayList<>();
-        ibLastMonth2 = v.findViewById(R.id.ibLastMonth2);
-        ibNextMonth2 = v.findViewById(R.id.ibNextMonth2);
-        tvLedgerMonth2 = v.findViewById(R.id.tvLedgerMonth2);
-        spnSelectLedger = v.findViewById(R.id.spnSelectLedger);
-
-        pieChart = v.findViewById(R.id.piechart);
-
         // 이전 달 버튼 이벤트
-        ibLastMonth2.setOnClickListener(view -> {
+        viewBinding.ibLastMonth2.setOnClickListener(view -> {
             if (mLedger.size() <= 0) {
                 return;
             }
@@ -110,10 +96,10 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
                 index = monthList.size() - 1;
             }
 
-            tvLedgerMonth2.setText(monthList.get(index));
-            parsing= monthList.get(index).replaceAll("[^0-9]", ""); // 날짜를 20182 이런형식으로 파싱
+            viewBinding.tvLedgerMonth2.setText(monthList.get(index));
+            String parsing= monthList.get(index).replaceAll("[^0-9]", ""); // 날짜를 20182 이런형식으로 파싱
 
-            tempLedger = new ArrayList<>();
+            List<Ledger> tempLedger = new ArrayList<>();
             for (int j=0; j<mLedger.size(); j++) {
                 if( parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth()) ) {
                     tempLedger.add(mLedger.get(j));
@@ -124,7 +110,7 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         });
 
         // 다음 달 버튼 이벤트
-        ibNextMonth2.setOnClickListener(view -> {
+        viewBinding.ibNextMonth2.setOnClickListener(view -> {
             if (mLedger.size() != 0) {
                 return;
             }
@@ -135,10 +121,10 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
                 index = 0;
             }
 
-            tvLedgerMonth2.setText(monthList.get(index));
-            parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth2.setText(monthList.get(index));
+            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
 
-            tempLedger = new ArrayList<>();
+            List<Ledger> tempLedger = new ArrayList<>();
             for (int j = 0; j < mLedger.size(); j++) {
                 if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
                     tempLedger.add(mLedger.get(j));
@@ -147,34 +133,29 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
 
             selectChart();
         });
+
         viewLedgerName("init");
 
         // 스피너 선택 이벤트
-        spinneradapter = new ArrayAdapter<>(getActivity(), R.layout.support_simple_spinner_dropdown_item, listItems);
-        spnSelectLedger.setAdapter(spinneradapter);
-        spnSelectLedger.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinnerAdapter = new ArrayAdapter<>(getActivity(), R.layout.support_simple_spinner_dropdown_item, listItems);
+        viewBinding.spnSelectLedger.setAdapter(spinnerAdapter);
+        viewBinding.spnSelectLedger.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
               @Override
               public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                  if (count == 0) {
-                      return;
-                  }
-
-                  selectChatname = (String)parent.getItemAtPosition(position);
+                  selectedChatRoomName = (String)parent.getItemAtPosition(position);
 
                   mLedger.clear(); // 가계부 초기화
                   listItems.clear(); // 참여중인 가계부 목록 초기화
                   selectMonth.clear();
                   monthList.clear(); // 년,월 선택 초기화
-                  viewLedgerName(selectChatname);
-
-                  count = 1;
+                  viewLedgerName(selectedChatRoomName);
               }
 
               @Override
               public void onNothingSelected(AdapterView<?> parent) { }
          });
 
-        return v;
+        return viewBinding.getRoot();
     }
 
 
@@ -247,17 +228,17 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         market = (marketPrice / total) * 100;
         etc = (etcPrice / total) * 100;
 
-        pieChart.setUsePercentValues(true);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setExtraOffsets(5,10,5,5);
+        viewBinding.pieChart.setUsePercentValues(true);
+        viewBinding.pieChart.getDescription().setEnabled(false);
+        viewBinding.pieChart.setExtraOffsets(5,10,5,5);
 
-        pieChart.setDragDecelerationFrictionCoef(0.95f);
+        viewBinding.pieChart.setDragDecelerationFrictionCoef(0.95f);
 
-        pieChart.setDrawHoleEnabled(false);
-        pieChart.setHoleColor(Color.WHITE);
-        pieChart.setTransparentCircleRadius(61f);
+        viewBinding.pieChart.setDrawHoleEnabled(false);
+        viewBinding.pieChart.setHoleColor(Color.WHITE);
+        viewBinding.pieChart.setTransparentCircleRadius(61f);
 
-        ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
+        ArrayList<PieEntry> yValues = new ArrayList<>();
 
         if (cloth !=0) {
             yValues.add(new PieEntry(cloth, "의류비"));
@@ -281,9 +262,9 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         Description description = new Description();
         description.setText("소비 분류"); //라벨
         description.setTextSize(15);
-        pieChart.setDescription(description);
-        pieChart.setEntryLabelColor(Color.BLACK);
-        pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
+        viewBinding.pieChart.setDescription(description);
+        viewBinding.pieChart.setEntryLabelColor(Color.BLACK);
+        viewBinding.pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
 
         PieDataSet dataSet = new PieDataSet(yValues,"");
         dataSet.setSliceSpace(3f);
@@ -294,8 +275,8 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         data.setValueTextSize(15f);
         data.setValueTextColor(Color.BLACK);
 
-        pieChart.setData(data);
-        pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+        viewBinding.pieChart.setData(data);
+        viewBinding.pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
                 PieEntry pe = (PieEntry) e;
@@ -340,19 +321,19 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         etc=0f;
         total=0f;
 
-        for (int j = 0; j < tempLedger.size(); j++) {
-            if (tempLedger.get(j).getUseItem().equals("의류비")) {
-                clothPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("식비")) {
-                foodPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("주거비")) {
-                homePrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("교통비")) {
-                transPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("생필품")) {
-                marketPrice += Integer.parseInt(tempLedger.get(j).getPrice());
-            } else if (tempLedger.get(j).getUseItem().equals("기타")) {
-                etcPrice += Integer.parseInt(tempLedger.get(j).getPrice());
+        for (int j = 0; j < mLedger.size(); j++) {
+            if (mLedger.get(j).getUseItem().equals("의류비")) {
+                clothPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("식비")) {
+                foodPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("주거비")) {
+                homePrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("교통비")) {
+                transPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("생필품")) {
+                marketPrice += Integer.parseInt(mLedger.get(j).getPrice());
+            } else if (mLedger.get(j).getUseItem().equals("기타")) {
+                etcPrice += Integer.parseInt(mLedger.get(j).getPrice());
             }
         }
 
@@ -364,17 +345,17 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         market = (marketPrice / total) * 100;
         etc = (etcPrice / total) * 100;
 
-        pieChart.setUsePercentValues(true);
-        pieChart.getDescription().setEnabled(false);
-        pieChart.setExtraOffsets(5,10,5,5);
+        viewBinding.pieChart.setUsePercentValues(true);
+        viewBinding.pieChart.getDescription().setEnabled(false);
+        viewBinding.pieChart.setExtraOffsets(5,10,5,5);
 
-        pieChart.setDragDecelerationFrictionCoef(0.95f);
+        viewBinding.pieChart.setDragDecelerationFrictionCoef(0.95f);
 
-        pieChart.setDrawHoleEnabled(false);
-        pieChart.setHoleColor(Color.WHITE);
-        pieChart.setTransparentCircleRadius(61f);
+        viewBinding.pieChart.setDrawHoleEnabled(false);
+        viewBinding.pieChart.setHoleColor(Color.WHITE);
+        viewBinding.pieChart.setTransparentCircleRadius(61f);
 
-        ArrayList<PieEntry> yValues = new ArrayList<PieEntry>();
+        ArrayList<PieEntry> yValues = new ArrayList<>();
 
         if (cloth !=0) {
             yValues.add(new PieEntry(cloth, "의류비"));
@@ -398,9 +379,9 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         Description description = new Description();
         description.setText("소비 분류"); //라벨
         description.setTextSize(15);
-        pieChart.setDescription(description);
-        pieChart.setEntryLabelColor(Color.BLACK);
-        pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
+        viewBinding.pieChart.setDescription(description);
+        viewBinding.pieChart.setEntryLabelColor(Color.BLACK);
+        viewBinding.pieChart.animateY(1000, Easing.EasingOption.EaseInOutCubic); //애니메이션
 
         PieDataSet dataSet = new PieDataSet(yValues,"");
         dataSet.setSliceSpace(3f);
@@ -411,8 +392,8 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         data.setValueTextSize(15f);
         data.setValueTextColor(Color.BLACK);
 
-        pieChart.setData(data);
-        pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
+        viewBinding.pieChart.setData(data);
+        viewBinding.pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
                 PieEntry pe = (PieEntry) e;
@@ -447,7 +428,7 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-                    if (!chatSnapshot.child("chatname").getValue(String.class).equals(selectChatname)) {
+                    if (!chatSnapshot.child("chatname").getValue(String.class).equals(selectedChatRoomName)) {
                         continue;
                     }
 
@@ -456,7 +437,7 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
                     chatRef.child(selectChatuid).child("Ledger").addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            tvLedgerMonth2.setText("전체 가계부");
+                            viewBinding.tvLedgerMonth2.setText("전체 가계부");
                             ledgerView(dataSnapshot); // 유저 가계부 전체 리스트 생성
                             monthList = new ArrayList(selectMonth); // 년 월만 빼서 따로 리스트 생성
                             Collections.sort(monthList);
@@ -494,8 +475,8 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
 
                             joinChatname = chatSnapshot.child("chatname").getValue(String.class);
                             listItems.add(joinChatname);
-                            spinneradapter.notifyDataSetChanged();
-                            selectChatname = chatname.equals("init") ? listItems.get(0) : chatname;
+                            spinnerAdapter.notifyDataSetChanged();
+                            selectedChatRoomName = chatname.equals("init") ? listItems.get(0) : chatname.toString();
                         }
                     }
                 }

@@ -23,54 +23,35 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Hashtable;
 
+import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegBinding;
+
 // 가계부 기록 화면
 public class LedgerRegFragment extends android.app.Fragment {
-    // [Refactoring] 값을 사용하지 않는다.
-    Context context;
+    private FragmentLedgerRegBinding viewBinding;
 
-    //데이터베이스 관련
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    FirebaseUser user;
-
+    // [Refactor] 이 전역변수들이 처리하기 곤란한 이유는 값이 바뀔 때 이벤트를 걸어서 값을 저장하기 때문임.
+    // 값이 바뀔 때 반응하지 말고 필요할 때 UI 컴포넌트에서 값을 읽어오도록 변경할 필요 있음
     //사용자로부터 입력받을 값들
     String stUseItem;
-    String stPrice;
-    String stPaymemo;
 
     //사용자로부터 입력받을 날짜
     Calendar c = Calendar.getInstance();
-    SimpleDateFormat years = new SimpleDateFormat("yyyy");
-    SimpleDateFormat months = new SimpleDateFormat("MM");
-    SimpleDateFormat days = new SimpleDateFormat("dd");
-    String stYear = years.format(c.getTime());
-    String stMonth = months.format(c.getTime());
-    String stDay = days.format(c.getTime());
+    String stYear = new SimpleDateFormat("yyyy").format(c.getTime());
+    String stMonth = new SimpleDateFormat("MM").format(c.getTime());
+    String stDay = new SimpleDateFormat("dd").format(c.getTime());
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewBinding = FragmentLedgerRegBinding.inflate(getActivity().getLayoutInflater());
 
         // 사용자 정보 DB에 접근하기 위한 객체
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
 
         // 현재 로그인한 사용자 가져오기
-        user = FirebaseAuth.getInstance().getCurrentUser();
-
-        // Fragment를 화면에 출력하기 위해 뷰를 생성한다.
-        View v = inflater.inflate(R.layout.fragment_ledger_reg, container, false);
-
-        final Spinner spnUseitem = v.findViewById(R.id.spnUseitem);
-        final EditText etPrice = v.findViewById(R.id.etPrice);
-        final EditText etPaymemo = v.findViewById(R.id.etPaymemo);
-        CalendarView cvCalender = v.findViewById(R.id.cvCalender);
-        final RadioButton rbConsume = v.findViewById(R.id.rbConsume);
-        Button btnSave = v.findViewById(R.id.btnSave);
-        Button btnOcr = v.findViewById(R.id.btnOcr);
-        Button btnSMS = v.findViewById(R.id.btnSMS);
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         // 드롭다운 메뉴(소비영역 분류) 선택 이벤트 - 선택된 값을 저장한다.
-        spnUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        viewBinding.spnUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 stUseItem = (String) adapterView.getItemAtPosition(i);
@@ -81,18 +62,18 @@ public class LedgerRegFragment extends android.app.Fragment {
         });
 
         //날짜 선택 이벤트 - 선택된 날짜를 저장하고 사용자에게 텍스트로 보여준다.
-        cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
+        viewBinding.cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
             stYear = Integer.toString(year);
             stMonth = String.format("%02d",month+1);
             stDay =  String.format("%02d",day);
 
-            Toast.makeText(getActivity(), stYear+"-"+stMonth+"-"+stDay, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getActivity(), stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
         });
 
         //저장 버튼 이벤트 - UI에 정보가 모두 입력되었다면 DB에 저장한다.
-        btnSave.setOnClickListener(view -> {
-            stPrice = etPrice.getText().toString();
-            stPaymemo = etPaymemo.getText().toString();
+        viewBinding.btnSave.setOnClickListener(view -> {
+            String stPrice = viewBinding.etPrice.getText().toString();
+            String stPaymemo = viewBinding.etPaymemo.getText().toString();
             c = Calendar.getInstance();
             SimpleDateFormat time = new SimpleDateFormat("HHmmss");
             String stTime = time.format(c.getTime());
@@ -105,32 +86,22 @@ public class LedgerRegFragment extends android.app.Fragment {
 
             if (stPrice.isEmpty()) {
                 Toast.makeText(getActivity(), "금액란을 채워주세요", Toast.LENGTH_SHORT).show();
-            } else {
-                if (rbConsume.isChecked()) {
-                    myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child("지출").child(stTime).setValue(ledger);
-                    Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
-                } else {
-                    myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child("수입").child(stTime).setValue(ledger);
-                    Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
-                }
+                return;
             }
 
-            etPrice.setText("");
-            etPaymemo.setText("");
+            String tableName = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
+            myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(tableName).child(stTime).setValue(ledger);
+            Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
+            viewBinding.etPrice.setText("");
+            viewBinding.etPaymemo.setText("");
         });
 
         // OCR 버튼 이벤트 - ImageActivity로 이동한다.
-        btnOcr.setOnClickListener(view -> {
-            Intent intent = new Intent(getActivity(), ImageActivity.class);
-            startActivity(intent);
-        });
+        viewBinding.btnOcr.setOnClickListener(view ->startActivity(new Intent(getActivity(), ImageActivity.class)));
 
         // SMS 버튼 이벤트 - SMSActivity로 이동한다.
-        btnSMS.setOnClickListener(view -> {
-            Intent intent = new Intent(getActivity(), SMSActivity.class);
-            startActivity(intent);
-        });
+        viewBinding.btnSMS.setOnClickListener(view -> startActivity(new Intent(getActivity(), SMSActivity.class)));
 
-        return v;
+        return viewBinding.getRoot();
     }
 }

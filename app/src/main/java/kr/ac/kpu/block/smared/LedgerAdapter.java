@@ -157,8 +157,7 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
             alertdialog.setNegativeButton("취소", (dialog, which) -> { });
 
             // 알럿 다이얼로그 생성
-            AlertDialog alert = alertdialog.create();
-            alert.show();
+            alertdialog.create().show();
         });
     }
 

@@ -43,10 +43,10 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         // 인텐트를 통해 이전 액티비티에서 데이터 전달받기
-        Intent in = getIntent();
-        final String chatUid = in.getStringExtra("chatUid");
-        String photo = in.getStringExtra("photo");
-        String nickname = in.getStringExtra("nickname");
+        Intent previousIntent = getIntent();
+        final String chatUid = previousIntent.getStringExtra("chatUid");
+        String photo = previousIntent.getStringExtra("photo");
+        String nickname = previousIntent.getStringExtra("nickname");
         String email = user.getEmail();
 
         // 친구 목록 보기 버튼 이벤트 - FriendActivity로 이동한다.
@@ -69,7 +69,7 @@ public class ChatActivity extends AppCompatActivity {
             DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat").child(formattedDate);
 
             // HashTable로 연결
-            Hashtable<String, String> chat  = new Hashtable<String, String>();
+            Hashtable<String, String> chat  = new Hashtable<>();
             chat.put("email", email);
             chat.put("text", stText);
             chat.put("photo", photo);

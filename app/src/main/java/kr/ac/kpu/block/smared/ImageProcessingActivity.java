@@ -43,6 +43,56 @@ public class ImageProcessingActivity extends AppCompatActivity {
     };
 
     @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        viewBinding = ActivityImageProcessingBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
+
+        LinearLayout layout = new LinearLayout(ImageProcessingActivity.this);
+        layout.setOrientation(LinearLayout.HORIZONTAL);
+        layout.setGravity(CENTER);
+        Button scan = new Button(ImageProcessingActivity.this);
+        Button camera = new Button(ImageProcessingActivity.this);
+        scan.setText("스캔 파일");
+        camera.setText("촬영한 파일");
+        layout.addView(scan);
+        layout.addView(camera);
+
+        AlertDialog.Builder alertdialog = new AlertDialog.Builder(ImageProcessingActivity.this);
+        alertdialog.setView(layout);
+        alertdialog.setTitle("파일 타입을 골라주세요");
+        AlertDialog alert = alertdialog.create();
+        alert.show();
+
+        for (String perms : permissions){
+            if (PackageManager.PERMISSION_GRANTED == checkCallingOrSelfPermission(perms)) {
+                continue;
+            }
+
+            // 마시멜로( API 23 )이상에서 런타임 권한(Runtime Permission) 요청
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                this.requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+            }
+        }
+
+        scan.setOnClickListener(view -> {
+            imageprocess_and_showResult();
+            alert.cancel();
+        });
+
+        camera.setOnClickListener(view -> {
+            imageprocess_and_showResult();
+            alert.cancel();
+        });
+
+        viewBinding.btnRunOCR.setOnClickListener(v -> {
+            viewBinding.pbLogins.setVisibility(View.VISIBLE);
+            startActivity(new Intent(ImageProcessingActivity.this, CloudActivity.class));
+            viewBinding.pbLogins.setVisibility(View.GONE);
+        });
+    }
+
+    @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
         switch (permsRequestCode) {
             case PERMISSION_REQUEST_CODE:
@@ -106,60 +156,10 @@ public class ImageProcessingActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        viewBinding = ActivityImageProcessingBinding.inflate(getLayoutInflater());
-        setContentView(viewBinding.getRoot());
-
-        LinearLayout layout = new LinearLayout(ImageProcessingActivity.this);
-        layout.setOrientation(LinearLayout.HORIZONTAL);
-        layout.setGravity(CENTER);
-        Button scan = new Button(ImageProcessingActivity.this);
-        Button camera = new Button(ImageProcessingActivity.this);
-        scan.setText("스캔 파일");
-        camera.setText("촬영한 파일");
-        layout.addView(scan);
-        layout.addView(camera);
-
-        AlertDialog.Builder alertdialog = new AlertDialog.Builder(ImageProcessingActivity.this);
-        alertdialog.setView(layout);
-        alertdialog.setTitle("파일 타입을 골라주세요");
-        AlertDialog alert = alertdialog.create();
-        alert.show();
-
-        for (String perms : permissions){
-            if (PackageManager.PERMISSION_GRANTED == checkCallingOrSelfPermission(perms)) {
-                continue;
-            }
-
-            // 마시멜로( API 23 )이상에서 런타임 권한(Runtime Permission) 요청
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, PERMISSION_REQUEST_CODE);
-            }
-        }
-
-        scan.setOnClickListener(view -> {
-            imageprocess_and_showResult();
-            alert.cancel();
-        });
-
-        camera.setOnClickListener(view -> {
-            imageprocess_and_showResult();
-            alert.cancel();
-        });
-
-        viewBinding.btnRunOCR.setOnClickListener(v -> {
-            viewBinding.pbLogins.setVisibility(View.VISIBLE);
-            startActivity(new Intent(ImageProcessingActivity.this, CloudActivity.class));
-            viewBinding.pbLogins.setVisibility(View.GONE);
-        });
-    }
-
     private void imageprocess_and_showResult() {
-        Intent intent = getIntent();
-        String ImagePath = intent.getStringExtra("ipath");
-        Uri photoUri = intent.getParcelableExtra("input");
+        Intent previousIntent = getIntent();
+        String ImagePath = previousIntent.getStringExtra("ipath");
+        Uri photoUri = previousIntent.getParcelableExtra("input");
 
         // 원본 이미지 읽기
         Mat img_input = new Mat();

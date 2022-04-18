@@ -3,12 +3,15 @@ package kr.ac.kpu.block.smared;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.os.Bundle;
-import android.support.design.widget.BottomNavigationView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import kr.ac.kpu.block.smared.databinding.FragmentHomeBinding;
+
 public class TabHomeFragment extends Fragment {
+
+    private FragmentHomeBinding viewBinding;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -16,9 +19,8 @@ public class TabHomeFragment extends Fragment {
         switchFragment(new LedgerRegFragment());
 
         // 하단 NavigationView 조작으로 다른 Fragment 화면을 보여준다.
-        View v = inflater.inflate(R.layout.fragment_home, container, false);
-        BottomNavigationView navigation = v.findViewById(R.id.lednavi);
-        navigation.setOnNavigationItemSelectedListener(item -> {
+        viewBinding = FragmentHomeBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding.lednavi.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 // 가계부 기록 화면
                 case R.id.lednavi_input:
@@ -40,7 +42,7 @@ public class TabHomeFragment extends Fragment {
             }
         });
 
-        return v;
+        return viewBinding.getRoot();
     }
 
     private void switchFragment(Fragment fragment) {

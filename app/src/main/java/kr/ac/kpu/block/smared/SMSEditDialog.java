@@ -20,8 +20,9 @@ import java.text.SimpleDateFormat;
 import java.util.Hashtable;
 import java.util.StringTokenizer;
 
-public class SMSEditDialog extends Dialog {
+import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
 
+public class SMSEditDialog extends Dialog {
     RadioButton rbIncome;
     RadioButton rbConsume;
     TextView date;

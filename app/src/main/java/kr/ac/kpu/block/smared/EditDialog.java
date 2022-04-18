@@ -19,29 +19,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.Hashtable;
 import java.util.List;
 
+import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
+
 public class EditDialog extends Dialog {
+    private DialogEditBinding viewBinding;
 
     List<Ledger> mLedger;
     int position;
     String selectChatuid="";
-    FirebaseDatabase database;
-    DatabaseReference myRef;
+
     DatabaseReference chatRef;
     FirebaseUser user;
-
-    RadioButton rbIncome;
-    RadioButton rbConsume;
-    TextView date;
-    Spinner useitem;
-    EditText price;
-    EditText payMemo;
-    Button submit;
-    Button dismiss;
-
-    String stClassfy = "";
-    String stUseitem = "";
-    String stPrice = "";
-    String stPaymemo = "";
 
     public EditDialog(Context context, List<Ledger> mLedger, int position, String selectChatuid) {
         super(context);
@@ -53,130 +41,74 @@ public class EditDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        viewBinding = DialogEditBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
+
         requestWindowFeature(Window.FEATURE_NO_TITLE); //타이틀 바 삭제
-        setContentView(R.layout.dialog_edit);
 
-        rbIncome = findViewById(R.id.rbIncome);
-        rbConsume = findViewById(R.id.rbConsume);
-        date = findViewById(R.id.date);
-        useitem = findViewById(R.id.useitem);
-        price = findViewById(R.id.price);
-        payMemo = findViewById(R.id.payMemo);
-        submit = findViewById(R.id.submit);
-        dismiss = findViewById(R.id.dismiss);
-
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("users");
         chatRef = database.getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (mLedger.get(position).getClassfy().equals("지출")) {
-            rbConsume.setChecked(true);
+            viewBinding.rbConsume.setChecked(true);
         } else {
-            rbIncome.setChecked(true);
+            viewBinding.rbIncome.setChecked(true);
         }
 
         setSpinner();
-        date.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
-        price.setText(mLedger.get(position).getPrice());
-        payMemo.setText(mLedger.get(position).getPaymemo());
+        viewBinding.date.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
+        viewBinding.price.setText(mLedger.get(position).getPrice());
+        viewBinding.payMemo.setText(mLedger.get(position).getPaymemo());
 
         //가계부 수정 버튼 이벤트 - 사용자로부터 데이터를 입력받아 가계부 DB를 수정한다.
-        submit.setOnClickListener(view -> {
+        viewBinding.submit.setOnClickListener(view -> {
             Hashtable<String, String> ledger = new Hashtable<>();
-            ledger.put("useItem", useitem.getSelectedItem().toString());
-            ledger.put("price", price.getText().toString());
-            ledger.put("paymemo",payMemo.getText().toString());
-
-            if (rbConsume.isChecked()) {
-                stClassfy = "[ 지출 ]";
-            }
-            else {
-                stClassfy = "[ 수입 ]";
-            }
-
-            stUseitem = useitem.getSelectedItem().toString();
-            stPrice = price.getText().toString();
-            stPaymemo = payMemo.getText().toString();
+            ledger.put("useItem", viewBinding.useitem.getSelectedItem().toString());
+            ledger.put("price", viewBinding.price.getText().toString());
+            ledger.put("paymemo", viewBinding.payMemo.getText().toString());
 
             if (selectChatuid.isEmpty()) {
-                if (rbConsume.isChecked()) {
-                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("수입")
-                            .child(mLedger.get(position).getTimes())
-                            .removeValue();
-                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("지출")
-                            .child(mLedger.get(position).getTimes())
-                            .setValue(ledger);
-                } else {
-                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("지출")
-                            .child(mLedger.get(position).getTimes())
-                            .removeValue();
-                    myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("수입")
-                            .child(mLedger.get(position).getTimes())
-                            .setValue(ledger);
-                }
-            } else {
-                if (rbConsume.isChecked()) {
-                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("수입")
-                            .child(mLedger.get(position).getTimes())
-                            .removeValue();
-                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("지출")
-                            .child(mLedger.get(position).getTimes())
-                            .setValue(ledger);
-                } else {
-                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("지출")
-                            .child(mLedger.get(position).getTimes())
-                            .removeValue();
-                    chatRef.child(selectChatuid).child("Ledger").child(mLedger.get(position).getYear())
-                            .child(mLedger.get(position).getMonth())
-                            .child(mLedger.get(position).getDay())
-                            .child("수입")
-                            .child(mLedger.get(position).getTimes())
-                            .setValue(ledger);
-                }
+                selectChatuid = user.getUid();
             }
+            String removeTargetTable = (viewBinding.rbConsume.isChecked()) ? "수입" : "지출";
+            String setTargetTable = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
+
+            myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
+                    .child(mLedger.get(position).getMonth())
+                    .child(mLedger.get(position).getDay())
+                    .child(removeTargetTable)
+                    .child(mLedger.get(position).getTimes())
+                    .removeValue();
+
+            myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
+                    .child(mLedger.get(position).getMonth())
+                    .child(mLedger.get(position).getDay())
+                    .child(setTargetTable)
+                    .child(mLedger.get(position).getTimes())
+                    .setValue(ledger);
 
             Toast.makeText(getContext(), "가계부가 수정되었습니다", Toast.LENGTH_SHORT).show();
             dismiss();
         });
 
-        dismiss.setOnClickListener(view -> dismiss());
+        viewBinding.dismiss.setOnClickListener(view -> dismiss());
     }
 
     public void setSpinner() {
-        if(mLedger.get(position).getUseItem().equals("의류비")) {
-            useitem.setSelection(0);
+        if (mLedger.get(position).getUseItem().equals("의류비")) {
+            viewBinding.useitem.setSelection(0);
         } else if(mLedger.get(position).getUseItem().equals("식비")) {
-            useitem.setSelection(1);
+            viewBinding.useitem.setSelection(1);
         } else if (mLedger.get(position).getUseItem().equals("주거비")) {
-            useitem.setSelection(2);
+            viewBinding.useitem.setSelection(2);
         } else if (mLedger.get(position).getUseItem().equals("교통비")) {
-            useitem.setSelection(3);
+            viewBinding.useitem.setSelection(3);
         } else if (mLedger.get(position).getUseItem().equals("생필품")) {
-            useitem.setSelection(4);
+            viewBinding.useitem.setSelection(4);
         } else if (mLedger.get(position).getUseItem().equals("기타")) {
-            useitem.setSelection(5);
+            viewBinding.useitem.setSelection(5);
         }
     }
 }

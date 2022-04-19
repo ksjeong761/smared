@@ -16,7 +16,7 @@
 
         <fragment
                 android:id="@+id/list"
-                android:name="kr.ac.kpu.block.smared.TabHomeFragment"
+                android:name="kr.ac.kpu.block.smared.TabEmptyFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
     </LinearLayout>

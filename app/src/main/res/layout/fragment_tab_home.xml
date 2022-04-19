@@ -6,7 +6,8 @@
     android:clickable="true"
     tools:context="kr.ac.kpu.block.smared.TabHomeFragment">
 
-    <fragment android:name="kr.ac.kpu.block.smared.TabHomeFragment"
+    <fragment
+        android:name="kr.ac.kpu.block.smared.TabEmptyFragment"
         android:id="@+id/ledger"
         android:layout_below="@+id/lednavi"
         android:layout_width="match_parent"

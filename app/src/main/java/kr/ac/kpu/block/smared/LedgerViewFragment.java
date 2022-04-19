@@ -65,7 +65,7 @@ public class LedgerViewFragment extends android.app.Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerViewBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentLedgerViewBinding.inflate(inflater, container, false);
 
         //사용자 정보 DB에 접근하기 위한 객체
         FirebaseDatabase database = FirebaseDatabase.getInstance();

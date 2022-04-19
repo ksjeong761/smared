@@ -7,19 +7,27 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import kr.ac.kpu.block.smared.databinding.FragmentHomeBinding;
+import kr.ac.kpu.block.smared.databinding.FragmentTabHomeBinding;
 
 public class TabHomeFragment extends Fragment {
 
-    private FragmentHomeBinding viewBinding;
+    private FragmentTabHomeBinding viewBinding;
+
+    private FormattedLogger logger = new FormattedLogger();
+    String TAG = getClass().getSimpleName();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // 기본으로 표시될 화면은 가계부 기록 화면이다.
+        logger.writeLog("switchFragment before");
         switchFragment(new LedgerRegFragment());
+        logger.writeLog("switchFragment after");
 
         // 하단 NavigationView 조작으로 다른 Fragment 화면을 보여준다.
-        viewBinding = FragmentHomeBinding.inflate(getActivity().getLayoutInflater());
+        logger.writeLog("viewBinding inflate before");
+        viewBinding = FragmentTabHomeBinding.inflate(inflater, container, false);
+
+        logger.writeLog("viewBinding inflate after");
         viewBinding.lednavi.setOnNavigationItemSelectedListener(item -> {
             switch (item.getItemId()) {
                 // 가계부 기록 화면

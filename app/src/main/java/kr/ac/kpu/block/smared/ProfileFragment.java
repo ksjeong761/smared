@@ -58,7 +58,7 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentProfileBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentProfileBinding.inflate(inflater, container, false);
 
         user = FirebaseAuth.getInstance().getCurrentUser();
         mStorageRef = FirebaseStorage.getInstance().getReference();

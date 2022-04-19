@@ -38,7 +38,7 @@ public class ShareFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         switchFragment(new ShareLedgerRegFragment());
 
-        viewBinding = FragmentShareBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentShareBinding.inflate(inflater, container, false);
         viewBinding.sharenavi.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         return viewBinding.getRoot();
     }

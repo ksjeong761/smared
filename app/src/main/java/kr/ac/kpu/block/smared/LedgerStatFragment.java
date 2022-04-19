@@ -51,7 +51,7 @@ public class LedgerStatFragment extends android.app.Fragment {
     float homePrice = 0;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerStatBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentLedgerStatBinding.inflate(inflater, container, false);
 
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();

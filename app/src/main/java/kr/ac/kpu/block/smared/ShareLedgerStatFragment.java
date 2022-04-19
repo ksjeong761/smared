@@ -77,7 +77,7 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
     float total=0f;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerStatShareBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentLedgerStatShareBinding.inflate(inflater, container, false);
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");

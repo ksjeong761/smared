@@ -72,7 +72,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerViewShareBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentLedgerViewShareBinding.inflate(inflater, container, false);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");

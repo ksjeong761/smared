@@ -55,7 +55,7 @@ public class ShareLedgerRegFragment extends Fragment {
     List<String> listItems = new ArrayList<>();
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerRegShareBinding.inflate(getActivity().getLayoutInflater());
+        viewBinding = FragmentLedgerRegShareBinding.inflate(inflater, container, false);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");

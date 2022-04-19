@@ -28,6 +28,7 @@ import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegBinding;
 // 가계부 기록 화면
 public class LedgerRegFragment extends android.app.Fragment {
     private FragmentLedgerRegBinding viewBinding;
+    private FormattedLogger logger = new FormattedLogger();
 
     // [Refactor] 이 전역변수들이 처리하기 곤란한 이유는 값이 바뀔 때 이벤트를 걸어서 값을 저장하기 때문임.
     // 값이 바뀔 때 반응하지 말고 필요할 때 UI 컴포넌트에서 값을 읽어오도록 변경할 필요 있음
@@ -42,7 +43,9 @@ public class LedgerRegFragment extends android.app.Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerRegBinding.inflate(getActivity().getLayoutInflater());
+        logger.writeLog("viewBinding before");
+        viewBinding = FragmentLedgerRegBinding.inflate(inflater, container, false);
+        logger.writeLog("viewBinding after");
 
         // 사용자 정보 DB에 접근하기 위한 객체
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");

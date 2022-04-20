@@ -14,11 +14,11 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+    private FormattedLogger logger = new FormattedLogger();
 
-    Context context;
-
-    List<Chat> mChat;
-    String stEmail;
+    private Context context;
+    private List<Chat> mChat;
+    private String stEmail;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {

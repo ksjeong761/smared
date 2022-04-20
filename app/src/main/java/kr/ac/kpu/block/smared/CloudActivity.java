@@ -61,28 +61,28 @@ import java.util.List;
 import kr.ac.kpu.block.smared.databinding.ActivityCloudBinding;
 
 public class CloudActivity extends Activity {
-
-    private static final String CLOUD_VISION_API_KEY = "AIzaSyC6FyPlYCwLuwVhE8s3Td_zbbbwcMr41Oc";
-    private static final String ANDROID_CERT_HEADER = "X-Android-Cert";
-    private static final String ANDROID_PACKAGE_HEADER = "X-Android-Package";
-    
-    private static final int MAX_LABEL_RESULTS = 10;
-    private static final int MAX_DIMENSION = 1200;
-
+    private FormattedLogger logger = new FormattedLogger();
     private ActivityCloudBinding viewBinding;
 
-    String stUseItem;
-    String stPrice;
+    private final String CLOUD_VISION_API_KEY = "AIzaSyC6FyPlYCwLuwVhE8s3Td_zbbbwcMr41Oc";
+    private final String ANDROID_CERT_HEADER = "X-Android-Cert";
+    private final String ANDROID_PACKAGE_HEADER = "X-Android-Package";
+    
+    private final int MAX_LABEL_RESULTS = 10;
+    private final int MAX_DIMENSION = 1200;
 
-    Calendar calendar = Calendar.getInstance(); // Firebase내에 날짜로 저장
-    String stYear = new SimpleDateFormat("yyyy").format(calendar.getTime());
-    String stMonth = new SimpleDateFormat("MM").format(calendar.getTime());
-    String stDay = new SimpleDateFormat("dd").format(calendar.getTime());
+    private String stUseItem;
+    private String stPrice;
 
-    ArrayAdapter<String> spinneradapter;
-    ArrayAdapter<String> spinneradapterMemo;
-    List<String> listItems = new ArrayList<>();
-    List<String> memoItems = new ArrayList<>();
+    private Calendar calendar = Calendar.getInstance(); // Firebase내에 날짜로 저장
+    private String stYear = new SimpleDateFormat("yyyy").format(calendar.getTime());
+    private String stMonth = new SimpleDateFormat("MM").format(calendar.getTime());
+    private String stDay = new SimpleDateFormat("dd").format(calendar.getTime());
+
+    private ArrayAdapter<String> spinneradapter;
+    private ArrayAdapter<String> spinneradapterMemo;
+    private List<String> listItems = new ArrayList<>();
+    private List<String> memoItems = new ArrayList<>();
 
     @Override
     public void onBackPressed() {

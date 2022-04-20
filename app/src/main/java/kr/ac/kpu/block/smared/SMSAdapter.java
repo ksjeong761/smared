@@ -19,16 +19,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.List;
 
 public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
-
-    Context context;
+    private FormattedLogger logger = new FormattedLogger();
 
     // 데이터베이스 관련
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    FirebaseUser user;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
+    private FirebaseUser user;
 
-    List<SMS> mBody;
-    String stUseitem;
+    private Context context;
+    private List<SMS> mBody;
+    private String stUseitem;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {

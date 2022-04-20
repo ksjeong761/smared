@@ -18,10 +18,8 @@ import java.util.Hashtable;
 import kr.ac.kpu.block.smared.databinding.ActivityTabBinding;
 
 public class TabActivity extends AppCompatActivity  {
-
-    private ActivityTabBinding viewBinding;
-
     private FormattedLogger logger = new FormattedLogger();
+    private ActivityTabBinding viewBinding;
 
     // [Refactor] 전역 변수 두지 말고 다른 방법 찾아보기
     // 뒤로 가기를 연속으로 했을 경우에만 프로그램을 종료하도록 하기 위해 시간을 저장
@@ -30,12 +28,8 @@ public class TabActivity extends AppCompatActivity  {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        logger.writeLog("ViewBinding super.onCreate");
         viewBinding = ActivityTabBinding.inflate(getLayoutInflater());
-        logger.writeLog("ViewBinding inflate");
         setContentView(viewBinding.getRoot());
-        logger.writeLog("ViewBinding setContentView");
 
         // SMSReceiver에서 등록한 푸시 알림을 터치했을 경우 PendingIndent를 통해 데이터를 넘겨받는다.
         Intent previousIntent = getIntent();

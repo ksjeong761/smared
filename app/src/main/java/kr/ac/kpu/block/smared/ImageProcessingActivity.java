@@ -25,7 +25,6 @@ import kr.ac.kpu.block.smared.databinding.ActivityImageProcessingBinding;
 import static android.view.Gravity.CENTER;
 
 public class ImageProcessingActivity extends AppCompatActivity {
-
     static {
         System.loadLibrary("opencv_java3");
         System.loadLibrary("native-lib");
@@ -35,10 +34,11 @@ public class ImageProcessingActivity extends AppCompatActivity {
     public native void loadImage(String imageFileName, long img);
     public native void imageprocessing(long inputImage, long outputImage);
 
+    private FormattedLogger logger = new FormattedLogger();
     private ActivityImageProcessingBinding viewBinding;
 
-    static final int PERMISSION_REQUEST_CODE = 1;
-    String[] permissions = {
+    private final int PERMISSION_REQUEST_CODE = 1;
+    private final String[] permissions = {
         "android.permission.WRITE_EXTERNAL_STORAGE"
     };
 

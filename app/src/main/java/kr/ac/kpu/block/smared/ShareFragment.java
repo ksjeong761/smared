@@ -13,7 +13,8 @@ import android.view.ViewGroup;
 
 import kr.ac.kpu.block.smared.databinding.FragmentShareBinding;
 
-public class ShareFragment extends Fragment{
+public class ShareFragment extends Fragment {
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentShareBinding viewBinding;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = item -> {

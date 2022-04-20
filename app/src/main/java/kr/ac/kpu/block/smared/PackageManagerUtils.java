@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
  *
  */
 public class PackageManagerUtils {
+    private FormattedLogger logger = new FormattedLogger();
 
     /**
      * Gets the SHA1 signature, hex encoded for inclusion with Google Cloud Platform API requests

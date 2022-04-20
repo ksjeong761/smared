@@ -15,12 +15,13 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder> {
+    private FormattedLogger logger = new FormattedLogger();
 
-    List<Friend> mFriend;  // email,photo,key 저장
-    String stEmail;
-    Context context;
+    private List<Friend> mFriend;  // email,photo,key 저장
+    private String stEmail;
+    private Context context;
 
-    SharedPreferences sharedPreferences;
+    private SharedPreferences sharedPreferences;
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and

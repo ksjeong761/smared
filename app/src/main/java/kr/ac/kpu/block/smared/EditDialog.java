@@ -22,14 +22,15 @@ import java.util.List;
 import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
 
 public class EditDialog extends Dialog {
+    private FormattedLogger logger = new FormattedLogger();
     private DialogEditBinding viewBinding;
 
-    List<Ledger> mLedger;
-    int position;
-    String selectChatuid="";
+    private List<Ledger> mLedger;
+    private int position;
+    private String selectChatuid="";
 
-    DatabaseReference chatRef;
-    FirebaseUser user;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
 
     public EditDialog(Context context, List<Ledger> mLedger, int position, String selectChatuid) {
         super(context);
@@ -72,8 +73,9 @@ public class EditDialog extends Dialog {
             if (selectChatuid.isEmpty()) {
                 selectChatuid = user.getUid();
             }
+
             String removeTargetTable = (viewBinding.rbConsume.isChecked()) ? "수입" : "지출";
-            String setTargetTable = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
+            String addTargetTable = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
 
             myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
                     .child(mLedger.get(position).getMonth())
@@ -85,7 +87,7 @@ public class EditDialog extends Dialog {
             myRef.child(user.getUid()).child("Ledger").child(mLedger.get(position).getYear())
                     .child(mLedger.get(position).getMonth())
                     .child(mLedger.get(position).getDay())
-                    .child(setTargetTable)
+                    .child(addTargetTable)
                     .child(mLedger.get(position).getTimes())
                     .setValue(ledger);
 

@@ -33,13 +33,13 @@ public class LedgerRegFragment extends android.app.Fragment {
     // [Refactor] 이 전역변수들이 처리하기 곤란한 이유는 값이 바뀔 때 이벤트를 걸어서 값을 저장하기 때문임.
     // 값이 바뀔 때 반응하지 말고 필요할 때 UI 컴포넌트에서 값을 읽어오도록 변경할 필요 있음
     //사용자로부터 입력받을 값들
-    String stUseItem;
+    private String stUseItem;
 
     //사용자로부터 입력받을 날짜
-    Calendar c = Calendar.getInstance();
-    String stYear = new SimpleDateFormat("yyyy").format(c.getTime());
-    String stMonth = new SimpleDateFormat("MM").format(c.getTime());
-    String stDay = new SimpleDateFormat("dd").format(c.getTime());
+    private Calendar c = Calendar.getInstance();
+    private String stYear = new SimpleDateFormat("yyyy").format(c.getTime());
+    private String stMonth = new SimpleDateFormat("MM").format(c.getTime());
+    private String stDay = new SimpleDateFormat("dd").format(c.getTime());
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -100,7 +100,7 @@ public class LedgerRegFragment extends android.app.Fragment {
         });
 
         // OCR 버튼 이벤트 - ImageActivity로 이동한다.
-        viewBinding.btnOcr.setOnClickListener(view ->startActivity(new Intent(getActivity(), ImageActivity.class)));
+        viewBinding.btnOcr.setOnClickListener(view -> startActivity(new Intent(getActivity(), ImageActivity.class)));
 
         // SMS 버튼 이벤트 - SMSActivity로 이동한다.
         viewBinding.btnSMS.setOnClickListener(view -> startActivity(new Intent(getActivity(), SMSActivity.class)));

@@ -36,19 +36,20 @@ import java.util.Set;
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerStatBinding;
 
 public class LedgerStatFragment extends android.app.Fragment {
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerStatBinding viewBinding;
 
-    int index = 0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
-    List<String> monthList; // 중복 제거된 년,월 저장
-    List<Ledger> mLedger = new ArrayList<>();
+    private int index = 0;  // 년,월 인덱스
+    private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
+    private List<String> monthList; // 중복 제거된 년,월 저장
+    private List<Ledger> mLedger = new ArrayList<>();
 
-    float clothPrice = 0;
-    float foodPrice = 0;
-    float transPrice = 0;
-    float etcPrice = 0;
-    float marketPrice = 0;
-    float homePrice = 0;
+    private float clothPrice = 0;
+    private float foodPrice = 0;
+    private float transPrice = 0;
+    private float etcPrice = 0;
+    private float marketPrice = 0;
+    private float homePrice = 0;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerStatBinding.inflate(inflater, container, false);

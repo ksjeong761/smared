@@ -19,9 +19,10 @@ import java.util.StringTokenizer;
 import kr.ac.kpu.block.smared.databinding.ActivitySmsBinding;
 
 public class SMSActivity extends AppCompatActivity {
-    private static final int SMS_RECEIVE_PERMISSION = 1;
-
+    private FormattedLogger logger = new FormattedLogger();
     private ActivitySmsBinding viewBinding;
+
+    private final int SMS_RECEIVE_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

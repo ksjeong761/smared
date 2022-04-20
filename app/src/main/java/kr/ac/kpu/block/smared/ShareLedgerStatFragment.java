@@ -38,43 +38,43 @@ import kr.ac.kpu.block.smared.databinding.FragmentLedgerStatShareBinding;
 import static android.content.ContentValues.TAG;
 
 public class ShareLedgerStatFragment extends android.app.Fragment {
-
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerStatShareBinding viewBinding;
 
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
-    LedgerContent ledgerContent = new LedgerContent();
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
+    private LedgerContent ledgerContent = new LedgerContent();
 
-    int index=0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
-    List<String> monthList; // 중복 제거된 년,월 저장
-    List<Ledger> mLedger = new ArrayList<>();
-    List<String> listItems = new ArrayList<>();
-    String parsing;
-    String selectChatuid="";
-    String joinChatname;
+    private int index=0;  // 년,월 인덱스
+    private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
+    private List<String> monthList; // 중복 제거된 년,월 저장
+    private List<Ledger> mLedger = new ArrayList<>();
+    private List<String> listItems = new ArrayList<>();
+    private String parsing;
+    private String selectChatuid="";
+    private String joinChatname;
 
-    String selectedChatRoomName = "";
-    ArrayAdapter<String> spinnerAdapter;
+    private String selectedChatRoomName = "";
+    private ArrayAdapter<String> spinnerAdapter;
 
-    int count =0;
+    private int count =0;
 
-    float clothPrice=0;
-    float foodPrice=0;
-    float transPrice=0;
-    float etcPrice=0;
-    float marketPrice=0;
-    float homePrice=0;
+    private float clothPrice=0;
+    private float foodPrice=0;
+    private float transPrice=0;
+    private float etcPrice=0;
+    private float marketPrice=0;
+    private float homePrice=0;
 
-    float cloth=0f;
-    float food=0f;
-    float home=0f;
-    float trans=0f;
-    float market=0f;
-    float etc=0f;
-    float total=0f;
+    private float cloth=0f;
+    private float food=0f;
+    private float home=0f;
+    private float trans=0f;
+    private float market=0f;
+    private float etc=0f;
+    private float total=0f;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerStatShareBinding.inflate(inflater, container, false);

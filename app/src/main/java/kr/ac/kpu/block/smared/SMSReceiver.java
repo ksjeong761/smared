@@ -13,6 +13,7 @@ import android.widget.Toast;
 // https://tfincoming.tistory.com/1
 // BroadcaseReceiver를 사용해 SMS를 받았을 경우 이벤트를 동작시킨다.
 public class SMSReceiver extends BroadcastReceiver {
+    private FormattedLogger logger = new FormattedLogger();
 
     @Override
     public void onReceive(Context context, Intent intent) {

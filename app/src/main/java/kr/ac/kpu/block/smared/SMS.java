@@ -1,7 +1,6 @@
 package kr.ac.kpu.block.smared;
 
 public class SMS {
-
     private String payMemo;
     private String price;
     private String year;

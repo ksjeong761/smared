@@ -24,7 +24,7 @@ import java.util.List;
 import kr.ac.kpu.block.smared.databinding.ActivityChatBinding;
 
 public class ChatActivity extends AppCompatActivity {
-
+    private FormattedLogger logger = new FormattedLogger();
     private ActivityChatBinding viewBinding;
 
     @Override

@@ -16,6 +16,7 @@ import java.util.List;
 import kr.ac.kpu.block.smared.databinding.ActivityFriendBinding;
 
 public class FriendActivity extends AppCompatActivity {
+    private FormattedLogger logger = new FormattedLogger();
     private ActivityFriendBinding viewBinding;
 
     protected void onCreate(Bundle savedInstanceState) {

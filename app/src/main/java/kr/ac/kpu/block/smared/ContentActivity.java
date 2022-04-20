@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import kr.ac.kpu.block.smared.databinding.ActivityContentBinding;
 
 public class ContentActivity extends AppCompatActivity  {
-    
+    private FormattedLogger logger = new FormattedLogger();
     private ActivityContentBinding viewBinding;
 
     @Override

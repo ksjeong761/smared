@@ -18,17 +18,17 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.List;
 
 public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder> {
+    private FormattedLogger logger = new FormattedLogger();
 
-    Context context;
+    private Context context;
+    private List<Ledger> mLedger;
+    private String selectChatuid = "";
 
     // 데이터베이스 관련
-    FirebaseDatabase database;
-    FirebaseUser user;
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-
-    List<Ledger> mLedger;
-    String selectChatuid = "";
+    private FirebaseDatabase database;
+    private FirebaseUser user;
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
 
     public LedgerAdapter(List<Ledger> mLedger , Context context) {
         this.mLedger = mLedger;

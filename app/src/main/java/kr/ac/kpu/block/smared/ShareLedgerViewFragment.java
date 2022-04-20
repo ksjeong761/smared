@@ -44,27 +44,26 @@ import java.util.Set;
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerViewShareBinding;
 
 public class ShareLedgerViewFragment extends android.app.Fragment {
-
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerViewShareBinding viewBinding;
-    String TAG = getClass().getSimpleName();
 
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
 
-    LedgerAdapter mAdapter;
-    List<Ledger> mLedger = new ArrayList<>(); // 불러온 전체 가계부 목록
-    List<String> listItems = new ArrayList<>();
+    private LedgerAdapter mAdapter;
+    private List<Ledger> mLedger = new ArrayList<>(); // 불러온 전체 가계부 목록
+    private List<String> listItems = new ArrayList<>();
 
-    int monthIndex = 0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
-    List<String> monthList; // 중복 제거된 년,월 저장
-    String selectedChatUid ="";
-    String parsing;
-    CharSequence selectedChatRoomName = "";
-    ArrayAdapter<String> spinneradapter;
+    private int monthIndex = 0;  // 년,월 인덱스
+    private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
+    private List<String> monthList; // 중복 제거된 년,월 저장
+    private String selectedChatUid ="";
+    private String parsing;
+    private CharSequence selectedChatRoomName = "";
+    private ArrayAdapter<String> spinneradapter;
 
-    private static final int MULTIPLE_PERMISSIONS = 101;
+    private final int MULTIPLE_PERMISSIONS = 101;
     private String[] permissions = {
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -294,9 +293,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
                         }
 
                         @Override
-                        public void onCancelled(DatabaseError error) {
-                            Log.w(TAG, "Failed to read value.", error.toException());
-                        }
+                        public void onCancelled(DatabaseError error) { }
                     });
                 }
             }

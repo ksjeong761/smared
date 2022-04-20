@@ -1,7 +1,6 @@
 package kr.ac.kpu.block.smared;
 
 public class Friend {
-
     private String email;
     private String photo;
     private String key;

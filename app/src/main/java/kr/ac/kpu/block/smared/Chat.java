@@ -1,7 +1,6 @@
 package kr.ac.kpu.block.smared;
 
 public class Chat {
-
     private String email;
     private String text;
     private String photo;

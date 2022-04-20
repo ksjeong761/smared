@@ -46,16 +46,16 @@ import java.util.Set;
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerViewBinding;
 
 public class LedgerViewFragment extends android.app.Fragment {
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerViewBinding viewBinding;
+    private String TAG = getClass().getSimpleName();
 
-    String TAG = getClass().getSimpleName();
-    LedgerAdapter mAdapter;
+    private LedgerAdapter mAdapter;
+    private List<Ledger> mLedger = new ArrayList<>(); // 불러온 전체 가계부 목록
 
-    List<Ledger> mLedger = new ArrayList<>(); // 불러온 전체 가계부 목록
-
-    int index=0;  // 년,월 인덱스
-    Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
-    List<String> monthList; // 중복 제거된 년,월 저장
+    private int index = 0;  // 년,월 인덱스
+    private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
+    private List<String> monthList; // 중복 제거된 년,월 저장
 
     private static final int MULTIPLE_PERMISSIONS = 101;
     private String[] permissions = {

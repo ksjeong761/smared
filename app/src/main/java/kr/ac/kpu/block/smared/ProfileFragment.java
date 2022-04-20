@@ -40,21 +40,20 @@ import java.util.Hashtable;
 import kr.ac.kpu.block.smared.databinding.FragmentProfileBinding;
 
 public class ProfileFragment extends Fragment {
-
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentProfileBinding viewBinding;
-
     private String TAG = getClass().getSimpleName();
 
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
     private StorageReference mStorageRef;
 
-    Bitmap bitmap;
-    String stUid;
-    String stEmail;
-    String stNickname;
-    int regStatus = 1;
+    private Bitmap bitmap;
+    private String stUid;
+    private String stEmail;
+    private String stNickname;
+    private int regStatus = 1;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

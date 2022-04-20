@@ -32,27 +32,27 @@ import java.util.Map;
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegShareBinding;
 
 public class ShareLedgerRegFragment extends Fragment {
-
+    private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerRegShareBinding viewBinding;
 
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
 
-    String stUseItem;
-    String stEmail;
-    String stUid;
+    private String stUseItem;
+    private String stEmail;
+    private String stUid;
 
-    String selectedChatRoomName = "";
-    String selectedChatUid = "";
+    private String selectedChatRoomName = "";
+    private String selectedChatUid = "";
 
-    Calendar c = Calendar.getInstance();
-    String stYear = new SimpleDateFormat("yyyy").format(c.getTime());
-    String stMonth = new SimpleDateFormat("MM").format(c.getTime());
-    String stDay = new SimpleDateFormat("dd").format(c.getTime());
+    private Calendar c = Calendar.getInstance();
+    private String stYear = new SimpleDateFormat("yyyy").format(c.getTime());
+    private String stMonth = new SimpleDateFormat("MM").format(c.getTime());
+    private String stDay = new SimpleDateFormat("dd").format(c.getTime());
 
-    int saveItem;
-    List<String> listItems = new ArrayList<>();
+    private int saveItem;
+    private List<String> listItems = new ArrayList<>();
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerRegShareBinding.inflate(inflater, container, false);

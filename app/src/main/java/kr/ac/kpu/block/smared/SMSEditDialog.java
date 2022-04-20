@@ -23,24 +23,26 @@ import java.util.StringTokenizer;
 import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
 
 public class SMSEditDialog extends Dialog {
-    RadioButton rbIncome;
-    RadioButton rbConsume;
-    TextView date;
-    Spinner useitem;
-    EditText price;
-    EditText payMemo;
-    Button submit;
-    Button dismiss;
+    private FormattedLogger logger = new FormattedLogger();
+
+    private RadioButton rbIncome;
+    private RadioButton rbConsume;
+    private TextView date;
+    private Spinner useitem;
+    private EditText price;
+    private EditText payMemo;
+    private Button submit;
+    private Button dismiss;
 
     // 데이터베이스 관련
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
+    private FirebaseDatabase database;
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
 
     // SMS
-    String sms = "";         // 문자 메시지
-    long smsdate = 0;        // 문자 메시지 수신 시간
+    private String sms = "";         // 문자 메시지
+    private long smsdate = 0;        // 문자 메시지 수신 시간
 
     public SMSEditDialog(Context context, String sms, long smsdate) {
         super(context);

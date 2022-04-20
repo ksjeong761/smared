@@ -28,7 +28,7 @@ import java.util.List;
 import kr.ac.kpu.block.smared.databinding.ActivityImageBinding;
 
 public class ImageActivity extends Activity {
-
+    private FormattedLogger logger = new FormattedLogger();
     private ActivityImageBinding viewBinding;
 
     private static final int PICK_FROM_CAMERA = 1;

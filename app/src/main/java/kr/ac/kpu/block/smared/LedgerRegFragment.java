@@ -43,9 +43,7 @@ public class LedgerRegFragment extends android.app.Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        logger.writeLog("viewBinding before");
         viewBinding = FragmentLedgerRegBinding.inflate(inflater, container, false);
-        logger.writeLog("viewBinding after");
 
         // 사용자 정보 DB에 접근하기 위한 객체
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
@@ -64,7 +62,7 @@ public class LedgerRegFragment extends android.app.Fragment {
             public void onNothingSelected(AdapterView<?> adapterView) {}
         });
 
-        //날짜 선택 이벤트 - 선택된 날짜를 저장하고 사용자에게 텍스트로 보여준다.
+        // 날짜 선택 이벤트 - 선택된 날짜를 저장하고 사용자에게 텍스트로 보여준다.
         viewBinding.cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
             stYear = Integer.toString(year);
             stMonth = String.format("%02d",month+1);
@@ -73,7 +71,7 @@ public class LedgerRegFragment extends android.app.Fragment {
             Toast.makeText(getActivity(), stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
         });
 
-        //저장 버튼 이벤트 - UI에 정보가 모두 입력되었다면 DB에 저장한다.
+        // 저장 버튼 이벤트 - UI에 정보가 모두 입력되었다면 DB에 저장한다.
         viewBinding.btnSave.setOnClickListener(view -> {
             String stPrice = viewBinding.etPrice.getText().toString();
             String stPaymemo = viewBinding.etPaymemo.getText().toString();

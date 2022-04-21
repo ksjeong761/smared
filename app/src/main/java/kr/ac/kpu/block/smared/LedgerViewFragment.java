@@ -77,7 +77,7 @@ public class LedgerViewFragment extends android.app.Fragment {
 
         viewBinding.rvLedger.setHasFixedSize(true);
         viewBinding.rvLedger.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mAdapter = new LedgerAdapter(mLedger, getActivity());
+        mAdapter = new LedgerAdapter(mLedger, getActivity(), "");
         viewBinding.rvLedger.setAdapter(mAdapter);
         viewBinding.rvLedger.scrollToPosition(0);
 
@@ -89,7 +89,8 @@ public class LedgerViewFragment extends android.app.Fragment {
 
             if (index != 0) { // 년,월이 제일 처음이 아니면
                 index--;
-            } else {   // 년,월이 처음이면
+            }
+            else {   // 년,월이 처음이면
                 index = monthList.size() - 1;
             }
 
@@ -114,7 +115,7 @@ public class LedgerViewFragment extends android.app.Fragment {
             viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
             viewBinding.tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
             viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
-            viewBinding.rvLedger.setAdapter(new LedgerAdapter(tempLedger, getActivity()));
+            viewBinding.rvLedger.setAdapter(new LedgerAdapter(tempLedger, getActivity(), ""));
         });
 
         // 다음 달 버튼 이벤트
@@ -151,7 +152,7 @@ public class LedgerViewFragment extends android.app.Fragment {
             viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
             viewBinding.tvTotalconsume.setText("지출 합계 : " + totalConsume + "원");
             viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalConsume) + "원");
-            viewBinding.rvLedger.setAdapter(new LedgerAdapter(tempLedger, getActivity()));
+            viewBinding.rvLedger.setAdapter(new LedgerAdapter(tempLedger, getActivity(), ""));
         });
 
         myRef.child(user.getUid()).child("Ledger").addValueEventListener(new ValueEventListener() {
@@ -320,7 +321,7 @@ public class LedgerViewFragment extends android.app.Fragment {
         int result;
         List<String> permissionList = new ArrayList<>();
 
-        //필요한 권한 중에 허가되지 않은 권한 목록을 수집한다.
+        // 필요한 권한 중에 허가되지 않은 권한 목록을 수집한다.
         for (String pm : permissions) {
             result = ContextCompat.checkSelfPermission(getActivity(), pm);
             if (result != PackageManager.PERMISSION_GRANTED) {
@@ -328,13 +329,13 @@ public class LedgerViewFragment extends android.app.Fragment {
             }
         }
 
-        //허가되지 않은 권한이 있을 경우 필요한 모든 권한을 요청하고 실패 처리한다.
+        // 허가되지 않은 권한이 있을 경우 필요한 모든 권한을 요청하고 실패 처리한다.
         if (!permissionList.isEmpty()) {
             ActivityCompat.requestPermissions(getActivity(), permissionList.toArray(new String[permissionList.size()]), MULTIPLE_PERMISSIONS);
             return false;
         }
 
-        //필요한 모든 권한이 있으므로 성공 처리한다.
+        // 필요한 모든 권한이 있으므로 성공 처리한다.
         return true;
     }
 

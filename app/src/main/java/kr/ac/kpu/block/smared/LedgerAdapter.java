@@ -17,29 +17,19 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
+import kr.ac.kpu.block.smared.databinding.ListLedgerBinding;
+
 public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
+    private ListLedgerBinding viewBinding;
+
+    // 데이터베이스 관련
+    private FirebaseUser user;
+    private DatabaseReference myRef;
 
     private Context context;
     private List<Ledger> mLedger;
     private String selectChatuid = "";
-
-    // 데이터베이스 관련
-    private FirebaseDatabase database;
-    private FirebaseUser user;
-    private DatabaseReference myRef;
-    private DatabaseReference chatRef;
-
-    public LedgerAdapter(List<Ledger> mLedger , Context context) {
-        this.mLedger = mLedger;
-        this.context = context;
-    }
-
-    public LedgerAdapter(List<Ledger> mLedger , Context context, String selectChatuid) {
-        this.mLedger = mLedger;
-        this.context = context;
-        this.selectChatuid = selectChatuid;
-    }
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -63,57 +53,38 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         }
     }
 
-    // 목록에 날짜가 다른 요소가 있다면 뷰 타입은 1이고 다은 경우는 2이다.
+    public LedgerAdapter(List<Ledger> mLedger , Context context, String selectChatuid) {
+        this.mLedger = mLedger;
+        this.context = context;
+        this.selectChatuid = selectChatuid;
+    }
+
+    // 목록에 날짜가 다른 요소가 있다면 뷰 타입은 2이고 다른 경우는 1이다.
     @Override
     public int getItemViewType(int position) {
-        if (position == 0) {
-            return 2;
-        } else {
-            if (mLedger.get(position).getYear().equals(mLedger.get(position - 1).getYear())
-                    && mLedger.get(position).getMonth().equals(mLedger.get(position - 1).getMonth())
-                    && mLedger.get(position).getDay().equals(mLedger.get(position - 1).getDay())) {
-                return 1;
-            } else {
-                return 2;
-            }
-        }
+        return hasDifferentDate(mLedger, position, position-1) ? 2 : 1;
     }
 
     // ViewHolder를 새로 만들어야 할 때 호출되는 메서드이다.
     // 이 메서드를 통해 각 아이템을 위한 XML 레이아웃을 이용한 뷰 객체를 생성하고 뷰 홀더에 담아 리턴한다.
     // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
-    // Create new views (invoked by the layout manager)
     @Override
     public LedgerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
-        chatRef = database.getReference("chats");
+        myRef = FirebaseDatabase.getInstance().getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        View v;
-        if (viewType == 1) {
-            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_content, parent, false);
-        } else {
-            v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_ledger, parent, false);
-        }
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        int layout = (viewType == 1) ? R.layout.list_content : R.layout.list_ledger;
+        View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
+        return new ViewHolder(view);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        // [Refactor] 중첩 if문 단순화
-        if (position == 0) {
-            holder.btnDay.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
-        } else {
-            if (mLedger.get(position).getYear().equals(mLedger.get(position - 1).getYear()) &&
-                    mLedger.get(position).getMonth().equals(mLedger.get(position - 1).getMonth()) &&
-                    mLedger.get(position).getDay().equals(mLedger.get(position - 1).getDay())) {
-            } else {
-                holder.btnDay.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
-            }
+        if (hasDifferentDate(mLedger, position, position-1)) {
+            String buttonText = mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay();
+            holder.btnDay.setText(buttonText);
         }
 
         holder.tvChoice.setText("[ " + mLedger.get(position).getClassfy() + " ]");
@@ -134,9 +105,8 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
 
             // 확인 버튼
             alertdialog.setPositiveButton("확인", (dialog, which) -> {
-                // [Refactor] 에러 로그 찍기
-                // 지출, 수입이 아닌 문자열은 잘못된 것이다.
                 if (!mLedger.get(position).getClassfy().equals("지출") && !mLedger.get(position).getClassfy().equals("수입")) {
+                    logger.writeLog("Error : getClassfy() - 잘못된 값이 입력됨");
                     return;
                 }
 
@@ -149,7 +119,6 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
                     .child(mLedger.get(position).getTimes())
                     .removeValue();
 
-                // [Refactor] 삭제 성공 여부 확인해야 함
                 Toast.makeText(context, "삭제되었습니다", Toast.LENGTH_SHORT).show();
             });
 
@@ -161,9 +130,24 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         });
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mLedger.size();
+    }
+
+    private boolean hasDifferentDate(List<Ledger> ledger, int positionA, int positionB) {
+        if (positionA < 0 || positionB < 0)
+            return true;
+
+        if (!ledger.get(positionA).getYear().equals(ledger.get(positionB).getYear()))
+            return true;
+
+        if (!ledger.get(positionA).getMonth().equals(ledger.get(positionB).getMonth()))
+            return true;
+
+        if (!ledger.get(positionA).getDay().equals(ledger.get(positionB).getDay()))
+            return true;
+
+        return false;
     }
 }

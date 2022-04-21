@@ -28,11 +28,10 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
 
     private Context context;
     private List<SMS> mBody;
-    private String stUseitem;
+    private String stUseitem = "";
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
-
         public Button btnSMSDay;
         public TextView tvSMSPaymemo;
         public TextView tvSMSPrice;
@@ -67,9 +66,8 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
         myRef = database.getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_sms, parent, false);
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_sms, parent, false);
+        return new ViewHolder(view);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.

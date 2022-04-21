@@ -18,16 +18,10 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
     private FormattedLogger logger = new FormattedLogger();
 
     private List<Friend> mFriend;  // email,photo,key 저장
-    private String stEmail;
     private Context context;
 
-    private SharedPreferences sharedPreferences;
-
-    // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
+    // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
         public TextView tvNickname;
         public ImageView ivUser;
 
@@ -38,29 +32,24 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         }
     }
 
-    // Provide a suitable constructor (depends on the kind of dataset)
     public FriendAdapter(List<Friend> mFriend , Context context) {
         this.mFriend = mFriend;
         this.context = context;
     }
 
-    // Create new views (invoked by the layout manager)
+    // ViewHolder를 새로 만들어야 할 때 호출되는 메서드이다.
+    // 이 메서드를 통해 각 아이템을 위한 XML 레이아웃을 이용한 뷰 객체를 생성하고 뷰 홀더에 담아 리턴한다.
+    // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
     @Override
     public FriendAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_friend, parent, false);
-
-        sharedPreferences = context.getSharedPreferences("email",Context.MODE_PRIVATE);
-        stEmail =  sharedPreferences.getString("email","");
-
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_friend, parent, false);
+        return new ViewHolder(view);
     }
 
-    // Replace the contents of a view (invoked by the layout manager)
+    // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.
+    // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
         holder.tvNickname.setText(mFriend.get(position).getNickname());
         String stPhoto = mFriend.get(position).getPhoto();
 
@@ -69,7 +58,6 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         }
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mFriend.size();

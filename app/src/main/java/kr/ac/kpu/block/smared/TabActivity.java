@@ -33,7 +33,7 @@ public class TabActivity extends AppCompatActivity  {
 
         // SMSReceiver에서 등록한 푸시 알림을 터치했을 경우 PendingIndent를 통해 데이터를 넘겨받는다.
         Intent previousIntent = getIntent();
-        String smsMessage = previousIntent.getStringExtra("sms");                                 // 문자 메시지
+        String smsMessage = previousIntent.getStringExtra("sms"); // 문자 메시지
         long smsReceivedDate = previousIntent.getLongExtra("smsdate",0); // 문자 메시지 수신 시간
 
         // [Refactor] 다른 액티비티 전환 방법, intent 사용으로 바꾸기

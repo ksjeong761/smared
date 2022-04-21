@@ -24,20 +24,11 @@ import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
 
 public class SMSEditDialog extends Dialog {
     private FormattedLogger logger = new FormattedLogger();
-
-    private RadioButton rbIncome;
-    private RadioButton rbConsume;
-    private TextView date;
-    private Spinner useitem;
-    private EditText price;
-    private EditText payMemo;
-    private Button submit;
-    private Button dismiss;
+    private DialogEditBinding viewBinding;
 
     // 데이터베이스 관련
     private FirebaseDatabase database;
     private DatabaseReference myRef;
-    private DatabaseReference chatRef;
     private FirebaseUser user;
 
     // SMS
@@ -53,23 +44,14 @@ public class SMSEditDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        viewBinding = DialogEditBinding.inflate(getLayoutInflater());
+        setContentView(viewBinding.getRoot());
 
         // 타이틀 바 제거
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        setContentView(R.layout.dialog_edit);
-
-        rbIncome = findViewById(R.id.rbIncome);
-        rbConsume = findViewById(R.id.rbConsume);
-        date = findViewById(R.id.date);
-        useitem = findViewById(R.id.useitem);
-        price = findViewById(R.id.price);
-        payMemo = findViewById(R.id.payMemo);
-        submit = findViewById(R.id.submit);
-        dismiss = findViewById(R.id.dismiss);
 
         database = FirebaseDatabase.getInstance();
         myRef = database.getReference("users");
-        chatRef = database.getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
         // SMS에서 날짜를 파싱한다.
@@ -100,18 +82,18 @@ public class SMSEditDialog extends Dialog {
         }
 
         // 화면에 파싱한 정보를 보여준다.
-        price.setText(smsprice);
-        payMemo.setText(smspayMemo);
-        date.setText(sdate);
+        viewBinding.price.setText(smsprice);
+        viewBinding.payMemo.setText(smspayMemo);
+        viewBinding.date.setText(sdate);
 
         // 등록 버튼 이벤트 -> 받은 문자에서 파싱한 정보를 가계부 DB에 등록한다.
-        submit.setOnClickListener(v -> {
+        viewBinding.submit.setOnClickListener(v -> {
             Hashtable<String, String> ledger  = new Hashtable<String, String>();
-            ledger.put("useItem", useitem.getSelectedItem().toString());
-            ledger.put("price", price.getText().toString());
-            ledger.put("paymemo",payMemo.getText().toString());
+            ledger.put("useItem", viewBinding.useitem.getSelectedItem().toString());
+            ledger.put("price", viewBinding.price.getText().toString());
+            ledger.put("paymemo", viewBinding.payMemo.getText().toString());
 
-            String stConsume = (rbConsume.isChecked()) ? "지출" : "수입";
+            String stConsume = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
             myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(stConsume).child(fdate).setValue(ledger);
 
             Toast.makeText(getContext(), "가계부가 추가되었습니다", Toast.LENGTH_SHORT).show();
@@ -119,6 +101,6 @@ public class SMSEditDialog extends Dialog {
         });
 
         // 취소 버튼 이벤트 - 다이얼로그를 닫는다.
-        dismiss.setOnClickListener(v -> dismiss());
+        viewBinding.dismiss.setOnClickListener(v -> dismiss());
     }
 }

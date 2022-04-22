@@ -4,11 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -29,7 +24,6 @@ public class EditDialog extends Dialog {
     private int position;
     private String selectChatuid="";
 
-    private DatabaseReference chatRef;
     private FirebaseUser user;
 
     public EditDialog(Context context, List<Ledger> mLedger, int position, String selectChatuid) {
@@ -49,7 +43,6 @@ public class EditDialog extends Dialog {
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users");
-        chatRef = database.getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (mLedger.get(position).getClassfy().equals("지출")) {

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -12,6 +11,9 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+
+import kr.ac.kpu.block.smared.databinding.MyTextViewBinding;
+import kr.ac.kpu.block.smared.databinding.TheyTextViewBinding;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
@@ -26,12 +28,18 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         public TextView tvChatid;
         public ImageView ivChatimage;
 
-        public ViewHolder(View itemView) {
-            super(itemView);
+        public ViewHolder(MyTextViewBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.mTextView = viewBinding.mTextView;
+            this.tvChatid = viewBinding.tvChatid;
+            this.ivChatimage = viewBinding.ivChatimage;
+        }
 
-            mTextView = itemView.findViewById(R.id.mTextView);
-            tvChatid = itemView.findViewById(R.id.tvChatid);
-            ivChatimage = itemView.findViewById(R.id.ivChatimage);
+        public ViewHolder(TheyTextViewBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.mTextView = viewBinding.mTextView;
+            this.tvChatid = viewBinding.tvChatid;
+            this.ivChatimage = viewBinding.ivChatimage;
         }
     }
 
@@ -52,9 +60,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
     @Override
     public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        int layout = (viewType == 1) ? R.layout.my_text_view : R.layout.they_text_view;
-        View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
-        return new ViewHolder(view);
+        MyTextViewBinding viewBinding = MyTextViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        TheyTextViewBinding viewBinding2 = TheyTextViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return  (viewType == 1) ? new ViewHolder(viewBinding) : new ViewHolder(viewBinding2);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.

@@ -18,6 +18,8 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
+import kr.ac.kpu.block.smared.databinding.ListSmsBinding;
+
 public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
@@ -33,21 +35,20 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public Button btnSMSDay;
+        public Button btnAddSMS;
         public TextView tvSMSPaymemo;
         public TextView tvSMSPrice;
         public TextView tvSMSTime;
-        public Button btnAddSMS;
         public Spinner smsUseitem;
 
-        public ViewHolder(View itemView) {
-            super(itemView);
-
-            btnSMSDay = itemView.findViewById(R.id.btnSMSDay);
-            tvSMSPaymemo= itemView.findViewById(R.id.tvSMSPaymemo);
-            tvSMSPrice= itemView.findViewById(R.id.tvSMSPrice);
-            tvSMSTime= itemView.findViewById(R.id.tvSMSTime);
-            btnAddSMS = itemView.findViewById(R.id.btnAddSMS);
-            smsUseitem = itemView.findViewById(R.id.smsUseitem);
+        public ViewHolder(ListSmsBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.btnSMSDay = viewBinding.btnSMSDay;
+            this.btnAddSMS = viewBinding.btnAddSMS;
+            this.tvSMSPaymemo = viewBinding.tvSMSPaymemo;
+            this.tvSMSPrice = viewBinding.tvSMSPrice;
+            this.tvSMSTime = viewBinding.tvSMSTime;
+            this.smsUseitem = viewBinding.smsUseitem;
         }
     }
 
@@ -66,8 +67,9 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
         myRef = database.getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_sms, parent, false);
-        return new ViewHolder(view);
+        //View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_sms, parent, false);
+        ListSmsBinding viewBinding = ListSmsBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new ViewHolder(viewBinding);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.

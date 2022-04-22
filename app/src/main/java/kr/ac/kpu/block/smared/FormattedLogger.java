@@ -3,7 +3,6 @@ package kr.ac.kpu.block.smared;
 import android.util.Log;
 
 public class FormattedLogger {
-    private FormattedLogger logger = new FormattedLogger();
     private String TAG = getClass().getSimpleName();
 
     private String getCallerClassName() {

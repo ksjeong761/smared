@@ -76,8 +76,7 @@ public class LedgerRegFragment extends android.app.Fragment {
             String stPrice = viewBinding.etPrice.getText().toString();
             String stPaymemo = viewBinding.etPaymemo.getText().toString();
             c = Calendar.getInstance();
-            SimpleDateFormat time = new SimpleDateFormat("HHmmss");
-            String stTime = time.format(c.getTime());
+            String stTime = new SimpleDateFormat("HHmmss").format(c.getTime());
 
             // HashTable로 연결
             Hashtable<String, String> ledger = new Hashtable<String, String>();

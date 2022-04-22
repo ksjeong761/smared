@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
@@ -17,11 +16,11 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
+import kr.ac.kpu.block.smared.databinding.ListContentBinding;
 import kr.ac.kpu.block.smared.databinding.ListLedgerBinding;
 
 public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
-    private ListLedgerBinding viewBinding;
 
     // 데이터베이스 관련
     private FirebaseUser user;
@@ -41,15 +40,25 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         public TextView tvPaymemo;
         public TextView tvChoice;
 
-        public ViewHolder(View itemView) {
-            super(itemView);
-            btnDay = itemView.findViewById(R.id.btnDay);
-            tvUseitem= itemView.findViewById(R.id.tvUseitem);
-            tvPrice = itemView.findViewById(R.id.tvPrice);
-            tvPaymemo = itemView.findViewById(R.id.tvPaymemo);
-            tvChoice = itemView.findViewById(R.id.tvChoice);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
-            btnEdit = itemView.findViewById(R.id.btnEdit);
+        public ViewHolder(ListLedgerBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.btnDelete = viewBinding.btnDelete;
+            this.btnEdit = viewBinding.btnEdit;
+            this.btnDay = viewBinding.btnDay;
+            this.tvUseitem = viewBinding.tvUseitem;
+            this.tvPrice = viewBinding.tvPrice;
+            this.tvPaymemo = viewBinding.tvPaymemo;
+            this.tvChoice = viewBinding.tvChoice;
+        }
+
+        public ViewHolder(ListContentBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.btnDelete = viewBinding.btnDelete;
+            this.btnEdit = viewBinding.btnEdit;
+            this.tvUseitem = viewBinding.tvUseitem;
+            this.tvPrice = viewBinding.tvPrice;
+            this.tvPaymemo = viewBinding.tvPaymemo;
+            this.tvChoice = viewBinding.tvChoice;
         }
     }
 
@@ -73,9 +82,9 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         myRef = FirebaseDatabase.getInstance().getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        int layout = (viewType == 1) ? R.layout.list_content : R.layout.list_ledger;
-        View view = LayoutInflater.from(parent.getContext()).inflate(layout, parent, false);
-        return new ViewHolder(view);
+        ListLedgerBinding viewBinding = ListLedgerBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        ListContentBinding viewBinding2 = ListContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return (viewType == 1) ? new ViewHolder(viewBinding) : new ViewHolder(viewBinding2);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.

@@ -21,7 +21,6 @@ public class TabActivity extends AppCompatActivity  {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityTabBinding viewBinding;
 
-    // [Refactor] 전역 변수 두지 말고 다른 방법 찾아보기
     // 뒤로 가기를 연속으로 했을 경우에만 프로그램을 종료하도록 하기 위해 시간을 저장
     private long lastPressedTime;
 
@@ -36,14 +35,12 @@ public class TabActivity extends AppCompatActivity  {
         String smsMessage = previousIntent.getStringExtra("sms"); // 문자 메시지
         long smsReceivedDate = previousIntent.getLongExtra("smsdate",0); // 문자 메시지 수신 시간
 
-        // [Refactor] 다른 액티비티 전환 방법, intent 사용으로 바꾸기
         // 결제 문자가 있다면 SMSEditDialog로 넘어간다.
         if (smsMessage != null) {
             SMSEditDialog editDialog = new SMSEditDialog(TabActivity.this, smsMessage, smsReceivedDate);
             editDialog.show();
         }
 
-        // [Refactor] 사용자 정보는 전역으로 1번만 불러오도록 바꾸기
         // DB에서 사용자 정보를 가져온다.
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();

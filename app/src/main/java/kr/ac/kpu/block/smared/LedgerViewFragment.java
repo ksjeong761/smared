@@ -202,7 +202,6 @@ public class LedgerViewFragment extends android.app.Fragment {
         return viewBinding.getRoot();
     }
 
-    // [Refactor] for문 갯수 줄일 방법 찾아야 함
     // DB에서 사용자의 전체 가계부 목록을 얻어오고 총 수입,지출을 EditText에 출력한다.
     public void ledgerView(DataSnapshot dataSnapshot) {
         int totalIncome = 0;

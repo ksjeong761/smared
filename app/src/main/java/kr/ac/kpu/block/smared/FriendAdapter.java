@@ -1,11 +1,9 @@
 package kr.ac.kpu.block.smared;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -13,6 +11,8 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
+
+import kr.ac.kpu.block.smared.databinding.ListFriendBinding;
 
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
@@ -25,10 +25,10 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         public TextView tvNickname;
         public ImageView ivUser;
 
-        public ViewHolder(View itemView) {
-            super(itemView);
-            tvNickname  = itemView.findViewById(R.id.tvNickname);
-            ivUser = itemView.findViewById(R.id.ivUser);
+        public ViewHolder(ListFriendBinding viewBinding) {
+            super(viewBinding.getRoot());
+            this.tvNickname = viewBinding.tvNickname;
+            this.ivUser = viewBinding.ivUser;
         }
     }
 
@@ -42,8 +42,8 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
     // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
     @Override
     public FriendAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_friend, parent, false);
-        return new ViewHolder(view);
+        ListFriendBinding viewBinding = ListFriendBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new ViewHolder(viewBinding);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.

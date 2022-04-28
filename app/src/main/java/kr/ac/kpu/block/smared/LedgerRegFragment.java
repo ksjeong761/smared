@@ -27,8 +27,8 @@ import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegBinding;
 
 // 가계부 기록 화면
 public class LedgerRegFragment extends android.app.Fragment {
-    private FragmentLedgerRegBinding viewBinding;
     private FormattedLogger logger = new FormattedLogger();
+    private FragmentLedgerRegBinding viewBinding;
 
     // [Refactor] 이 전역변수들이 처리하기 곤란한 이유는 값이 바뀔 때 이벤트를 걸어서 값을 저장하기 때문임.
     // 값이 바뀔 때 반응하지 말고 필요할 때 UI 컴포넌트에서 값을 읽어오도록 변경할 필요 있음
@@ -75,8 +75,7 @@ public class LedgerRegFragment extends android.app.Fragment {
         viewBinding.btnSave.setOnClickListener(view -> {
             String stPrice = viewBinding.etPrice.getText().toString();
             String stPaymemo = viewBinding.etPaymemo.getText().toString();
-            c = Calendar.getInstance();
-            String stTime = new SimpleDateFormat("HHmmss").format(c.getTime());
+            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 
             // HashTable로 연결
             Hashtable<String, String> ledger = new Hashtable<String, String>();

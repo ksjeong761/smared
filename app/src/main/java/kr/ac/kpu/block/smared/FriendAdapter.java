@@ -22,8 +22,8 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public TextView tvNickname;
-        public ImageView ivUser;
+        private TextView tvNickname;
+        private ImageView ivUser;
 
         public ViewHolder(ListFriendBinding viewBinding) {
             super(viewBinding.getRoot());

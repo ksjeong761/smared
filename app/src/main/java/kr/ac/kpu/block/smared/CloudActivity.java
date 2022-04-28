@@ -329,8 +329,7 @@ public class CloudActivity extends Activity {
             alertDialog.setMessage(showingResult);
             alertDialog.setPositiveButton("확인", (dialog, which) -> { });
             alertDialog.setNegativeButton("취소", (dialog, which) -> { });
-            AlertDialog alert = alertDialog.create();
-            alert.show();
+            alertDialog.create().show();
 
             // 결과 보여주기 임시
             // String finalResult = "[ 분석 결과 ]\n"

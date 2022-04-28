@@ -34,12 +34,12 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public Button btnSMSDay;
-        public Button btnAddSMS;
-        public TextView tvSMSPaymemo;
-        public TextView tvSMSPrice;
-        public TextView tvSMSTime;
-        public Spinner smsUseitem;
+        private Button btnSMSDay;
+        private Button btnAddSMS;
+        private TextView tvSMSPaymemo;
+        private TextView tvSMSPrice;
+        private TextView tvSMSTime;
+        private Spinner smsUseitem;
 
         public ViewHolder(ListSmsBinding viewBinding) {
             super(viewBinding.getRoot());

@@ -6,11 +6,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.TextView;
 
 import com.github.mikephil.charting.animation.Easing;
-import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
@@ -39,7 +36,7 @@ public class LedgerStatFragment extends android.app.Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerStatBinding viewBinding;
 
-    private int index = 0;  // 년,월 인덱스
+    private int monthIndex = 0;  // 년,월 인덱스
     private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
     private List<String> monthList; // 중복 제거된 년,월 저장
     private List<Ledger> mLedger = new ArrayList<>();
@@ -60,14 +57,14 @@ public class LedgerStatFragment extends android.app.Fragment {
         myRef.child(user.getUid()).child("Ledger").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                ledgerView(dataSnapshot);
                 viewBinding.tvLedgerMonth2.setText("전체 가계부");
+                ledgerView(dataSnapshot);
                 selectChart();
                 monthList = new ArrayList(selectMonth); // 년 월만 빼서 따로 리스트 생성
                 Collections.sort(monthList);
 
                 if (!monthList.isEmpty()) {
-                    index = monthList.size() - 1;
+                    monthIndex = monthList.size() - 1;
                 }
             }
 
@@ -80,14 +77,14 @@ public class LedgerStatFragment extends android.app.Fragment {
                 return;
             }
 
-            if (index != 0) { // 년,월이 제일 처음이 아니면
-                index--;
+            if (monthIndex != 0) { // 년,월이 제일 처음이 아니면
+                monthIndex--;
             } else {   // 년,월이 처음이면
-                index = monthList.size() - 1;
+                monthIndex = monthList.size() - 1;
             }
 
-            viewBinding.tvLedgerMonth2.setText(monthList.get(index));
-            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth2.setText(monthList.get(monthIndex));
+            String parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");
 
             List<Ledger> tempLedger = new ArrayList<>();
             for (int j = 0; j < mLedger.size(); j++) {
@@ -104,14 +101,14 @@ public class LedgerStatFragment extends android.app.Fragment {
                 return;
             }
 
-            if (index != monthList.size() - 1) { // 년, 월이 마지막이 아니면
-                index++;
+            if (monthIndex != monthList.size() - 1) { // 년, 월이 마지막이 아니면
+                monthIndex++;
             } else {   // 년,월이 마지막이면
-                index = 0;
+                monthIndex = 0;
             }
 
-            viewBinding.tvLedgerMonth2.setText(monthList.get(index));
-            String parsing = monthList.get(index).replaceAll("[^0-9]", "");
+            viewBinding.tvLedgerMonth2.setText(monthList.get(monthIndex));
+            String parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");
 
             List<Ledger> tempLedger = new ArrayList<>();
             for (int j = 0; j < mLedger.size(); j++) {

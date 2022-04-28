@@ -9,7 +9,6 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +46,6 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerViewShareBinding viewBinding;
 
-    private DatabaseReference myRef;
     private DatabaseReference chatRef;
     private FirebaseUser user;
 
@@ -58,8 +56,8 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
     private int monthIndex = 0;  // 년,월 인덱스
     private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
     private List<String> monthList; // 중복 제거된 년,월 저장
+
     private String selectedChatUid ="";
-    private String parsing;
     private CharSequence selectedChatRoomName = "";
     private ArrayAdapter<String> spinneradapter;
 
@@ -73,9 +71,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerViewShareBinding.inflate(inflater, container, false);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
-        chatRef = database.getReference("chats");
+        chatRef = FirebaseDatabase.getInstance().getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
         checkPermissions();
 
@@ -150,8 +146,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
             });
 
             alertDialog.setNegativeButton("취소", (dialog, which) -> { });
-            AlertDialog alert = alertDialog.create();
-            alert.show();
+            alertDialog.create().show();
         });
 
         return viewBinding.getRoot();
@@ -159,7 +154,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
 
     private void reloadDataByMonth() {
         viewBinding.tvLedgerMonth2.setText(monthList.get(monthIndex));
-        parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");;
+        String parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");;
 
         int totalIncome = 0;
         int totalConsume = 0;
@@ -182,8 +177,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         viewBinding.tvTotalIncome2.setText("수입 합계 : " + totalIncome + "원");
         viewBinding.tvTotalConsume2.setText("지출 합계 : " + totalConsume + "원");
         viewBinding.tvPlusMinus2.setText("수익 : " + (totalIncome - totalConsume) + "원");
-        LedgerAdapter tempAdapter = new LedgerAdapter(tempLedger, getActivity(), selectedChatUid);
-        viewBinding.rvLedger2.setAdapter(tempAdapter);
+        viewBinding.rvLedger2.setAdapter(new LedgerAdapter(tempLedger, getActivity(), selectedChatUid));
     }
 
     // 스냅샷 으로부터 가계부 정보 읽어오기
@@ -287,7 +281,6 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
                             monthList = new ArrayList(selectMonth);
                             Collections.sort(monthList);
                             if (!monthList.isEmpty()) {
-                                parsing = monthList.get(monthList.size() - 1).replaceAll("[^0-9]", "");
                                 monthIndex = monthList.size() - 1;
                             }
                         }
@@ -303,6 +296,9 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         });
     }
 
+    // Apache POI 3.17 라이브러리를 사용해 가계부 정보를 액셀 파일로 만들어 공유한다.
+    // https://www.codejava.net/coding/how-to-write-excel-files-in-java-using-apache-poi
+    // https://easy-coding.tistory.com/48
     private void saveExcel(String ledgerName){
         Workbook workbook = new HSSFWorkbook();
         Sheet sheet = workbook.createSheet(); // 새로운 시트 생성
@@ -325,8 +321,8 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         cell = row.createCell(4); // 2번 셀 생성
         cell.setCellValue("내용"); // 2번 셀 값 입력
 
-
-        for(int i = 0; i < mLedger.size() ; i++){ // 데이터 엑셀에 입력
+        // 가계부 데이터를 엑셀에 입력한다.
+        for (int i = 0; i < mLedger.size(); i++) {
             row = sheet.createRow(i+1);
             cell = row.createCell(0);
             cell.setCellValue(mLedger.get(i).getYear() + "-" + mLedger.get(i).getMonth() + "-" + mLedger.get(i).getDay());
@@ -340,12 +336,16 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
             cell.setCellValue(mLedger.get(i).getPaymemo());
         }
 
+        // 외부 저장소에 엑셀 파일을 저장할 폴더 생성
         File storageDir = new File(Environment.getExternalStorageDirectory() + "/SmaRed/Excel");
         if (!storageDir.exists()) {
             storageDir.mkdirs();
         }
+
+        // 외부 저장소에 엑셀 파일 생성
         File xlsFile = new File(Environment.getExternalStorageDirectory() + "/SmaRed/Excel",ledgerName+".xls");
 
+        // 생성한 엑셀 파일의 파일 스트림을 얻어서 workbook에 저장했던 가계부 데이터를 쓴다.
         try {
             FileOutputStream os = new FileOutputStream(xlsFile);
             workbook.write(os); // 외부 저장소에 엑셀 파일 생성
@@ -354,8 +354,9 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
             e.printStackTrace();
         }
 
-        Toast.makeText(getActivity(),xlsFile.getAbsolutePath()+"에 저장되었습니다",Toast.LENGTH_SHORT).show();
+        Toast.makeText(getActivity(),xlsFile.getAbsolutePath() + "에 저장되었습니다", Toast.LENGTH_SHORT).show();
 
+        // 데이터가 입력된 엑셀 파일 공유
         Uri path = Uri.fromFile(xlsFile);
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("application/excel");
@@ -363,38 +364,45 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         startActivity(Intent.createChooser(shareIntent,"엑셀 내보내기"));
     }
 
+    // 필요한 권한 중 허가되지 않은 것이 하나라도 있을 경우
+    // 필요한 모든 권한을 요청하고 실패 처리한다.
     private boolean checkPermissions() {
-        List<String> permissionList = new ArrayList<>();
+        // 필요한 권한 중에 허가되지 않은 권한 목록을 수집한다.
+        List<String> deniedPermissions = new ArrayList<>();
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(getActivity(), permission) != PackageManager.PERMISSION_GRANTED) {
-                permissionList.add(permission);
+                deniedPermissions.add(permission);
             }
         }
 
-        if (!permissionList.isEmpty()) {
-            ActivityCompat.requestPermissions(getActivity(), permissionList.toArray(new String[permissionList.size()]), MULTIPLE_PERMISSIONS);
+        // 허가되지 않은 권한이 있을 경우 필요한 모든 권한을 요청하고 실패 처리한다.
+        if (!deniedPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(getActivity(), deniedPermissions.toArray(new String[deniedPermissions.size()]), MULTIPLE_PERMISSIONS);
             return false;
         }
 
+        // 필요한 모든 권한이 있으므로 성공 처리한다.
         return true;
     }
 
+    // 권한을 요청했을 때 결과를 알려주는 콜백 함수
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case MULTIPLE_PERMISSIONS:
+                // 새로 허가된 권한이 없는 경우 사용자에게 알리고 액티비티를 종료한다.
                 if (grantResults.length == 0) {
                     showNoPermissionToastAndFinish();
                     return;
                 }
 
+                // 새로 허가된 권한이 있다면 필요한 모든 권한이 허가되었는지 확인한다.
                 for (int i = 0; i < permissions.length; i++) {
-                    if (permissions[i].equals(this.permissions[0])) {
-                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                            showNoPermissionToastAndFinish();
+                    for (int j = 0; j < this.permissions.length; j++) {
+                        if (permissions[i].equals(this.permissions[j])) {
+                            continue;
                         }
-                    }
-                    else if (permissions[i].equals(this.permissions[1])) {
+
                         if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
                             showNoPermissionToastAndFinish();
                         }
@@ -405,6 +413,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         }
     }
 
+    // 필요한 권한이 허가되지 않았음을 사용자에게 알리고 액티비티를 종료한다.
     private void showNoPermissionToastAndFinish() {
         Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
         getActivity().finish();

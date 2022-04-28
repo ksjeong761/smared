@@ -32,13 +32,13 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        public Button btnDelete;
-        public Button btnEdit;
-        public Button btnDay;
-        public TextView tvUseitem;
-        public TextView tvPrice;
-        public TextView tvPaymemo;
-        public TextView tvChoice;
+        private Button btnDelete;
+        private Button btnEdit;
+        private Button btnDay;
+        private TextView tvUseitem;
+        private TextView tvPrice;
+        private TextView tvPaymemo;
+        private TextView tvChoice;
 
         public ViewHolder(ListLedgerBinding viewBinding) {
             super(viewBinding.getRoot());

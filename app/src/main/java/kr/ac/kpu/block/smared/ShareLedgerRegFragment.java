@@ -97,7 +97,6 @@ public class ShareLedgerRegFragment extends Fragment {
 
             String stPrice = viewBinding.etPrice2.getText().toString();
             String stPaymemo = viewBinding.etPayMemo2.getText().toString();
-
             String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 
             Hashtable<String, String> ledger = new Hashtable<>();
@@ -110,14 +109,9 @@ public class ShareLedgerRegFragment extends Fragment {
                 return;
             }
 
-            if (viewBinding.rbConsume2.isChecked()) {
-                chatRef.child(selectedChatUid).child("Ledger").child(stYear).child(stMonth).child(stDay).child("지출").child(stTime).setValue(ledger);
-                Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
-            } else {
-                chatRef.child(selectedChatUid).child("Ledger").child(stYear).child(stMonth).child(stDay).child("수입").child(stTime).setValue(ledger);
-                Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
-            }
-
+            String tableName = (viewBinding.rbConsume2.isChecked()) ? "지출" : "수입";
+            chatRef.child(selectedChatUid).child("Ledger").child(stYear).child(stMonth).child(stDay).child(tableName).child(stTime).setValue(ledger);
+            Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
             viewBinding.etPayMemo2.setText("");
             viewBinding.etPrice2.setText("");
         });
@@ -157,8 +151,7 @@ public class ShareLedgerRegFragment extends Fragment {
                 });
 
                 alertdialog1.setNegativeButton("취소", (dialogInterface2, i2) -> { });
-                AlertDialog alert = alertdialog1.create();
-                alert.show();
+                alertdialog1.create().show();
             });
 
             alertdialog.setPositiveButton("선택", (dialogInterface, i) -> {
@@ -167,8 +160,7 @@ public class ShareLedgerRegFragment extends Fragment {
             });
 
             alertdialog.setNegativeButton("취소", (dialogInterface, i) -> { });
-            AlertDialog alert = alertdialog.create();
-            alert.show();
+            alertdialog.create().show();
 
             listItems.clear();
         });
@@ -187,18 +179,20 @@ public class ShareLedgerRegFragment extends Fragment {
             alertdialog.setPositiveButton("초대", (dialogInterface, i) -> myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    int check =0;
                     for (DataSnapshot emailSnapshot : dataSnapshot.getChildren()) {
-                        if (editText.getText().toString().equals(emailSnapshot.child("email").getValue(String.class))) {
-                            inviteUser(emailSnapshot.child("key").getValue(String.class), emailSnapshot.child("email").getValue(String.class));  // CHATS에 UID 키 저장, 이메일 값 저장
-                            Toast.makeText(getActivity(), emailSnapshot.child("nickname").getValue(String.class) + "님을 " + selectedChatRoomName + " 가계부에 초대하였습니다.", Toast.LENGTH_SHORT).show();
-                            check = 1;
+                        if (!editText.getText().toString().equals(emailSnapshot.child("email").getValue(String.class))) {
+                            continue;
                         }
+
+                        // CHATS에 UID 키 저장, 이메일 값 저장
+                        Map<String, Object> invite = new HashMap<>();
+                        invite.put(emailSnapshot.child("key").getValue(String.class), emailSnapshot.child("email").getValue(String.class));
+                        chatRef.child(selectedChatUid).child("user").updateChildren(invite);
+                        Toast.makeText(getActivity(), emailSnapshot.child("nickname").getValue(String.class) + "님을 " + selectedChatRoomName + " 가계부에 초대하였습니다.", Toast.LENGTH_SHORT).show();
+                        return;
                     }
 
-                    if (check == 0) {
-                        Toast.makeText(getActivity(), "사용자를 찾지 못하였습니다.", Toast.LENGTH_SHORT).show();
-                    }
+                    Toast.makeText(getActivity(), "사용자를 찾지 못하였습니다.", Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -206,8 +200,7 @@ public class ShareLedgerRegFragment extends Fragment {
             }));
 
             alertdialog.setNegativeButton("취소", (dialogInterface, i) -> { });
-            AlertDialog alert = alertdialog.create();
-            alert.show();
+            alertdialog.create().show();
         });
 
         viewBinding.btnOpenChat.setOnClickListener(view -> {
@@ -219,14 +212,11 @@ public class ShareLedgerRegFragment extends Fragment {
             myRef.child(user.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    String photo = dataSnapshot.child("photo").getValue(String.class);
-                    String nickname = dataSnapshot.child("nickname").getValue(String.class);
-
                     Intent nextIntent = new Intent(getActivity(), ChatActivity.class);
                     nextIntent.putExtra("chatUid", selectedChatUid);
                     nextIntent.putExtra("chatName", selectedChatRoomName);
-                    nextIntent.putExtra("photo",photo);
-                    nextIntent.putExtra("nickname",nickname);
+                    nextIntent.putExtra("photo", dataSnapshot.child("photo").getValue(String.class));
+                    nextIntent.putExtra("nickname", dataSnapshot.child("nickname").getValue(String.class));
                     startActivity(nextIntent);
                 }
 
@@ -256,12 +246,6 @@ public class ShareLedgerRegFragment extends Fragment {
             @Override
             public void onCancelled(DatabaseError databaseError) { }
         });
-    }
-
-    public void inviteUser(String uid, String email) {
-        Map<String, Object> invite = new HashMap<>();
-        invite.put(uid, email);
-        chatRef.child(selectedChatUid).child("user").updateChildren(invite);
     }
 
     public void setChatUid() {

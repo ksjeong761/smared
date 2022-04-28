@@ -62,7 +62,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
         alertdialog.setView(layout);
         alertdialog.setTitle("파일 타입을 골라주세요");
         AlertDialog alert = alertdialog.create();
-        alert.show();
+        alertdialog.create().show();
 
         for (String perms : permissions){
             if (PackageManager.PERMISSION_GRANTED == checkCallingOrSelfPermission(perms)) {

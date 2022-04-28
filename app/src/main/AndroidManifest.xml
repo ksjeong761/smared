@@ -11,7 +11,6 @@
     <uses-permission android:name="android.permission.WRITE_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
 
-
     <uses-feature android:name="android.hardware.CAMERA" />
 
     <application
@@ -21,22 +20,20 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
         <activity
             android:name=".SplashActivity"
             android:screenOrientation="portrait"
-            android:theme="@style/SplashTheme"
-            >
+            android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ChatActivity" />
         <activity
             android:name=".TabActivity"
             android:screenOrientation="portrait" />
-
+        <activity android:name=".ChatActivity" />
         <activity android:name=".ImageProcessingActivity" />
         <activity android:name=".ImageActivity" />
         <activity android:name=".SMSActivity" />
@@ -44,7 +41,6 @@
         <activity android:name=".FriendActivity" />
         <activity android:name=".ContentActivity" />
         <activity android:name=".MainActivity"/>
-
 
         <provider
             android:name="android.support.v4.content.FileProvider"
@@ -61,39 +57,29 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
+
         <service android:name=".MyFirebaseInstanceIDService">
             <intent-filter>
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <!--
-     Set custom default icon. This is used when no icon is set for incoming notification messages.
-     See README(https://goo.gl/l4GJaQ) for more.
-        -->
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notifications_black_24dp" />
-        <!--
-             Set color used with incoming notification messages. This is used when no color is set for the incoming
-             notification message. See README(https://goo.gl/6BKBk7) for more.
-        -->
+
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/colorAccent" />
+            android:resource="@color/colorAccent"/>
+
         <receiver
             android:name=".SMSReceiver"
             android:enabled="true"
             android:exported="true">
-
             <intent-filter>
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
-
         </receiver>
 
-
-
-
     </application>
-
 </manifest>

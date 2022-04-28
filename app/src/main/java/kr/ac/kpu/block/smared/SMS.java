@@ -1,12 +1,12 @@
 package kr.ac.kpu.block.smared;
 
 public class SMS {
-    public String payMemo;
-    public String price;
-    public String year;
-    public String month;
-    public String day;
-    public String time;
+    private String payMemo;
+    private String price;
+    private String year;
+    private String month;
+    private String day;
+    private String time;
 
     public String getPayMemo() {
         return payMemo;

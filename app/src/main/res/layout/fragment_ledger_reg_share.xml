@@ -11,8 +11,6 @@
     android:orientation="vertical"
     tools:context="kr.ac.kpu.block.smared.ShareLedgerRegFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-
     <LinearLayout
         android:id="@+id/linear2"
         android:layout_width="match_parent"
@@ -54,15 +52,13 @@
 
     </LinearLayout>
 
-
     <CalendarView
         android:id="@+id/cvCalender2"
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:layout_below="@+id/linear2"
         android:layout_centerHorizontal="true"
-        android:dateTextAppearance="@android:style/TextAppearance"
-        />
+        android:dateTextAppearance="@android:style/TextAppearance" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -102,6 +98,7 @@
         android:layout_marginTop="10dp"
         android:hint="금액을 입력해 주세요"
         android:inputType="number" />
+
     <TextView
         android:id="@+id/tvPrice2"
         android:layout_width="wrap_content"
@@ -125,7 +122,7 @@
         android:textSize="18sp" />
 
     <EditText
-        android:id="@+id/etPaymemo2"
+        android:id="@+id/etPayMemo2"
         android:layout_width="185dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/etPrice2"

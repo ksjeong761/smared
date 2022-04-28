@@ -28,33 +28,34 @@
         android:textColor="#800000"
         android:textSize="25dp"
         />
+
     <EditText
         android:id="@+id/etEmail"
         android:layout_width="250dp"
         android:layout_height="30dp"
-        android:background="@drawable/square"
-        android:gravity="center_horizontal"
-        android:textSize="20dp"
-        android:hint='Email'
         android:layout_below="@+id/tvHello"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        />
+        android:background="@drawable/square"
+        android:gravity="center_horizontal"
+        android:hint='Email'
+        android:text="test@naver.com"
+        android:textSize="20dp" />
 
     <EditText
         android:id="@+id/etPassword"
         android:layout_width="250dp"
         android:layout_height="30dp"
-        android:background="@drawable/square"
-        android:textSize="20dp"
-        android:hint='Password'
-        android:inputType="textPassword"
         android:layout_below="@+id/etEmail"
-        android:gravity="center_horizontal"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
+        android:background="@drawable/square"
+        android:gravity="center_horizontal"
+        android:hint='Password'
+        android:inputType="textPassword"
+        android:text="lookup"
 
-       />
+        android:textSize="20dp" />
 
     <Button
         android:id="@+id/btnRegister"

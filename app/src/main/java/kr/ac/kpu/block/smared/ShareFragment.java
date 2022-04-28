@@ -11,47 +11,37 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-public class ShareFragment extends Fragment{
-    Fragment fragment;
+import kr.ac.kpu.block.smared.databinding.FragmentShareBinding;
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.lednavi_input:
-                    fragment = new ShareLedgerRegFragment();
-                    switchFragment(fragment);
-                    return true;
-                case R.id.lednavi_output:
-                    fragment = new ShareLedgerViewFragment();
-                    switchFragment(fragment);
-                    return true;
-                case R.id.lednavi_statistic:
-                    fragment = new ShareLedgerStatFragment();
-                    switchFragment(fragment);
-                    return true;
-            }
-            return false;
+public class ShareFragment extends Fragment {
+    private FormattedLogger logger = new FormattedLogger();
+    private FragmentShareBinding viewBinding;
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener = item -> {
+        switch (item.getItemId()) {
+            case R.id.lednavi_input:
+                switchFragment(new ShareLedgerRegFragment());
+                break;
+            case R.id.lednavi_output:
+                switchFragment(new ShareLedgerViewFragment());
+                break;
+            case R.id.lednavi_statistic:
+                switchFragment(new ShareLedgerStatFragment());
+                break;
+            default:
+                return false;
         }
+
+        return true;
     };
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        switchFragment(new ShareLedgerRegFragment());
 
-        View v = inflater.inflate(R.layout.fragment_share, container, false);
-
-        FragmentManager fragmentManager = getFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        ShareLedgerRegFragment fragment = new ShareLedgerRegFragment();
-        fragmentTransaction.add(R.id.shareledger,fragment);
-        fragmentTransaction.commit();
-
-        BottomNavigationView navigation = (BottomNavigationView) v.findViewById(R.id.sharenavi);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-
-        return v;
+        viewBinding = FragmentShareBinding.inflate(inflater, container, false);
+        viewBinding.sharenavi.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        return viewBinding.getRoot();
     }
 
     public void switchFragment(Fragment fragment) {

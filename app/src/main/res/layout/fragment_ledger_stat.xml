@@ -37,7 +37,7 @@
         android:background="@android:color/transparent"
         />
     <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/piechart"
+        android:id="@+id/pieChart"
         android:layout_width="match_parent"
         android:layout_height="420dp"
         android:layout_below="@id/ibLastMonth2"

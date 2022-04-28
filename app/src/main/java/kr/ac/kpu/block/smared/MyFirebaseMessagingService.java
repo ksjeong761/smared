@@ -11,11 +11,8 @@ import android.util.Log;
 import com.google.firebase.messaging.RemoteMessage;
 
 public class MyFirebaseMessagingService extends com.google.firebase.messaging.FirebaseMessagingService {
-
+    private FormattedLogger logger = new FormattedLogger();
     private static final String TAG = "FirebaseMsgService";
-
-    private String msg;
-    private String title;
 
     /**
      * Called when message is received.
@@ -49,8 +46,8 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
-        msg = remoteMessage.getNotification().getBody();
-        title = remoteMessage.getNotification().getTitle();
+        String msg = remoteMessage.getNotification().getBody();
+        String title = remoteMessage.getNotification().getTitle();
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.
 
@@ -59,22 +56,17 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this).setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(title)
-                .setContentText(msg)
-                .setAutoCancel(true)
-                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
-                .setVibrate(new long[]{1, 1000});
+            .setContentTitle(title)
+            .setContentText(msg)
+            .setAutoCancel(true)
+            .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
+            .setVibrate(new long[]{1, 1000});
 
-        NotificationManager notificationManager =
-                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         notificationManager.notify(0 /* ID of notification */, mBuilder.build());
-
-
         mBuilder.setContentIntent(contentIntent);
     }
 }

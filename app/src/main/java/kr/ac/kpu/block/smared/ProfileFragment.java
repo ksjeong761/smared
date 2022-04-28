@@ -3,7 +3,6 @@ package kr.ac.kpu.block.smared;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -11,7 +10,6 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
@@ -19,17 +17,9 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -47,82 +37,67 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Hashtable;
 
-public class ProfileFragment extends Fragment {
-    ImageView ivUser;
-    TextView tvNickname;
-    Button btnChangePhoto;
-    Button btnChangeNickname;
-    Button btnLogout;
-    Button btnWithdrawal;
-    private StorageReference mStorageRef;
-    Bitmap bitmap;
-    String stUid;
-    String stEmail;
-    String stNickname;
-    String TAG = getClass().getSimpleName();
-    int regStatus = 1;
-    ProgressBar pbLogin;
+import kr.ac.kpu.block.smared.databinding.FragmentProfileBinding;
 
-    FirebaseDatabase database;
-    DatabaseReference myRef;
-    DatabaseReference chatRef;
-    FirebaseUser user;
+public class ProfileFragment extends Fragment {
+    private FormattedLogger logger = new FormattedLogger();
+    private FragmentProfileBinding viewBinding;
+    private String TAG = getClass().getSimpleName();
+
+    private DatabaseReference myRef;
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
+    private StorageReference mStorageRef;
+
+    private Bitmap bitmap;
+    private String stUid;
+    private String stEmail;
+    private String stNickname;
+    private int regStatus = 1;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-
-        View v = inflater.inflate(R.layout.fragment_profile, container, false);
-        tvNickname = (TextView) v.findViewById(R.id.tvNickname);
-        btnChangePhoto = (Button) v.findViewById(R.id.btnChangePhoto);
-        btnLogout =  (Button) v.findViewById(R.id.btnLogout);
-        btnChangeNickname = (Button) v.findViewById(R.id.btnChangeNickname);
-        btnWithdrawal = (Button) v.findViewById(R.id.btnWithdrawal);
-
-        ivUser  = (ImageView) v.findViewById(R.id.ivUser);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        viewBinding = FragmentProfileBinding.inflate(inflater, container, false);
 
         user = FirebaseAuth.getInstance().getCurrentUser();
         mStorageRef = FirebaseStorage.getInstance().getReference();
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email",Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
         stUid = sharedPreferences.getString("uid","");
         stEmail = sharedPreferences.getString("email","");
 
-        pbLogin = (ProgressBar) v.findViewById(R.id.pbLogin);
+        myRef = FirebaseDatabase.getInstance().getReference();
+        chatRef = FirebaseDatabase.getInstance().getReference("chats");
 
-        database = FirebaseDatabase.getInstance();
-        myRef = database.getReference();
-        chatRef = database.getReference("chats");
+        // 데이터 변경 및 취소 이벤트
         myRef.child("users").child(stUid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // This method is called once with the initial value and again
-                // whenever data at this location is updated.
-                if(regStatus==0) {
-                getActivity().finish();
-                }   else {
+                if (regStatus==0) {
+                    getActivity().finish();
+                    return;
+                }
 
-                    String value = dataSnapshot.getValue().toString();
-                    String stPhoto = dataSnapshot.child("photo").getValue().toString();
-                    stNickname = dataSnapshot.child("nickname").getValue().toString();
-                    tvNickname.setText(stNickname);
+                String value = dataSnapshot.getValue().toString();
+                String stPhoto = dataSnapshot.child("photo").getValue().toString();
+                stNickname = dataSnapshot.child("nickname").getValue().toString();
+                viewBinding.tvNickname.setText(stNickname);
 
-                    if (TextUtils.isEmpty(stPhoto)) {
-                        pbLogin.setVisibility(getView().GONE);
-                    } else {
+                Log.d(TAG, "Value is: " + value);
 
-                        Picasso.with(getActivity()).load(stPhoto).fit().centerInside().into(ivUser, new Callback.EmptyCallback() {
-                            @Override
-                            public void onSuccess() {
-                                // Index 0 is the image view.
-                                Log.d(TAG, "SUCCESS");
-                                pbLogin.setVisibility(getView().GONE);
-                            }
-                        });
+                if (TextUtils.isEmpty(stPhoto)) {
+                    viewBinding.pbLogin.setVisibility(getView().GONE);
+                    return;
+                }
+
+                Picasso.with(getActivity()).load(stPhoto).fit().centerInside().into(viewBinding.ivUser, new Callback.EmptyCallback() {
+                    @Override
+                    public void onSuccess() {
+                        // Index 0 is the image view.
+                        Log.d(TAG, "SUCCESS");
+                        viewBinding.pbLogin.setVisibility(getView().GONE);
                     }
-
-
-                    Log.d(TAG, "Value is: " + value);
-                }  }
+                });
+            }
 
             @Override
             public void onCancelled(DatabaseError error) {
@@ -131,162 +106,97 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        // Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(getActivity(),    // 외부 저장소 권한 요청
-                android.Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            // Should we show an explanation?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
-                    android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-
-                // Show an expanation to the user *asynchronously* -- don't block
-                // this thread waiting for the user's response! After the user
-                // sees the explanation, try again to request the permission.
-
-            } else {
-
-                // No explanation needed, we can request the permission.
-
-                ActivityCompat.requestPermissions(getActivity(),
-                        new String[]{ android.Manifest.permission.READ_EXTERNAL_STORAGE},
-                        1);
-
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
-                // app-defined int constant. The callback method gets the
-                // result of the request.
+        // 외부 저장소 권한 확인
+        if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(getActivity(), android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            // 사용자가 명시적으로 권한을 거부한 것이 아니라면
+            if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                // 권한을 요청한다.
+                ActivityCompat.requestPermissions(getActivity(), new String[]{ android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
             }
         }
-        // Inflate the layout for this fragment
 
-
-        btnChangePhoto.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(i,1);
-                pbLogin.setVisibility(getView().VISIBLE);
-            }
+        // 프로필 사진 변경 버튼 이벤트
+        viewBinding.btnChangePhoto.setOnClickListener(view -> {
+            Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(i,1);
+            viewBinding.pbLogin.setVisibility(getView().VISIBLE);
         });
 
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                FirebaseAuth.getInstance().signOut();
-                Toast.makeText(getActivity(),"로그아웃 되었습니다",Toast.LENGTH_SHORT).show();
-                getActivity().finish();
-            }
+        // 로그아웃 버튼 이벤트
+        viewBinding.btnLogout.setOnClickListener(view -> {
+            FirebaseAuth.getInstance().signOut();
+            Toast.makeText(getActivity(),"로그아웃 되었습니다",Toast.LENGTH_SHORT).show();
+            getActivity().finish();
         });
 
-        btnChangeNickname.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
-                final EditText etNickname = new EditText(getActivity());
-                alertdialog.setTitle("닉네임 변경");
-                alertdialog.setView(etNickname);
+        // 닉네임 변경 버튼 이벤트
+        viewBinding.btnChangeNickname.setOnClickListener(view -> {
+            AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
+            final EditText etNickname = new EditText(getActivity());
+            alertdialog.setTitle("닉네임 변경");
+            alertdialog.setView(etNickname);
 
-                alertdialog.setPositiveButton("확인", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        stNickname = etNickname.getText().toString();
-                        tvNickname.setText("닉네임 : "+ stNickname);
-                        myRef.child("users").child(stUid).child("nickname").setValue(stNickname);
-                    }
-                });
-                alertdialog.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
+            alertdialog.setPositiveButton("확인", (dialog, which) -> {
+                stNickname = etNickname.getText().toString();
+                viewBinding.tvNickname.setText("닉네임 : "+ stNickname);
+                myRef.child("users").child(stUid).child("nickname").setValue(stNickname);
+            });
 
-
-                    }
-                });
-                alertdialog.show();
-            }
+            alertdialog.setNegativeButton("취소", (dialog, which) -> { });
+            alertdialog.show();
         });
 
+        // 회원탈퇴 버튼 이벤트
+        viewBinding.btnWithdrawal.setOnClickListener(view -> {
+            AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
+            alertdialog.setMessage("정말 탈퇴하시겠습니까?");
 
-        btnWithdrawal.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
-                alertdialog.setMessage("정말 탈퇴하시겠습니까?");
+            alertdialog.setPositiveButton("예", (dialog, which) -> user.delete().addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    return;
+                }
 
-                alertdialog.setPositiveButton("예", new DialogInterface.OnClickListener() {
+                regStatus=0;
+                myRef.child("users").child(stUid).removeValue();
+
+                chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        user.delete()
-                                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<Void> task) {
-                                        if (task.isSuccessful()) {
-                                            regStatus=0;
-                                            myRef.child("users").child(stUid).removeValue();
-
-
-                                            chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                                                @Override
-                                                public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                                    for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-
-                                                        for (DataSnapshot userSnapshot : chatSnapshot.getChildren()) {
-
-                                                            for (DataSnapshot uidSnapshot : userSnapshot.getChildren())
-                                                            {
-                                                                if(uidSnapshot.getKey().equals(stUid)) {
-                                                                    chatRef.child(chatSnapshot.getKey()).child("user").child(uidSnapshot.getKey()).removeValue();
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-
-                                                @Override
-                                                public void onCancelled(DatabaseError databaseError) {
-
-                                                }
-                                            });
-
-                                            Log.d(TAG, "User account deleted.");
-
-                                            Toast.makeText(getActivity(),"계정이 삭제되었습니다.",Toast.LENGTH_SHORT).show();
-
-                                            getActivity().finish();
-                                        }
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
+                            for (DataSnapshot userSnapshot : chatSnapshot.getChildren()) {
+                                for (DataSnapshot uidSnapshot : userSnapshot.getChildren()) {
+                                    if (uidSnapshot.getKey().equals(stUid)) {
+                                        chatRef.child(chatSnapshot.getKey()).child("user").child(uidSnapshot.getKey()).removeValue();
                                     }
-                                });
+                                }
+                            }
+                        }
                     }
-                });
-                alertdialog.setNegativeButton("아니오", new DialogInterface.OnClickListener() {
+
                     @Override
-                    public void onClick(DialogInterface dialog, int which) {
-
-                    }
+                    public void onCancelled(DatabaseError databaseError) { }
                 });
-                alertdialog.show();
 
-            }
+                Log.d(TAG, "User account deleted.");
+                Toast.makeText(getActivity(),"계정이 삭제되었습니다.",Toast.LENGTH_SHORT).show();
+                getActivity().finish();
+            }));
+
+            alertdialog.setNegativeButton("아니오", (dialog, which) -> { });
+            alertdialog.show();
         });
 
-
-
-
-        return v;
+        return viewBinding.getRoot();
     }
 
-
-
-
+    // 이미지뷰 파일 업로드
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {  // 이미지뷰 파일 업로드
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         try {
             Uri image = data.getData();
             try {
-
                 bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),image);
                 uploadImage();
 
@@ -294,33 +204,24 @@ public class ProfileFragment extends Fragment {
                 e.printStackTrace();
             }
         } catch (NullPointerException e) {
-            pbLogin.setVisibility(getView().GONE);
+            viewBinding.pbLogin.setVisibility(getView().GONE);
         }
-
     }
 
+    // 외부저장소 권한 응답
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {    // 외부저장소 권한 응답
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case 1: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the contacts-related task you need to do.
                 } else {
-
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
+                    // permission denied, boo! Disable the functionality that depends on this permission.
                 }
+
                 return;
             }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
         }
     }
 
@@ -332,48 +233,39 @@ public class ProfileFragment extends Fragment {
         byte[] data = baos.toByteArray();
 
         UploadTask uploadTask = profileRef.putBytes(data);
-        uploadTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception exception) {
-                // Handle unsuccessful uploads
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                String photoUrl = String.valueOf(downloadUrl);
-                Log.d("url",photoUrl);
+        // Handle unsuccessful uploads
+        uploadTask.addOnFailureListener(exception -> { }).addOnSuccessListener(taskSnapshot -> {
+            // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+            Uri downloadUrl = taskSnapshot.getDownloadUrl();
+            String photoUrl = String.valueOf(downloadUrl);
+            Log.d("url",photoUrl);
 
-                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                DatabaseReference myRef = database.getReference("users");
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference myRef = database.getReference("users");
 
-                Hashtable<String, Object> profile   // HashTable로 연결
-                        = new Hashtable<>();
-                profile.put("email", stEmail);
-                profile.put("key",stUid);
-                profile.put("photo",photoUrl);
-                profile.put("nickname",stNickname);
-                myRef.child(stUid).updateChildren(profile);
-                myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String s = dataSnapshot.getValue().toString();
-                        Log.d("profile",s);
-                        if (dataSnapshot != null ) {
+            Hashtable<String, Object> profile = new Hashtable<>();
+            profile.put("email", stEmail);
+            profile.put("key",stUid);
+            profile.put("photo",photoUrl);
+            profile.put("nickname",stNickname);
 
-                            Toast.makeText(getActivity(), "사진 업로드 완료",Toast.LENGTH_SHORT).show();
-                            ivUser.setImageBitmap(bitmap);
-                        }
+            myRef.child(stUid).updateChildren(profile);
+            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    String s = dataSnapshot.getValue().toString();
+                    Log.d("profile",s);
+                    if (dataSnapshot == null ) {
+                        return;
                     }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
+                    Toast.makeText(getActivity(), "사진 업로드 완료",Toast.LENGTH_SHORT).show();
+                    viewBinding.ivUser.setImageBitmap(bitmap);
+                }
 
-                    }
-                });
-            }
+                @Override
+                public void onCancelled(DatabaseError databaseError) { }
+            });
         });
-
     }
 }

@@ -48,7 +48,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvTotalincome2"
+        android:id="@+id/tvTotalIncome2"
         android:text="수입 합계"
         android:textSize="15dp"
         android:layout_centerHorizontal="true"
@@ -58,8 +58,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvTotalconsume2"
-        android:layout_below="@id/tvTotalincome2"
+        android:id="@+id/tvTotalConsume2"
+        android:layout_below="@id/tvTotalIncome2"
         android:layout_centerHorizontal="true"
         android:text="지출 합계"
         android:textColor="@color/DarkBlue"
@@ -69,7 +69,7 @@
         android:id="@+id/tvPlusMinus2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tvTotalconsume2"
+        android:layout_below="@id/tvTotalConsume2"
         android:text="수익"
         android:textSize="15dp"
         android:textColor="@color/DarkBlue"

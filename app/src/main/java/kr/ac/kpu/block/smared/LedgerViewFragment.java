@@ -281,8 +281,7 @@ public class LedgerViewFragment extends android.app.Fragment {
         try {
             FileOutputStream os = new FileOutputStream(xlsFile);
             workbook.write(os);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

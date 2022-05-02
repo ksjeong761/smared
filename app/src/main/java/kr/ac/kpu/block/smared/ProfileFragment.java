@@ -47,7 +47,6 @@ public class ProfileFragment extends Fragment {
     private DatabaseReference myRef;
     private DatabaseReference chatRef;
     private FirebaseUser user;
-    private StorageReference mStorageRef;
 
     private Bitmap bitmap;
     private String stUid;
@@ -60,7 +59,6 @@ public class ProfileFragment extends Fragment {
         viewBinding = FragmentProfileBinding.inflate(inflater, container, false);
 
         user = FirebaseAuth.getInstance().getCurrentUser();
-        mStorageRef = FirebaseStorage.getInstance().getReference();
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
         stUid = sharedPreferences.getString("uid","");
         stEmail = sharedPreferences.getString("email","");
@@ -77,32 +75,35 @@ public class ProfileFragment extends Fragment {
                     return;
                 }
 
-                String value = dataSnapshot.getValue().toString();
-                String stPhoto = dataSnapshot.child("photo").getValue().toString();
+                logger.writeLog("Value is: " + dataSnapshot.getValue().toString());
+
                 stNickname = dataSnapshot.child("nickname").getValue().toString();
                 viewBinding.tvNickname.setText(stNickname);
 
-                Log.d(TAG, "Value is: " + value);
-
+                String stPhoto = dataSnapshot.child("photo").getValue().toString();
                 if (TextUtils.isEmpty(stPhoto)) {
                     viewBinding.pbLogin.setVisibility(getView().GONE);
                     return;
                 }
 
-                Picasso.with(getActivity()).load(stPhoto).fit().centerInside().into(viewBinding.ivUser, new Callback.EmptyCallback() {
-                    @Override
-                    public void onSuccess() {
-                        // Index 0 is the image view.
-                        Log.d(TAG, "SUCCESS");
-                        viewBinding.pbLogin.setVisibility(getView().GONE);
-                    }
-                });
+                Picasso.with(getActivity())
+                    .load(stPhoto)
+                    .fit()
+                    .centerInside()
+                    .into(viewBinding.ivUser, new Callback.EmptyCallback() {
+                        @Override
+                        public void onSuccess() {
+                            // Index 0 is the image view.
+                            logger.writeLog("SUCCESS");
+                            viewBinding.pbLogin.setVisibility(getView().GONE);
+                        }
+                    });
             }
 
             @Override
             public void onCancelled(DatabaseError error) {
                 // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
+                logger.writeLog("Failed to read value : " + error.toException().getMessage());
             }
         });
 
@@ -117,8 +118,7 @@ public class ProfileFragment extends Fragment {
 
         // 프로필 사진 변경 버튼 이벤트
         viewBinding.btnChangePhoto.setOnClickListener(view -> {
-            Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(i,1);
+            startActivityForResult(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI),1);
             viewBinding.pbLogin.setVisibility(getView().VISIBLE);
         });
 
@@ -131,27 +131,27 @@ public class ProfileFragment extends Fragment {
 
         // 닉네임 변경 버튼 이벤트
         viewBinding.btnChangeNickname.setOnClickListener(view -> {
-            AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
             final EditText etNickname = new EditText(getActivity());
-            alertdialog.setTitle("닉네임 변경");
-            alertdialog.setView(etNickname);
+            alertDialog.setTitle("닉네임 변경");
+            alertDialog.setView(etNickname);
 
-            alertdialog.setPositiveButton("확인", (dialog, which) -> {
+            alertDialog.setPositiveButton("확인", (dialog, which) -> {
                 stNickname = etNickname.getText().toString();
                 viewBinding.tvNickname.setText("닉네임 : "+ stNickname);
                 myRef.child("users").child(stUid).child("nickname").setValue(stNickname);
             });
 
-            alertdialog.setNegativeButton("취소", (dialog, which) -> { });
-            alertdialog.show();
+            alertDialog.setNegativeButton("취소", (dialog, which) -> { });
+            alertDialog.show();
         });
 
         // 회원탈퇴 버튼 이벤트
         viewBinding.btnWithdrawal.setOnClickListener(view -> {
-            AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
-            alertdialog.setMessage("정말 탈퇴하시겠습니까?");
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+            alertDialog.setMessage("정말 탈퇴하시겠습니까?");
 
-            alertdialog.setPositiveButton("예", (dialog, which) -> user.delete().addOnCompleteListener(task -> {
+            alertDialog.setPositiveButton("예", (dialog, which) -> user.delete().addOnCompleteListener(task -> {
                 if (!task.isSuccessful()) {
                     return;
                 }
@@ -182,8 +182,8 @@ public class ProfileFragment extends Fragment {
                 getActivity().finish();
             }));
 
-            alertdialog.setNegativeButton("아니오", (dialog, which) -> { });
-            alertdialog.show();
+            alertDialog.setNegativeButton("아니오", (dialog, which) -> { });
+            alertDialog.show();
         });
 
         return viewBinding.getRoot();
@@ -199,7 +199,6 @@ public class ProfileFragment extends Fragment {
             try {
                 bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),image);
                 uploadImage();
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -226,35 +225,30 @@ public class ProfileFragment extends Fragment {
     }
 
     public void uploadImage() {
-        StorageReference profileRef = mStorageRef.child("users").child(stUid+".jpg");
+        ByteArrayOutputStream bitmapByteStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bitmapByteStream);
+        byte[] bitmapByte = bitmapByteStream.toByteArray();
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-        byte[] data = baos.toByteArray();
-
-        UploadTask uploadTask = profileRef.putBytes(data);
+        StorageReference profileRef = FirebaseStorage.getInstance().getReference().child("users").child(stUid + ".jpg");
+        UploadTask uploadTask = profileRef.putBytes(bitmapByte);
         // Handle unsuccessful uploads
         uploadTask.addOnFailureListener(exception -> { }).addOnSuccessListener(taskSnapshot -> {
             // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
             Uri downloadUrl = taskSnapshot.getDownloadUrl();
             String photoUrl = String.valueOf(downloadUrl);
-            Log.d("url",photoUrl);
-
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference myRef = database.getReference("users");
+            logger.writeLog(photoUrl);
 
             Hashtable<String, Object> profile = new Hashtable<>();
             profile.put("email", stEmail);
-            profile.put("key",stUid);
-            profile.put("photo",photoUrl);
-            profile.put("nickname",stNickname);
+            profile.put("key", stUid);
+            profile.put("photo", photoUrl);
+            profile.put("nickname", stNickname);
 
+            DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
             myRef.child(stUid).updateChildren(profile);
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    String s = dataSnapshot.getValue().toString();
-                    Log.d("profile",s);
                     if (dataSnapshot == null ) {
                         return;
                     }

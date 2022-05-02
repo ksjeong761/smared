@@ -349,8 +349,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         try {
             FileOutputStream os = new FileOutputStream(xlsFile);
             workbook.write(os); // 외부 저장소에 엑셀 파일 생성
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 

@@ -73,8 +73,7 @@ public class ImageActivity extends Activity {
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(cameraIntent, PICK_FROM_CAMERA);
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 Toast.makeText(ImageActivity.this, "이미지 처리 오류! 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
                 finish();
             }
@@ -195,8 +194,7 @@ public class ImageActivity extends Activity {
         File croppedFileName;
         try {
             croppedFileName = createImageFile();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "이미지 자르기 준비에 실패했습니다.", Toast.LENGTH_SHORT).show();
             return;

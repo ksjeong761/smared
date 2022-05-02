@@ -1,3 +1,4 @@
+// https://github.com/GoogleCloudPlatform/cloud-vision/blob/master/android/CloudVision/app/src/main/java/com/google/sample/cloudvision/MainActivity.java
 /*
  * Copyright 2016 Google Inc. All Rights Reserved.
  *
@@ -69,12 +70,12 @@ public class CloudActivity extends Activity {
     private final String ANDROID_PACKAGE_HEADER = "X-Android-Package";
     
     private final int MAX_LABEL_RESULTS = 10;
-    private final int MAX_DIMENSION = 1200;
+    private final int MAX_RESOLUTION = 1200;
 
     private String stUseItem;
     private String stPrice;
 
-    private Calendar calendar = Calendar.getInstance(); // Firebase내에 날짜로 저장
+    private Calendar calendar = Calendar.getInstance();
     private String stYear = new SimpleDateFormat("yyyy").format(calendar.getTime());
     private String stMonth = new SimpleDateFormat("MM").format(calendar.getTime());
     private String stDay = new SimpleDateFormat("dd").format(calendar.getTime());
@@ -84,6 +85,7 @@ public class CloudActivity extends Activity {
     private List<String> listItems = new ArrayList<>();
     private List<String> memoItems = new ArrayList<>();
 
+    // 뒤로가기 입력 시 이전 액티비티로 이동
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -108,6 +110,7 @@ public class CloudActivity extends Activity {
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
+        // 파싱한 OCR 결과물을 스피너에 출력하는 것으로 사용자가 직접 올바른 데이터를 선택할 수 있도록 한다.
         spinneradapter = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, listItems);
         viewBinding.spnPrice.setAdapter(spinneradapter);
 
@@ -117,16 +120,25 @@ public class CloudActivity extends Activity {
         try {
             File imagePath = new File("/storage/emulated/0/SmaRed/s2.jpg");
             Bitmap bitmapImage = BitmapFactory.decodeFile(imagePath.getAbsolutePath());
-            bitmapImage = scaleBitmapDown(bitmapImage, MAX_DIMENSION);
+            bitmapImage = scaleDownBitmap(bitmapImage, MAX_RESOLUTION);
 
             AsyncTask<Object, Void, String> labelDetectionTask = new LableDetectionTask(this, prepareAnnotationRequest(bitmapImage));
             labelDetectionTask.execute();
-        }
-        catch (IOException e) {
-        }
-        catch (Exception e) {
+        } catch (IOException e) {
+            logger.writeLog("failed to make API request because of other IOException " + e.getMessage());
+        } catch (Exception e) {
+            logger.writeLog("failed to make API request because of other Exception " + e.getMessage());
         }
 
+        // 날짜 선택 이벤트 - 선택된 날짜를 클래스 내부에 기록
+        viewBinding.cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
+            stYear = Integer.toString(year);
+            stMonth = Integer.toString(month+1);
+            stDay = Integer.toString(day);
+            Toast.makeText(CloudActivity.this, stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
+        });
+
+        // 스피너 선택 이벤트 - 선택된 분류를 클래스 내부에 기록
         viewBinding.spnUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
@@ -137,13 +149,7 @@ public class CloudActivity extends Activity {
             public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
-        viewBinding.cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
-            stYear = Integer.toString(year);
-            stMonth = Integer.toString(month+1);
-            stDay = Integer.toString(day);
-            Toast.makeText(CloudActivity.this, stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
-        });
-
+        // 스피너 선택 이벤트 - 선택된 가격을 클래스 내부에 기록
         viewBinding.spnPrice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -154,6 +160,7 @@ public class CloudActivity extends Activity {
             public void onNothingSelected(AdapterView<?> parent) { }
         });
 
+        // 스피너 선택 이벤트 - 선택된 내용을 클래스 내부에 기록
         viewBinding.spnPaymemo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -164,6 +171,7 @@ public class CloudActivity extends Activity {
             public void onNothingSelected(AdapterView<?> parent) { }
         });
 
+        // 저장 버튼 - 파싱한 OCR 결과물을 가계부 DB에 저장
         viewBinding.btnSave.setOnClickListener(view -> {
             Hashtable<String, String> ledger = new Hashtable<>();
             ledger.put("useItem", stUseItem);
@@ -171,15 +179,13 @@ public class CloudActivity extends Activity {
             ledger.put("paymemo", viewBinding.etPaymemo.getText().toString());
 
             String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
-            if (viewBinding.rbConsume.isChecked()) {
-                myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child("지출").child(stTime).setValue(ledger);
-            } else {
-                myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child("수입").child(stTime).setValue(ledger);
-            }
+            String tableName = viewBinding.rbConsume.isChecked() ? "지출" : "수입";
+            myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(tableName).child(stTime).setValue(ledger);
 
             Toast.makeText(CloudActivity.this, "저장하였습니다.", Toast.LENGTH_SHORT).show();
         });
 
+        // 끝내기 버튼 - 데이터를 비우고 TabActivity로 이동
         viewBinding.btnFinish.setOnClickListener(v -> {
             listItems.clear();
             memoItems.clear();
@@ -188,31 +194,24 @@ public class CloudActivity extends Activity {
             startActivity(new Intent(CloudActivity.this, TabActivity.class));
         });
 
-        viewBinding.btnOCRResult.setOnClickListener(v -> {
-            startActivity(new Intent(this, ContentActivity.class));
-        });
+        // OCR 결과 버튼 - ContentActivity로 이동
+        viewBinding.btnOCRResult.setOnClickListener(view -> startActivity(new Intent(this, ContentActivity.class)));
     }
 
-    private Bitmap scaleBitmapDown(Bitmap bitmap, int maxDimension) {
+    // 기준 해상도에 맞게 이미지를 축소한다.
+    private Bitmap scaleDownBitmap(Bitmap bitmap, int maxResolution) {
         int originalWidth = bitmap.getWidth();
         int originalHeight = bitmap.getHeight();
-        int resizedWidth = maxDimension;
-        int resizedHeight = maxDimension;
-
-        if (originalHeight > originalWidth) {
-            resizedHeight = maxDimension;
-            resizedWidth = (int) (resizedHeight * (float) originalWidth / (float) originalHeight);
-        } else if (originalWidth > originalHeight) {
-            resizedHeight = (int) (resizedWidth * (float) originalHeight / (float) originalWidth);
-            resizedWidth = maxDimension;
-        } else if (originalHeight == originalWidth) {
-            resizedHeight = maxDimension;
-            resizedWidth = maxDimension;
-        }
+        int resizedWidth = (originalWidth >= originalHeight) ? maxResolution : (int)((float)originalWidth / (float)originalHeight * maxResolution);
+        int resizedHeight = (originalHeight >= originalWidth) ? maxResolution : (int)((float)originalHeight / (float)originalWidth * maxResolution);
 
         return Bitmap.createScaledBitmap(bitmap, resizedWidth, resizedHeight, false);
     }
 
+    // https://cloud.google.com/vision/docs/batch
+    // Cloud Vision 텍스트 감지 API 호출 준비
+    // 요청 시 필요한 정보 : 패키지명, SHA1 서명, Cloud Vision 키, Base64 인코딩 된 JPEG 이미지
+    // 응답 내용 : 감지된 텍스트, 이미지 내 텍스트 좌표 등 정보가 포함된 JSON
     private Vision.Images.Annotate prepareAnnotationRequest(Bitmap bitmap) throws IOException {
         HttpTransport httpTransport = AndroidHttp.newCompatibleTransport();
         JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
@@ -235,7 +234,6 @@ public class CloudActivity extends Activity {
 
         Vision.Builder builder = new Vision.Builder(httpTransport, jsonFactory, null);
         builder.setVisionRequestInitializer(requestInitializer);
-
         Vision vision = builder.build();
 
         BatchAnnotateImagesRequest batchAnnotateImagesRequest = new BatchAnnotateImagesRequest();
@@ -244,6 +242,7 @@ public class CloudActivity extends Activity {
 
             // Add the image
             Image base64EncodedImage = new Image();
+
             // Convert the bitmap to a JPEG
             // Just in case it's a format that Android understands but Cloud Vision
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -273,6 +272,8 @@ public class CloudActivity extends Activity {
         return annotateRequest;
     }
 
+    // https://developer.android.com/reference/android/os/AsyncTask
+    // 비동기 API 호출을 위한 내부 클래스 (상속 받은 추상 클래스 AsyncTask는 API 30부터 Deprecated 처리됨)
     private class LableDetectionTask extends AsyncTask<Object, Void, String> {
         private final WeakReference<CloudActivity> mActivityWeakReference;
         private Vision.Images.Annotate mRequest;
@@ -282,22 +283,25 @@ public class CloudActivity extends Activity {
             mRequest = annotate;
         }
 
+        // Cloud Vision API 요청
         @Override
         protected String doInBackground(Object... params) {
             try {
+                logger.writeLog( "created Cloud Vision request object, sending request");
                 BatchAnnotateImagesResponse response = mRequest.execute();
 
                 List<EntityAnnotation> labels = response.getResponses().get(0).getTextAnnotations();
                 return (labels == null) ? "nothing" : labels.get(0).getDescription();
-            }
-            catch (GoogleJsonResponseException e) {
-            }
-            catch (IOException e) {
+            } catch (GoogleJsonResponseException e) {
+                logger.writeLog("failed to make API request because " + e.getContent());
+            } catch (IOException e) {
+                logger.writeLog("failed to make API request because of other IOException " +  e.getMessage());
             }
 
             return "Cloud Vision API request failed. Check logs for details.";
         }
 
+        // OCR 인식 결과물 파싱
         @Override
         protected void onPostExecute(String ocrResultText) {
             // 다이얼로그 호출 전 액티비티 참조 얻기

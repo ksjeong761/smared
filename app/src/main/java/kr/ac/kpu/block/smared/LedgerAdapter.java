@@ -82,9 +82,9 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         myRef = FirebaseDatabase.getInstance().getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        ListLedgerBinding viewBinding = ListLedgerBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        ListContentBinding viewBinding2 = ListContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        return (viewType == 1) ? new ViewHolder(viewBinding) : new ViewHolder(viewBinding2);
+        ListLedgerBinding listLedgerBinding = ListLedgerBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        ListContentBinding listContentBinding = ListContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return (viewType == 1) ? new ViewHolder(listLedgerBinding) : new ViewHolder(listContentBinding);
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.
@@ -92,8 +92,7 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
         if (hasDifferentDate(mLedger, position, position-1)) {
-            String buttonText = mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay();
-            holder.btnDay.setText(buttonText);
+            holder.btnDay.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
         }
 
         holder.tvChoice.setText("[ " + mLedger.get(position).getClassfy() + " ]");

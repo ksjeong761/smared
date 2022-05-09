@@ -94,7 +94,7 @@ public class EditDialog extends Dialog {
     public void setSpinner() {
         if (mLedger.get(position).getUseItem().equals("의류비")) {
             viewBinding.useitem.setSelection(0);
-        } else if(mLedger.get(position).getUseItem().equals("식비")) {
+        } else if (mLedger.get(position).getUseItem().equals("식비")) {
             viewBinding.useitem.setSelection(1);
         } else if (mLedger.get(position).getUseItem().equals("주거비")) {
             viewBinding.useitem.setSelection(2);

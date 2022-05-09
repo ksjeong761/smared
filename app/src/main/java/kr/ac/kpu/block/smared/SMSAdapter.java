@@ -91,7 +91,7 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
           public void onNothingSelected(AdapterView<?> parent) { }
       });
 
-      holder.btnAddSMS.setOnClickListener(v -> {
+      holder.btnAddSMS.setOnClickListener(view -> {
           LedgerContent mledgerContent = new LedgerContent();
           mledgerContent.setPaymemo(mBody.get(position).getPayMemo());
           mledgerContent.setPrice(mBody.get(position).getPrice());

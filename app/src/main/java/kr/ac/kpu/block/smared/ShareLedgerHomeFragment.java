@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 import kr.ac.kpu.block.smared.databinding.FragmentShareBinding;
 
-public class ShareFragment extends Fragment {
+public class ShareLedgerHomeFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentShareBinding viewBinding;
 
@@ -37,7 +37,7 @@ public class ShareFragment extends Fragment {
                 case R.id.lednavi_statistic:
                     switchFragment(new ShareLedgerStatFragment());
                     break;
-                    
+
                 default:
                     return false;
             }

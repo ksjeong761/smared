@@ -87,8 +87,8 @@ public class SMSEditDialog extends Dialog {
         viewBinding.date.setText(sdate);
 
         // 등록 버튼 이벤트 -> 받은 문자에서 파싱한 정보를 가계부 DB에 등록한다.
-        viewBinding.submit.setOnClickListener(v -> {
-            Hashtable<String, String> ledger  = new Hashtable<String, String>();
+        viewBinding.submit.setOnClickListener(view -> {
+            Hashtable<String, String> ledger  = new Hashtable<>();
             ledger.put("useItem", viewBinding.useitem.getSelectedItem().toString());
             ledger.put("price", viewBinding.price.getText().toString());
             ledger.put("paymemo", viewBinding.payMemo.getText().toString());
@@ -101,6 +101,6 @@ public class SMSEditDialog extends Dialog {
         });
 
         // 취소 버튼 이벤트 - 다이얼로그를 닫는다.
-        viewBinding.dismiss.setOnClickListener(v -> dismiss());
+        viewBinding.dismiss.setOnClickListener(view -> dismiss());
     }
 }

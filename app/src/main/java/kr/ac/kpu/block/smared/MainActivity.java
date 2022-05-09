@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
                 // HashTable에 회원가입에 필요한 정보 넣고
                 Hashtable<String, String> userInfo = new Hashtable<>();
                 userInfo.put("email", email);
-                userInfo.put("photo","https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef");
+                userInfo.put("photo", "https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef");
                 userInfo.put("key", user.getUid());
 
                 // DB에 넣기
@@ -167,8 +167,8 @@ public class MainActivity extends AppCompatActivity {
             FirebaseUser user = mAuth.getCurrentUser();
             SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("uid",user.getUid());
-            editor.putString("email",user.getEmail());
+            editor.putString("uid", user.getUid());
+            editor.putString("email", user.getEmail());
             editor.apply();
 
             // 탭 액티비티 화면으로 넘어간다.

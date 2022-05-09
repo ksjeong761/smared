@@ -101,13 +101,13 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         holder.tvPaymemo.setText("내용 : " + mLedger.get(position).getPaymemo());
 
         // 수정 버튼
-        holder.btnEdit.setOnClickListener(v -> {
+        holder.btnEdit.setOnClickListener(view -> {
             EditDialog dialogs = new EditDialog(context, mLedger, position, selectChatuid);
             dialogs.show();
         });
 
         // 삭제 버튼
-        holder.btnDelete.setOnClickListener(v -> {
+        holder.btnDelete.setOnClickListener(view -> {
             AlertDialog.Builder alertdialog = new AlertDialog.Builder(context);
             alertdialog.setMessage("정말 삭제 하시겠습니까?");
 

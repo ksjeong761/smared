@@ -84,10 +84,9 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
                 return;
             }
 
-            if (monthIndex != 0) { // 년,월이 제일 처음이 아니면
+            if (monthIndex != 0) {
                 monthIndex--;
-            }
-            else {   // 년,월이 처음이면
+            } else {
                 monthIndex = monthList.size() - 1;
             }
 
@@ -100,10 +99,9 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
                 return;
             }
 
-            if (monthIndex != monthList.size() - 1) { // 년, 월이 마지막이 아니면
+            if (monthIndex != monthList.size() - 1) {
                 monthIndex++;
-            }
-            else {   // 년,월이 마지막이면
+            } else {
                 monthIndex = 0;
             }
 
@@ -259,6 +257,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
+                    // 채팅방 이름으로 가계부 이름을 사용하므로 선택된 가계부명을 찾는다.
                     if (!chatSnapshot.child("chatname").getValue(String.class).equals(selectedChatRoomName)) {
                         continue;
                     }

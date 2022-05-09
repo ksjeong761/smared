@@ -1,17 +1,11 @@
 package kr.ac.kpu.block.smared;
 
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
-import android.widget.CalendarView;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -45,10 +39,7 @@ public class LedgerRegFragment extends android.app.Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerRegBinding.inflate(inflater, container, false);
 
-        // 사용자 정보 DB에 접근하기 위한 객체
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-
-        // 현재 로그인한 사용자 가져오기
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         // 드롭다운 메뉴(소비영역 분류) 선택 이벤트 - 선택된 값을 저장한다.
@@ -65,8 +56,8 @@ public class LedgerRegFragment extends android.app.Fragment {
         // 날짜 선택 이벤트 - 선택된 날짜를 저장하고 사용자에게 텍스트로 보여준다.
         viewBinding.cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
             stYear = Integer.toString(year);
-            stMonth = String.format("%02d",month+1);
-            stDay =  String.format("%02d",day);
+            stMonth = String.format("%02d", month+1);
+            stDay =  String.format("%02d", day);
 
             Toast.makeText(getActivity(), stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
         });
@@ -77,7 +68,6 @@ public class LedgerRegFragment extends android.app.Fragment {
             String stPaymemo = viewBinding.etPaymemo.getText().toString();
             String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 
-            // HashTable로 연결
             Hashtable<String, String> ledger = new Hashtable<>();
             ledger.put("useItem", stUseItem);
             ledger.put("price", stPrice);

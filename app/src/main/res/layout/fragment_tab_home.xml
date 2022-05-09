@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:clickable="true"
-    tools:context="kr.ac.kpu.block.smared.TabHomeFragment">
+    tools:context="kr.ac.kpu.block.smared.LedgerHomeFragment">
 
     <fragment
         android:name="kr.ac.kpu.block.smared.TabEmptyFragment"

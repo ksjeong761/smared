@@ -63,12 +63,10 @@ public class LedgerViewFragment extends android.app.Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerViewBinding.inflate(inflater, container, false);
 
-        //사용자 정보 DB에 접근하기 위한 객체
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("users");
-
-        //현재 로그인한 사용자 가져오기
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
         checkPermissions();
 
         viewBinding.rvLedger.setHasFixedSize(true);
@@ -83,10 +81,9 @@ public class LedgerViewFragment extends android.app.Fragment {
                 return;
             }
 
-            if (monthIndex != 0) { // 년,월이 제일 처음이 아니면
+            if (monthIndex != 0) {
                 monthIndex--;
-            }
-            else {   // 년,월이 처음이면
+            } else {
                 monthIndex = monthList.size() - 1;
             }
 
@@ -99,10 +96,9 @@ public class LedgerViewFragment extends android.app.Fragment {
                 return;
             }
 
-            if (monthIndex != monthList.size() - 1) { // 년, 월이 마지막이 아니면
+            if (monthIndex != monthList.size() - 1) {
                 monthIndex++;
-            }
-            else {   // 년,월이 마지막이면
+            } else {
                 monthIndex = 0;
             }
 
@@ -121,7 +117,6 @@ public class LedgerViewFragment extends android.app.Fragment {
                 monthList = new ArrayList(selectMonth); // 년 월만 빼서 따로 리스트 생성
                 Collections.sort(monthList);              // 정렬
                 if (!monthList.isEmpty()) {
-                    // 숫자가 아닌 문자를 전부 제거한다.
                     monthIndex = monthList.size() - 1;
                 }
             }
@@ -172,8 +167,7 @@ public class LedgerViewFragment extends android.app.Fragment {
             tempLedger.add(mLedger.get(j));
             if (mLedger.get(j).getClassfy().equals("지출")) {
                 totalConsume += Integer.parseInt(mLedger.get(j).getPrice());
-            }
-            else if (mLedger.get(j).getClassfy().equals("수입")) {
+            } else if (mLedger.get(j).getClassfy().equals("수입")) {
                 totalIncome += Integer.parseInt(mLedger.get(j).getPrice());
             }
         }
@@ -210,8 +204,7 @@ public class LedgerViewFragment extends android.app.Fragment {
 
                             if (ledger.getClassfy().equals("지출")) {
                                 totalExpenditure += Integer.parseInt(ledger.getPrice());
-                            }
-                            else if (ledger.getClassfy().equals("수입")) {
+                            } else if (ledger.getClassfy().equals("수입")) {
                                 totalIncome += Integer.parseInt(ledger.getPrice());
                             }
 

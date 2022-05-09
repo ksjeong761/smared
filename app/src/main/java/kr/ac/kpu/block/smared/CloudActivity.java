@@ -186,7 +186,7 @@ public class CloudActivity extends Activity {
         });
 
         // 끝내기 버튼 - 데이터를 비우고 TabActivity로 이동
-        viewBinding.btnFinish.setOnClickListener(v -> {
+        viewBinding.btnFinish.setOnClickListener(view -> {
             listItems.clear();
             memoItems.clear();
             spinneradapter.notifyDataSetChanged();

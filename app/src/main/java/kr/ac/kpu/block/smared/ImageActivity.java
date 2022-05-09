@@ -80,9 +80,9 @@ public class ImageActivity extends Activity {
         });
 
         viewBinding.btnAlbum.setOnClickListener(view -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType(MediaStore.Images.Media.CONTENT_TYPE);
-            startActivityForResult(intent, PICK_FROM_ALBUM);
+            Intent albumIntent = new Intent(Intent.ACTION_PICK);
+            albumIntent.setType(MediaStore.Images.Media.CONTENT_TYPE);
+            startActivityForResult(albumIntent, PICK_FROM_ALBUM);
         });
 
         viewBinding.btnNext.setOnClickListener(view -> {

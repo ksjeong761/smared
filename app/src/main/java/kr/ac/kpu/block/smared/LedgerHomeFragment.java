@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 
 import kr.ac.kpu.block.smared.databinding.FragmentTabHomeBinding;
 
-public class TabHomeFragment extends Fragment {
+public class LedgerHomeFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentTabHomeBinding viewBinding;
 

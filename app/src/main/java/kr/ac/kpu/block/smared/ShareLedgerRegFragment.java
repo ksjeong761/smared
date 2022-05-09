@@ -35,14 +35,9 @@ public class ShareLedgerRegFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerRegShareBinding viewBinding;
 
-    private DatabaseReference myRef;
     private DatabaseReference chatRef;
-    private FirebaseUser user;
 
-    private String stUseItem;
-    private String stEmail;
-    private String stUid;
-
+    private String selectedSpendCategory;
     private String selectedChatRoomName = "";
     private String selectedChatUid = "";
 
@@ -58,28 +53,28 @@ public class ShareLedgerRegFragment extends Fragment {
         viewBinding = FragmentLedgerRegShareBinding.inflate(inflater, container, false);
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("users");
+        DatabaseReference myRef = database.getReference("users");
         chatRef = database.getReference("chats");
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
-        stEmail = sharedPreferences.getString("email","");
-        stUid = sharedPreferences.getString("uid","");
+        String stEmail = sharedPreferences.getString("email","");
+        String stUid = sharedPreferences.getString("uid","");
 
-        viewLedgerName();
+        viewLedgerName(stUid);
 
-        // 분류 스피너 선택 이벤트
+        // 드롭다운 메뉴(소비영역 분류) 선택 이벤트 - 선택된 값을 저장한다.
         viewBinding.spnUseitem2.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                stUseItem = (String) adapterView.getItemAtPosition(i);
+                selectedSpendCategory = (String) adapterView.getItemAtPosition(i);
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> adapterView) { }
         });
 
-        // 달력 선택, 날짜 입력
+        // 날짜 선택 이벤트 - 선택된 날짜를 저장하고 사용자에게 텍스트로 보여준다.
         viewBinding.cvCalender2.setOnDateChangeListener((calendarView, year, month, day) -> {
             stYear = Integer.toString(year);
             stMonth = String.format("%02d", month+1);
@@ -88,50 +83,48 @@ public class ShareLedgerRegFragment extends Fragment {
            Toast.makeText(getActivity(), stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
         });
 
-        // 저장 버튼 이벤트
+        // 저장 버튼 이벤트 - UI에 정보가 모두 입력되었다면 DB에 저장한다.
         viewBinding.btnSave2.setOnClickListener(view -> {
             if (selectedChatRoomName.isEmpty()) {
                 Toast.makeText(getActivity(), "가계부를 선택후 이용해주세요", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            String stPrice = viewBinding.etPrice2.getText().toString();
-            String stPaymemo = viewBinding.etPayMemo2.getText().toString();
-            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
-
-            Hashtable<String, String> ledger = new Hashtable<>();
-            ledger.put("useItem", stUseItem);
-            ledger.put("price", stPrice);
-            ledger.put("paymemo", stPaymemo);
-
-            if (stPrice.isEmpty()) {
+            if (viewBinding.etPrice2.getText().toString().isEmpty()) {
                 Toast.makeText(getActivity(), "금액란을 채워주세요", Toast.LENGTH_SHORT).show();
                 return;
             }
 
+            Hashtable<String, String> ledger = new Hashtable<>();
+            ledger.put("useItem", selectedSpendCategory);
+            ledger.put("price", viewBinding.etPrice2.getText().toString());
+            ledger.put("paymemo", viewBinding.etPayMemo2.getText().toString());
+
             String tableName = (viewBinding.rbConsume2.isChecked()) ? "지출" : "수입";
+            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
             chatRef.child(selectedChatUid).child("Ledger").child(stYear).child(stMonth).child(stDay).child(tableName).child(stTime).setValue(ledger);
+
             Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
             viewBinding.etPayMemo2.setText("");
             viewBinding.etPrice2.setText("");
         });
 
-        // 가계부 선택 버튼 이벤트
+        // 가계부 선택 버튼 이벤트 - 가계부를 선택할 수 있는 다이얼로그를 출력한다.
         viewBinding.btnChoiceLed.setOnClickListener(view -> {
-            viewLedgerName();
+            viewLedgerName(stUid);
             final CharSequence[] select = listItems.toArray(new CharSequence[listItems.size()]);
 
-            AlertDialog.Builder alertdialog = new AlertDialog.Builder(getActivity());
-            alertdialog.setTitle("가계부를 골라주세요");
-            alertdialog.setSingleChoiceItems(select, -1, (dialog, item) -> saveItem = item);
+            AlertDialog.Builder selectLedgerDialog = new AlertDialog.Builder(getActivity());
+            selectLedgerDialog.setTitle("가계부를 골라주세요");
+            selectLedgerDialog.setSingleChoiceItems(select, -1, (dialog, item) -> saveItem = item);
 
-            alertdialog.setNeutralButton("가계부 생성", (dialogInterface, i) -> {
+            selectLedgerDialog.setNeutralButton("가계부 생성", (dialogInterface, i) -> {
                 final EditText editText = new EditText(getActivity());
-                AlertDialog.Builder alertdialog1 = new AlertDialog.Builder(getActivity());
-                alertdialog1.setTitle("가계부 이름을 설정해주세요");
-                alertdialog1.setView(editText);
+                AlertDialog.Builder createLedgerDialog = new AlertDialog.Builder(getActivity());
+                createLedgerDialog.setTitle("가계부 이름을 설정해주세요");
+                createLedgerDialog.setView(editText);
 
-                alertdialog1.setPositiveButton("확인", (dialogInterface1, i1) -> {
+                createLedgerDialog.setPositiveButton("확인", (dialogInterface1, i1) -> {
                     DatabaseReference pushedRef = chatRef.push();
                     String chatId = pushedRef.getKey();
 
@@ -143,25 +136,23 @@ public class ShareLedgerRegFragment extends Fragment {
                     chatRef.child(chatId).child("user").child(stUid).setValue(stEmail);
 
                     // 가계부 생성시 초기화 후 다시 가계부 뷰 리스트 채움
-                    listItems.clear();
-                    viewLedgerName();
+                    viewLedgerName(stUid);
                     setChatUid();
 
                     Toast.makeText(getActivity(), "가계부가 생성되었습니다.", Toast.LENGTH_SHORT).show();
                 });
 
-                alertdialog1.setNegativeButton("취소", (dialogInterface2, i2) -> { });
-                alertdialog1.create().show();
+                createLedgerDialog.setNegativeButton("취소", (dialogInterface2, i2) -> { });
+                createLedgerDialog.create().show();
             });
 
-            alertdialog.setPositiveButton("선택", (dialogInterface, i) -> {
+            selectLedgerDialog.setPositiveButton("선택", (dialogInterface, i) -> {
                 selectedChatRoomName = select[saveItem].toString();
                 setChatUid();
             });
 
-            alertdialog.setNegativeButton("취소", (dialogInterface, i) -> { });
-            alertdialog.create().show();
-
+            selectLedgerDialog.setNegativeButton("취소", (dialogInterface, i) -> { });
+            selectLedgerDialog.create().show();
             listItems.clear();
         });
 
@@ -228,7 +219,9 @@ public class ShareLedgerRegFragment extends Fragment {
         return viewBinding.getRoot();
     }
 
-    public void viewLedgerName() {
+    // 현재 참여중인 채팅방(가계부) 이름 읽어오기
+    // DB에서 Uid에 해당하는 채팅방 이름을 읽어온다.
+    public void viewLedgerName(String stUid) {
         chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -253,6 +246,7 @@ public class ShareLedgerRegFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
+                    // 채팅방 이름으로 가계부 이름을 사용하므로 선택된 가계부명을 찾는다.
                     if (chatSnapshot.child("chatname").getValue(String.class).equals(selectedChatRoomName)) {
                         selectedChatUid = chatSnapshot.getKey();
                     }

@@ -51,19 +51,19 @@ public class TabActivity extends AppCompatActivity  {
         myRef.child(user.getUid()).updateChildren(token);
 
         // 홈 액티비티가 기본으로 보여진다.
-        switchFragment(new TabHomeFragment());
+        switchFragment(new LedgerHomeFragment());
 
         // 하단 NavigationView 조작으로 다른 Fragment 화면을 보여준다.
         viewBinding.navigation.setOnNavigationItemSelectedListener(menuItem -> {
             switch (menuItem.getItemId()) {
                 // 기본 값으로 가계부 기록 화면을 보여주며 가계부 확인, 통계로 전환이 가능한 화면이다.
                 case R.id.navigation_home:
-                    switchFragment(new TabHomeFragment());
+                    switchFragment(new LedgerHomeFragment());
                     return true;
 
                 // 가계부 공유 화면
                 case R.id.navigation_share:
-                    switchFragment(new ShareFragment());
+                    switchFragment(new ShareLedgerHomeFragment());
                     return true;
 
                 // 사용자 프로필 화면

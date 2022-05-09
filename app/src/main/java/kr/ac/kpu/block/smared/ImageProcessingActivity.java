@@ -85,7 +85,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
             alert.cancel();
         });
 
-        viewBinding.btnRunOCR.setOnClickListener(v -> {
+        viewBinding.btnRunOCR.setOnClickListener(view -> {
             viewBinding.pbLogins.setVisibility(View.VISIBLE);
             startActivity(new Intent(ImageProcessingActivity.this, CloudActivity.class));
             viewBinding.pbLogins.setVisibility(View.GONE);

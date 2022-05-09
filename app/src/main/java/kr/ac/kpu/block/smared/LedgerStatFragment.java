@@ -36,113 +36,82 @@ public class LedgerStatFragment extends android.app.Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerStatBinding viewBinding;
 
-    private int monthIndex = 0;  // 년,월 인덱스
-    private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
-    private List<String> monthList; // 중복 제거된 년,월 저장
-    private List<Ledger> mLedger = new ArrayList<>();
+    // 통계를 정리하기 위해 가계부 전체 데이터를 가져온다.
+    private List<Ledger> allLedgerData = new ArrayList<>();
 
+    // 데이터가 존재하는 년,월만을 기록하여 월별 통계를 조회할 수 있도록 한다.
+    private Set<String> yearsAndMonthsHavingDataSet = new HashSet<>(); // 중복제거용 Set
+    private List<String> yearsAndMonthsHavingDataList; // 데이터가 존재하는 년,월만을 기록
+    private int yearsAndMonthsIndex = 0; // 년,월 인덱스
+
+    // 카테고리 별 소비 합계를 저장해두고 차트 클릭 시 출력한다.
     private float clothPrice = 0;
     private float foodPrice = 0;
     private float transPrice = 0;
-    private float etcPrice = 0;
     private float marketPrice = 0;
     private float homePrice = 0;
+    private float etcPrice = 0;
 
+    DatabaseReference myRef;
+    FirebaseUser user;
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerStatBinding.inflate(inflater, container, false);
 
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        myRef = FirebaseDatabase.getInstance().getReference("users");
+        user = FirebaseAuth.getInstance().getCurrentUser();
 
-        myRef.child(user.getUid()).child("Ledger").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                viewBinding.tvLedgerMonth2.setText("전체 가계부");
-                ledgerView(dataSnapshot);
-                selectChart();
-                monthList = new ArrayList(selectMonth); // 년 월만 빼서 따로 리스트 생성
-                Collections.sort(monthList);
+        // 사용자의 가계부 데이터를 불러와 차트를 출력한다.
+        loadLedgerAndShowChart();
 
-                if (!monthList.isEmpty()) {
-                    monthIndex = monthList.size() - 1;
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) { }
-        });
-
+        // 이전 달 버튼 이벤트
         viewBinding.ibLastMonth2.setOnClickListener(view -> {
-            if (mLedger.size() <= 0) {
-                return;
+            yearsAndMonthsIndex--;
+            if (yearsAndMonthsIndex < 0) {
+                yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;
             }
 
-            if (monthIndex != 0) { // 년,월이 제일 처음이 아니면
-                monthIndex--;
-            } else {   // 년,월이 처음이면
-                monthIndex = monthList.size() - 1;
-            }
+            viewBinding.tvLedgerMonth2.setText(yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex));
 
-            viewBinding.tvLedgerMonth2.setText(monthList.get(monthIndex));
-            String parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");
-
-            List<Ledger> tempLedger = new ArrayList<>();
-            for (int j = 0; j < mLedger.size(); j++) {
-                if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                    tempLedger.add(mLedger.get(j));
-                }
-            }
-
-            selectChart();
+            showChart();
         });
 
+        // 다음 달 버튼 이벤트
         viewBinding.ibNextMonth2.setOnClickListener(view -> {
-            if (mLedger.size() <= 0) {
-                return;
+            yearsAndMonthsIndex++;
+            if (yearsAndMonthsIndex >= yearsAndMonthsHavingDataList.size()) {
+                yearsAndMonthsIndex = 0;
             }
 
-            if (monthIndex != monthList.size() - 1) { // 년, 월이 마지막이 아니면
-                monthIndex++;
-            } else {   // 년,월이 마지막이면
-                monthIndex = 0;
-            }
+            viewBinding.tvLedgerMonth2.setText(yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex));
 
-            viewBinding.tvLedgerMonth2.setText(monthList.get(monthIndex));
-            String parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");
-
-            List<Ledger> tempLedger = new ArrayList<>();
-            for (int j = 0; j < mLedger.size(); j++) {
-                if (parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                    tempLedger.add(mLedger.get(j));
-                }
-            }
-
-            selectChart();
+            showChart();
         });
 
         return viewBinding.getRoot();
     }
 
-    public void ledgerView(DataSnapshot dataSnapshot) {
+    // 사용자의 전체 가계부 내역을 읽어온다.
+    private void loadLedger(DataSnapshot dataSnapshot) {
         for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
             for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
                 for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
                     for (DataSnapshot classfySnapshot : daySnapshot.getChildren()) { // 분류
-                        for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) { //
-                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
-
+                        for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) { // 시간
                             Ledger ledger = new Ledger();
+                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
                             ledger.setClassfy(classfySnapshot.getKey());
                             ledger.setYear(yearSnapshot.getKey());
                             ledger.setMonth(monthSnapshot.getKey());
-                            selectMonth.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
                             ledger.setDay(daySnapshot.getKey());
                             ledger.setTimes(timesSnapshot.getKey());
                             ledger.setPaymemo(ledgerContent.getPaymemo());
                             ledger.setPrice(ledgerContent.getPrice());
                             ledger.setUseItem(ledgerContent.getUseItem());
 
-                            mLedger.add(ledger);
+                            allLedgerData.add(ledger);
+                            yearsAndMonthsHavingDataSet.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
                         }
                     }
                 }
@@ -150,23 +119,31 @@ public class LedgerStatFragment extends android.app.Fragment {
         }
     }
 
-    public void selectChart() {
-        for (int j = 0; j < mLedger.size(); j++) {
-            if (mLedger.get(j).getUseItem().equals("의류비")) {
-                clothPrice += Integer.parseInt(mLedger.get(j).getPrice());
-            } else if (mLedger.get(j).getUseItem().equals("식비")) {
-                foodPrice += Integer.parseInt(mLedger.get(j).getPrice());
-            } else if (mLedger.get(j).getUseItem().equals("주거비")) {
-                homePrice += Integer.parseInt(mLedger.get(j).getPrice());
-            } else if (mLedger.get(j).getUseItem().equals("교통비")) {
-                transPrice += Integer.parseInt(mLedger.get(j).getPrice());
-            } else if (mLedger.get(j).getUseItem().equals("생필품")) {
-                marketPrice += Integer.parseInt(mLedger.get(j).getPrice());
-            } else if (mLedger.get(j).getUseItem().equals("기타")) {
-                etcPrice += Integer.parseInt(mLedger.get(j).getPrice());
+    // 소비 카테고리 별 합계, 백분율을 구한 뒤
+    // 차트의 속성을 설정한다.
+    private void showChart() {
+        if (allLedgerData.size() <= 0) {
+            return;
+        }
+
+        // 소비 카테고리 별 합계를 구한다.
+        for (int i = 0; i < allLedgerData.size(); i++) {
+            if (allLedgerData.get(i).getUseItem().equals("의류비")) {
+                clothPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
+            } else if (allLedgerData.get(i).getUseItem().equals("식비")) {
+                foodPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
+            } else if (allLedgerData.get(i).getUseItem().equals("주거비")) {
+                homePrice += Integer.parseInt(allLedgerData.get(i).getPrice());
+            } else if (allLedgerData.get(i).getUseItem().equals("교통비")) {
+                transPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
+            } else if (allLedgerData.get(i).getUseItem().equals("생필품")) {
+                marketPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
+            } else if (allLedgerData.get(i).getUseItem().equals("기타")) {
+                etcPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
             }
         }
 
+        // 백분율을 구한다.
         float total = clothPrice + foodPrice + homePrice + transPrice + marketPrice + etcPrice;
         float cloth = (clothPrice / total) * 100;
         float food = (foodPrice / total) * 100;
@@ -175,6 +152,7 @@ public class LedgerStatFragment extends android.app.Fragment {
         float market = (marketPrice / total) * 100;
         float etc = (etcPrice / total) * 100;
 
+        // 0%가 아니라면 차트에 카테고리명을 표시한다.
         ArrayList<PieEntry> yValues = new ArrayList<>();
         if (cloth != 0) {
             yValues.add(new PieEntry(cloth, "의류비"));
@@ -195,12 +173,13 @@ public class LedgerStatFragment extends android.app.Fragment {
             yValues.add(new PieEntry(etc, "기타"));
         }
 
+        // 파이 차트를 어떻게 출력할 지 설정한다.
         PieDataSet dataSet = new PieDataSet(yValues,"");
         dataSet.setSliceSpace(3f);
         dataSet.setSelectionShift(5f);
         dataSet.setColors(ColorTemplate.JOYFUL_COLORS);
 
-        PieData data = new PieData((dataSet));
+        PieData data = new PieData(dataSet);
         data.setValueTextSize(15f);
         data.setValueTextColor(Color.BLACK);
 
@@ -219,6 +198,8 @@ public class LedgerStatFragment extends android.app.Fragment {
         viewBinding.pieChart.setDrawHoleEnabled(false);
         viewBinding.pieChart.setHoleColor(Color.WHITE);
         viewBinding.pieChart.setTransparentCircleRadius(61f);
+
+        // 사용자가 차트를 터치했을 때 선택한 카테고리의 소비 합계를 다이얼로그로 출력한다.
         viewBinding.pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
@@ -244,6 +225,33 @@ public class LedgerStatFragment extends android.app.Fragment {
 
             @Override
             public void onNothingSelected() {}
+        });
+    }
+
+    // 사용자의 가계부 데이터를 불러와 차트를 출력한다.
+    private void loadLedgerAndShowChart() {
+        myRef.child(user.getUid()).child("Ledger").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // 사용자의 전체 가계부 목록을 불러온다.
+                viewBinding.tvLedgerMonth2.setText("전체 가계부");
+                loadLedger(dataSnapshot);
+
+                // 가계부 전체 통계를 출력한다.
+                showChart();
+
+                // 년, 월만 빼서 따로 리스트 생성
+                yearsAndMonthsHavingDataList = new ArrayList(yearsAndMonthsHavingDataSet);
+                Collections.sort(yearsAndMonthsHavingDataList);
+                if (!yearsAndMonthsHavingDataList.isEmpty()) {
+                    yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                logger.writeLog("Failed to read value : " + error.toException().getMessage());
+            }
         });
     }
 }

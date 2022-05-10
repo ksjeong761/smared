@@ -3,7 +3,6 @@ package kr.ac.kpu.block.smared;
 import android.app.AlertDialog;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,11 +34,15 @@ import java.util.Set;
 
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerStatShareBinding;
 
-import static android.content.ContentValues.TAG;
-
 public class ShareLedgerStatFragment extends android.app.Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentLedgerStatShareBinding viewBinding;
+
+    private DatabaseReference chatRef;
+    private FirebaseUser user;
+
+    // 현재 참여중인 채팅방 목록
+    private List<String> joiningChatRooms = new ArrayList<>();
 
     // 통계를 정리하기 위해 가계부 전체 데이터를 가져온다.
     private List<Ledger> allLedgerData = new ArrayList<>();
@@ -57,12 +60,6 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
     private float homePrice = 0;
     private float etcPrice = 0;
 
-    private DatabaseReference chatRef;
-    private FirebaseUser user;
-
-    private ArrayAdapter<String> spinnerAdapter;
-    private List<String> joiningChatRooms = new ArrayList<>();
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerStatShareBinding.inflate(inflater, container, false);
@@ -74,10 +71,12 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         loadJoiningChatRooms();
 
         // 스피너 목록 중 가장 위에 있는 채팅방의 가계부 데이터를 불러와 차트를 출력한다.
-        loadLedgerAndShowChart(joiningChatRooms.get(0));
+        if (!joiningChatRooms.isEmpty()) {
+            loadLedgerAndShowChart(joiningChatRooms.get(0));
+        }
 
-        spinnerAdapter = new ArrayAdapter<>(getActivity(), R.layout.support_simple_spinner_dropdown_item, joiningChatRooms);
-        viewBinding.spnSelectLedger.setAdapter(spinnerAdapter);
+        // 채팅방 목록을 스피너에 출력한다.
+        viewBinding.spnSelectLedger.setAdapter(new ArrayAdapter<>(getActivity(), R.layout.support_simple_spinner_dropdown_item, joiningChatRooms));
         viewBinding.spnSelectLedger.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             // 스피너 선택 이벤트 - 선택한 채팅방의 가계부 데이터를 불러와 차트를 출력한다.
             @Override
@@ -122,6 +121,7 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
 
     // 현재 사용자가 참여중인 채팅방 목록을 DB에서 읽어온다.
     private void loadJoiningChatRooms() {
+        joiningChatRooms.clear();
         chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -134,34 +134,32 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
                         }
                     }
                 }
-
-                spinnerAdapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(DatabaseError error) {
-                Log.w(TAG, "Failed to read value.", error.toException());
+                logger.writeLog("Failed to read value : " + error.toException().getMessage());
             }
         });
     }
 
     // 사용자의 전체 가계부 내역을 읽어온다.
     private void loadLedger(DataSnapshot dataSnapshot) {
+        allLedgerData.clear();
+        yearsAndMonthsHavingDataSet.clear();
         for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
             for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
                 for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
-                    for (DataSnapshot classfySnapshot : daySnapshot.getChildren()) { // 분류
-                        for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) { // 시간
+                    for (DataSnapshot classifySnapshot : daySnapshot.getChildren()) { // 분류
+                        for (DataSnapshot timesSnapshot : classifySnapshot.getChildren()) { // 시간
                             Ledger ledger = new Ledger();
                             LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
-                            ledger.setClassfy(classfySnapshot.getKey());
-                            ledger.setYear(yearSnapshot.getKey());
-                            ledger.setMonth(monthSnapshot.getKey());
-                            ledger.setDay(daySnapshot.getKey());
-                            ledger.setTimes(timesSnapshot.getKey());
-                            ledger.setPaymemo(ledgerContent.getPaymemo());
-                            ledger.setPrice(ledgerContent.getPrice());
-                            ledger.setUseItem(ledgerContent.getUseItem());
+                            ledger.setClassify(classifySnapshot.getKey()); // 분류
+                            ledger.setYear(yearSnapshot.getKey()); // 년
+                            ledger.setMonth(monthSnapshot.getKey()); // 월
+                            ledger.setDay(daySnapshot.getKey()); // 일
+                            ledger.setTimes(timesSnapshot.getKey()); // 시간
+                            ledger.setLedgerContent(ledgerContent); // 내용, 금액, 물품 분류
 
                             allLedgerData.add(ledger);
                             yearsAndMonthsHavingDataSet.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
@@ -180,51 +178,48 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         }
 
         // 소비 카테고리 별 합계를 구한다.
-        for (int i = 0; i < allLedgerData.size(); i++) {
-            if (allLedgerData.get(i).getUseItem().equals("의류비")) {
-                clothPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
-            } else if (allLedgerData.get(i).getUseItem().equals("식비")) {
-                foodPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
-            } else if (allLedgerData.get(i).getUseItem().equals("주거비")) {
-                homePrice += Integer.parseInt(allLedgerData.get(i).getPrice());
-            } else if (allLedgerData.get(i).getUseItem().equals("교통비")) {
-                transPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
-            } else if (allLedgerData.get(i).getUseItem().equals("생필품")) {
-                marketPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
-            } else if (allLedgerData.get(i).getUseItem().equals("기타")) {
-                etcPrice += Integer.parseInt(allLedgerData.get(i).getPrice());
+        for (int ledgerDataIndex = 0; ledgerDataIndex < allLedgerData.size(); ledgerDataIndex++) {
+            int usedItemPrice = Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
+            String usedItemCategory = allLedgerData.get(ledgerDataIndex).getLedgerContent().getUseItem();
+            switch (usedItemCategory) {
+                case "의류비":
+                    clothPrice += usedItemPrice;
+                    break;
+                case "식비":
+                    foodPrice += usedItemPrice;
+                    break;
+                case "주거비":
+                    homePrice += usedItemPrice;
+                    break;
+                case "교통비":
+                    transPrice += usedItemPrice;
+                    break;
+                case "생필품":
+                    marketPrice += usedItemPrice;
+                    break;
+                case "기타":
+                    etcPrice += usedItemPrice;
+                    break;
             }
         }
 
         // 백분율을 구한다.
-        float total = clothPrice + foodPrice + homePrice + transPrice + marketPrice + etcPrice;
-        float cloth = (clothPrice / total) * 100;
-        float food = (foodPrice / total) * 100;
-        float home = (homePrice / total) * 100;
-        float trans = (transPrice / total) * 100;
-        float market = (marketPrice / total) * 100;
-        float etc = (etcPrice / total) * 100;
+        float totalPrice = clothPrice + foodPrice + homePrice + transPrice + marketPrice + etcPrice;
+        float clothPercent = (clothPrice / totalPrice) * 100;
+        float foodPercent = (foodPrice / totalPrice) * 100;
+        float homePercent = (homePrice / totalPrice) * 100;
+        float transPercent = (transPrice / totalPrice) * 100;
+        float marketPercent = (marketPrice / totalPrice) * 100;
+        float etcPercent = (etcPrice / totalPrice) * 100;
 
         // 0%가 아니라면 차트에 카테고리명을 표시한다.
         ArrayList<PieEntry> yValues = new ArrayList<>();
-        if (cloth != 0) {
-            yValues.add(new PieEntry(cloth, "의류비"));
-        }
-        if (food != 0) {
-            yValues.add(new PieEntry(food, "식비"));
-        }
-        if (home != 0) {
-            yValues.add(new PieEntry(home, "주거비"));
-        }
-        if (trans != 0) {
-            yValues.add(new PieEntry(trans, "교통비"));
-        }
-        if (market != 0) {
-            yValues.add(new PieEntry(market, "생필품"));
-        }
-        if (etc != 0) {
-            yValues.add(new PieEntry(etc, "기타"));
-        }
+        if (clothPercent > 0) yValues.add(new PieEntry(clothPercent, "의류비"));
+        if (foodPercent > 0) yValues.add(new PieEntry(foodPercent, "식비"));
+        if (homePercent > 0) yValues.add(new PieEntry(homePercent, "주거비"));
+        if (transPercent > 0) yValues.add(new PieEntry(transPercent, "교통비"));
+        if (marketPercent > 0) yValues.add(new PieEntry(marketPercent, "생필품"));
+        if (etcPercent > 0) yValues.add(new PieEntry(etcPercent, "기타"));
 
         // 파이 차트를 어떻게 출력할 지 설정한다.
         PieDataSet dataSet = new PieDataSet(yValues,"");
@@ -256,23 +251,32 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
         viewBinding.pieChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
+                int selectedPieChartPrice = 0;
                 PieEntry pe = (PieEntry) e;
-
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-                if (pe.getLabel().equals("의류비")) {
-                    alertDialog.setMessage("의류비 총계 : " + (int)clothPrice + "원");
-                } else if (pe.getLabel().equals("식비")) {
-                    alertDialog.setMessage("식비 총계 : " + (int)foodPrice + "원");
-                } else if (pe.getLabel().equals("주거비")) {
-                    alertDialog.setMessage("주거비 총계 : " + (int)homePrice + "원");
-                } else if (pe.getLabel().equals("교통비")) {
-                    alertDialog.setMessage("교통비 총계 : " + (int)transPrice + "원");
-                } else if (pe.getLabel().equals("생필품")) {
-                    alertDialog.setMessage("생필품비 총계 : " + (int)marketPrice + "원");
-                } else if (pe.getLabel().equals("기타")) {
-                    alertDialog.setMessage("기타 비용 총계 : " + (int)etcPrice + "원");
+                String selectedPieChartLabel = pe.getLabel();
+                switch (selectedPieChartLabel) {
+                    case "의류비":
+                        selectedPieChartPrice = (int)clothPrice;
+                        break;
+                    case "식비":
+                        selectedPieChartPrice = (int)foodPrice;
+                        break;
+                    case "주거비":
+                        selectedPieChartPrice = (int)homePrice;
+                        break;
+                    case "교통비":
+                        selectedPieChartPrice = (int)transPrice;
+                        break;
+                    case "생필품":
+                        selectedPieChartPrice = (int)marketPrice;
+                        break;
+                    case "기타":
+                        selectedPieChartPrice = (int)etcPrice;
+                        break;
                 }
 
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+                alertDialog.setMessage(selectedPieChartLabel + " 총계 : " + selectedPieChartPrice + "원");
                 alertDialog.create().show();
             }
 
@@ -307,7 +311,7 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
                         showChart();
 
                         // 년, 월만 빼서 따로 리스트 생성
-                        yearsAndMonthsHavingDataList = new ArrayList(yearsAndMonthsHavingDataSet); // 년 월만 빼서 따로 리스트 생성
+                        yearsAndMonthsHavingDataList = new ArrayList(yearsAndMonthsHavingDataSet);
                         Collections.sort(yearsAndMonthsHavingDataList);
                         if (!yearsAndMonthsHavingDataList.isEmpty()) {
                             yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;

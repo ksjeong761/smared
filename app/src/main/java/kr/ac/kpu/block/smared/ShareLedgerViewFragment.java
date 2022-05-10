@@ -49,17 +49,16 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
     private DatabaseReference chatRef;
     private FirebaseUser user;
 
-    private LedgerAdapter mAdapter;
-    private List<Ledger> mLedger = new ArrayList<>(); // 불러온 전체 가계부 목록
-    private List<String> listItems = new ArrayList<>();
+    // 현재 참여중인 채팅방 목록
+    private List<String> joiningChatRooms = new ArrayList<>();
 
-    private int monthIndex = 0;  // 년,월 인덱스
-    private Set<String> selectMonth = new HashSet<>(); // 년,월 중복제거용
-    private List<String> monthList; // 중복 제거된 년,월 저장
+    // 가계부 전체 데이터
+    private List<Ledger> allLedgerData = new ArrayList<>();
 
-    private String selectedChatUid ="";
-    private CharSequence selectedChatRoomName = "";
-    private ArrayAdapter<String> spinneradapter;
+    // 데이터가 존재하는 년,월만을 기록하여 월별 데이터를 조회할 수 있도록 한다.
+    private Set<String> yearsAndMonthsHavingDataSet = new HashSet<>(); // 중복제거용 Set
+    private List<String> yearsAndMonthsHavingDataList = new ArrayList<>(); // 데이터가 존재하는 년,월만을 기록
+    private int yearsAndMonthsIndex = 0; // 년,월 인덱스
 
     private final int MULTIPLE_PERMISSIONS = 101;
     private String[] permissions = {
@@ -73,60 +72,31 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
 
         chatRef = FirebaseDatabase.getInstance().getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
+
         checkPermissions();
 
-        viewBinding.rvLedger2.setHasFixedSize(true);
-        viewBinding.rvLedger2.setLayoutManager(new LinearLayoutManager(getActivity()));
+        // 스피너에 출력할 채팅방 목록을 불러온다.
+        loadJoiningChatRooms();
 
-        // 이전 달 버튼 이벤트
-        viewBinding.ibLastMonth2.setOnClickListener(view -> {
-            if (mLedger.size() != 0) {
-                return;
-            }
+        // 스피너 목록 중 가장 위에 있는 채팅방의 가계부 데이터를 출력한다.
+        if (!joiningChatRooms.isEmpty()) {
+            loadLedgerAndShowList(joiningChatRooms.get(0));
+        }
 
-            if (monthIndex != 0) {
-                monthIndex--;
-            } else {
-                monthIndex = monthList.size() - 1;
-            }
-
-            reloadDataByMonth();
-        });
-
-        // 다음 달 버튼 이벤트
-        viewBinding.ibNextMonth2.setOnClickListener(view -> {
-            if (mLedger.size() != 0) {
-                return;
-            }
-
-            if (monthIndex != monthList.size() - 1) {
-                monthIndex++;
-            } else {
-                monthIndex = 0;
-            }
-
-            reloadDataByMonth();
-        });
-
-        viewLedgerName("init");
-
-        spinneradapter = new ArrayAdapter<>(getActivity(), R.layout.support_simple_spinner_dropdown_item, listItems);
-        viewBinding.spnSelectLedger.setAdapter(spinneradapter);
+        // 채팅방 목록을 스피너에 출력한다.
+        viewBinding.spnSelectLedger.setAdapter(new ArrayAdapter<>(getActivity(), R.layout.support_simple_spinner_dropdown_item, joiningChatRooms));
         viewBinding.spnSelectLedger.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            // 스피너 선택 이벤트 - 선택한 채팅방의 가계부 데이터를 불러와 화면에 출력한다.
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                mLedger.clear(); // 가계부 초기화
-                listItems.clear(); // 참여중인 가계부 목록 초기화
-                selectMonth.clear();
-                monthList.clear(); // 년,월 선택 초기화
-                selectedChatRoomName = (String) parent.getItemAtPosition(position);
-                viewLedgerName(selectedChatRoomName);
+                loadLedgerAndShowList(joiningChatRooms.get(position));
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) { }
         });
 
+        // 엑셀 내보내기 버튼 이벤트 - 가계부를 지정한 이름의 엑셀 파일로 저장하고 공유한다.
         viewBinding.btnExport.setOnClickListener(view -> {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
             alertDialog.setTitle("저장할 가계부 이름을 설정해주세요");
@@ -140,110 +110,51 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
                     return;
                 }
 
-                saveExcel(ledgerName);
+                ledgerToExcelFileAndExport(ledgerName);
             });
 
             alertDialog.setNegativeButton("취소", (dialog, which) -> { });
             alertDialog.create().show();
         });
 
+        // 이전 달 버튼 이벤트
+        viewBinding.ibLastMonth2.setOnClickListener(view -> {
+            yearsAndMonthsIndex--;
+            if (yearsAndMonthsIndex < 0) {
+                yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;
+            }
+
+            showListByMonth();
+        });
+
+        // 다음 달 버튼 이벤트
+        viewBinding.ibNextMonth2.setOnClickListener(view -> {
+            yearsAndMonthsIndex++;
+            if (yearsAndMonthsIndex > yearsAndMonthsHavingDataList.size() - 1) {
+                yearsAndMonthsIndex = 0;
+            }
+
+            showListByMonth();
+        });
+
         return viewBinding.getRoot();
     }
 
-    private void reloadDataByMonth() {
-        viewBinding.tvLedgerMonth2.setText(monthList.get(monthIndex));
-        String parsing = monthList.get(monthIndex).replaceAll("[^0-9]", "");;
-
-        int totalIncome = 0;
-        int totalConsume = 0;
-
-        List<Ledger> tempLedger = new ArrayList<>();
-        for (int j = 0; j < mLedger.size(); j++) {
-            if (!parsing.equals(mLedger.get(j).getYear() + mLedger.get(j).getMonth())) {
-                continue;
-            }
-
-            tempLedger.add(mLedger.get(j));
-            if (mLedger.get(j).getClassfy().equals("지출")) {
-                totalConsume += Integer.parseInt(mLedger.get(j).getPrice());
-            }
-            else if (mLedger.get(j).getClassfy().equals("수입")) {
-                totalIncome += Integer.parseInt(mLedger.get(j).getPrice());
-            }
-        }
-
-        viewBinding.tvTotalIncome2.setText("수입 합계 : " + totalIncome + "원");
-        viewBinding.tvTotalConsume2.setText("지출 합계 : " + totalConsume + "원");
-        viewBinding.tvPlusMinus2.setText("수익 : " + (totalIncome - totalConsume) + "원");
-        viewBinding.rvLedger2.setAdapter(new LedgerAdapter(tempLedger, getActivity(), selectedChatUid));
-    }
-
-    // 스냅샷 으로부터 가계부 정보 읽어오기
-    public void ledgerView(DataSnapshot dataSnapshot) {
-        int totalIncome = 0;
-        int totalExpenditure = 0;
-
-        for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
-            for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
-                for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
-                    for (DataSnapshot classfySnapshot : daySnapshot.getChildren()) { // 분류
-                        for (DataSnapshot timesSnapshot : classfySnapshot.getChildren()) {  // 가계부 정보 - 계정,가격,내용
-                            Ledger ledger = new Ledger();
-                            ledger.setClassfy(classfySnapshot.getKey());
-                            ledger.setYear(yearSnapshot.getKey());
-                            ledger.setMonth(monthSnapshot.getKey());
-                            selectMonth.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
-
-                            ledger.setDay(daySnapshot.getKey());
-                            ledger.setTimes(timesSnapshot.getKey());
-
-                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
-                            ledger.setPaymemo(ledgerContent.getPaymemo());
-                            ledger.setPrice(ledgerContent.getPrice());
-                            ledger.setUseItem(ledgerContent.getUseItem());
-
-                            if (ledger.getClassfy().equals("지출")) {
-                                totalExpenditure += Integer.parseInt(ledger.getPrice());
-                            }
-                            else if (ledger.getClassfy().equals("수입")) {
-                                totalIncome += Integer.parseInt(ledger.getPrice());
-                            }
-
-                            mLedger.add(ledger);
-                            mAdapter.notifyDataSetChanged();
-                        }
-                    }
-                }
-            }
-        }
-
-        viewBinding.rvLedger2.scrollToPosition(0);
-        viewBinding.tvTotalIncome2.setText("수입 합계 : " + totalIncome + "원");
-        viewBinding.tvTotalConsume2.setText("지출 합계 : " + totalExpenditure + "원");
-        viewBinding.tvPlusMinus2.setText("수익 : " + (totalIncome - totalExpenditure) + "원");
-    }
-
-    // 현재 참여중인 가계부 이름을 읽어옴
-    public void viewLedgerName(final CharSequence chatname) {
+    // 현재 사용자가 참여중인 채팅방 목록을 DB에서 읽어온다.
+    private void loadJoiningChatRooms() {
+        joiningChatRooms.clear();
         chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
                     for (DataSnapshot userSnapshot : chatSnapshot.getChildren()) {
                         for (DataSnapshot uidSnapshot : userSnapshot.getChildren()) {
-                            if (!uidSnapshot.getKey().equals(user.getUid())) {
-                                return;
+                            if (uidSnapshot.getKey().equals(user.getUid())) {
+                                joiningChatRooms.add(chatSnapshot.child("chatname").getValue(String.class));
                             }
-
-                            String joinedChatname = chatSnapshot.child("chatname").getValue(String.class);
-                            listItems.add(joinedChatname);
-                            spinneradapter.notifyDataSetChanged();
-                            selectedChatRoomName = chatname.equals("init") ? listItems.get(0) : chatname;
                         }
                     }
                 }
-
-                setChatUid();
             }
 
             @Override
@@ -251,115 +162,191 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         });
     }
 
-    // 선택된 가계부 이름으로 부터 가계부 키를 찾고 화면 출력
-    public void setChatUid() {
+    // 선택한 채팅방의 가계부 데이터를 불러와 화면에 출력한다.
+    private void loadLedgerAndShowList(String selectedChatRoomName) {
         chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                // 채팅방 이름으로 uid를 조회한다.
+                String selectedChatRoomUid = "";
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-                    // 채팅방 이름으로 가계부 이름을 사용하므로 선택된 가계부명을 찾는다.
-                    if (!chatSnapshot.child("chatname").getValue(String.class).equals(selectedChatRoomName)) {
-                        continue;
+                    if (chatSnapshot.child("chatname").getValue(String.class).equals(selectedChatRoomName)) {
+                        selectedChatRoomUid = chatSnapshot.getKey();
+                        break;
+                    }
+                }
+
+                chatRef.child(selectedChatRoomUid).child("Ledger").addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        // 사용자의 전체 가계부 목록을 불러온다.
+                        viewBinding.tvLedgerMonth2.setText("전체 가계부");
+                        loadLedger(dataSnapshot);
+
+                        // 가계부 목록을 출력한다.
+                        showListByMonth();
+
+                        // 년 월만 빼서 따로 리스트 생성
+                        yearsAndMonthsHavingDataList = new ArrayList(yearsAndMonthsHavingDataSet);
+                        Collections.sort(yearsAndMonthsHavingDataList);
+                        if (!yearsAndMonthsHavingDataList.isEmpty()) {
+                            yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;
+                        }
                     }
 
-                    selectedChatUid = chatSnapshot.getKey();
-                    mAdapter = new LedgerAdapter(mLedger, getActivity(), selectedChatUid);
-                    viewBinding.rvLedger2.setAdapter(mAdapter);
-                    chatRef.child(selectedChatUid).child("Ledger").addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            viewBinding.tvLedgerMonth2.setText("전체 가계부");
-                            mLedger.clear();
-                            selectMonth.clear();
-                            mAdapter.notifyDataSetChanged();
-
-                            // 유저 가계부 전체 리스트 생성
-                            ledgerView(dataSnapshot);
-
-                            // 년 월만 빼서 따로 리스트 생성
-                            monthList = new ArrayList(selectMonth);
-                            Collections.sort(monthList);
-                            if (!monthList.isEmpty()) {
-                                monthIndex = monthList.size() - 1;
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError error) { }
-                    });
-                }
+                    @Override
+                    public void onCancelled(DatabaseError error) {
+                        logger.writeLog("Failed to read value : " + error.toException().getMessage());
+                    }
+                });
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) { }
         });
+    }
+
+    private void showListByMonth() {
+        viewBinding.tvLedgerMonth2.setText(yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex));
+        String parsedNumber = yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex).replaceAll("[^0-9]", "");;
+
+        int totalIncome = 0;
+        int totalExpenditure = 0;
+        List<Ledger> oneMonthLedgerData = new ArrayList<>();
+
+        for (int ledgerDataIndex = 0; ledgerDataIndex < allLedgerData.size(); ledgerDataIndex++) {
+            if (!parsedNumber.equals(allLedgerData.get(ledgerDataIndex).getYear() + allLedgerData.get(ledgerDataIndex).getMonth())) {
+                continue;
+            }
+
+            oneMonthLedgerData.add(allLedgerData.get(ledgerDataIndex));
+            if (allLedgerData.get(ledgerDataIndex).getClassify().equals("지출")) {
+                totalExpenditure += Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
+            } else if (allLedgerData.get(ledgerDataIndex).getClassify().equals("수입")) {
+                totalIncome += Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
+            }
+        }
+
+        viewBinding.tvTotalIncome2.setText("수입 합계 : " + totalIncome + "원");
+        viewBinding.tvTotalConsume2.setText("지출 합계 : " + totalExpenditure + "원");
+        viewBinding.tvPlusMinus2.setText("수익 : " + (totalIncome - totalExpenditure) + "원");
+
+        viewBinding.rvLedger2.setHasFixedSize(true);
+        viewBinding.rvLedger2.setLayoutManager(new LinearLayoutManager(getActivity()));
+        viewBinding.rvLedger2.setAdapter(new LedgerAdapter(oneMonthLedgerData, getActivity()));
+        viewBinding.rvLedger2.scrollToPosition(0);
+    }
+
+    // DB에서 사용자의 전체 가계부 목록을 얻어오고 총 수입,지출을 EditText에 출력한다.
+    private void loadLedger(DataSnapshot dataSnapshot) {
+        int totalIncome = 0;
+        int totalExpenditure = 0;
+
+        allLedgerData.clear();
+        yearsAndMonthsHavingDataSet.clear();
+        for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
+            for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
+                for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
+                    for (DataSnapshot classifySnapshot : daySnapshot.getChildren()) { // 소비 분류
+                        for (DataSnapshot timesSnapshot : classifySnapshot.getChildren()) { // 시간
+                            Ledger ledger = new Ledger();
+                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
+                            ledger.setClassify(classifySnapshot.getKey()); // 분류
+                            ledger.setYear(yearSnapshot.getKey()); // 년
+                            ledger.setMonth(monthSnapshot.getKey()); // 월
+                            ledger.setDay(daySnapshot.getKey()); // 일
+                            ledger.setTimes(timesSnapshot.getKey()); // 시간
+                            ledger.setLedgerContent(ledgerContent); // 내용, 금액, 물품 분류
+
+                            if (ledger.getClassify().equals("지출")) {
+                                totalExpenditure += Integer.parseInt(ledger.getLedgerContent().getPrice());
+                            } else if (ledger.getClassify().equals("수입")) {
+                                totalIncome += Integer.parseInt(ledger.getLedgerContent().getPrice());
+                            }
+
+                            allLedgerData.add(ledger);
+                            yearsAndMonthsHavingDataSet.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
+                        }
+                    }
+                }
+            }
+        }
+
+        viewBinding.tvTotalIncome2.setText("수입 합계 : " + totalIncome + "원");
+        viewBinding.tvTotalConsume2.setText("지출 합계 : " + totalExpenditure + "원");
+        viewBinding.tvPlusMinus2.setText("수익 : " + (totalIncome - totalExpenditure) + "원");
     }
 
     // Apache POI 3.17 라이브러리를 사용해 가계부 정보를 액셀 파일로 만들어 공유한다.
     // https://www.codejava.net/coding/how-to-write-excel-files-in-java-using-apache-poi
     // https://easy-coding.tistory.com/48
-    private void saveExcel(String ledgerName){
+    private void ledgerToExcelFileAndExport(String ledgerName) {
+        // 엑셀 객체를 생성한다.
         Workbook workbook = new HSSFWorkbook();
-        Sheet sheet = workbook.createSheet(); // 새로운 시트 생성
+        Sheet sheet = workbook.createSheet();
 
-        Row row = sheet.createRow(0); // 새로운 행 생성
-        Cell cell;
-
-        cell = row.createCell(0); // 1번 셀 생성
-        cell.setCellValue("날짜"); // 1번 셀 값 입력
-
-        cell = row.createCell(1); // 2번 셀 생성
-        cell.setCellValue("소비 분류"); // 2번 셀 값 입력
-
-        cell = row.createCell(2); // 2번 셀 생성
-        cell.setCellValue("분류"); // 2번 셀 값 입력
-
-        cell = row.createCell(3); // 2번 셀 생성
-        cell.setCellValue("금액"); // 2번 셀 값 입력
-
-        cell = row.createCell(4); // 2번 셀 생성
-        cell.setCellValue("내용"); // 2번 셀 값 입력
-
-        // 가계부 데이터를 엑셀에 입력한다.
-        for (int i = 0; i < mLedger.size(); i++) {
-            row = sheet.createRow(i+1);
-            cell = row.createCell(0);
-            cell.setCellValue(mLedger.get(i).getYear() + "-" + mLedger.get(i).getMonth() + "-" + mLedger.get(i).getDay());
-            cell = row.createCell(1);
-            cell.setCellValue(mLedger.get(i).getClassfy());
-            cell = row.createCell(2);
-            cell.setCellValue(mLedger.get(i).getUseItem());
-            cell = row.createCell(3);
-            cell.setCellValue(mLedger.get(i).getPrice());
-            cell = row.createCell(4);
-            cell.setCellValue(mLedger.get(i).getPaymemo());
+        // 칼럼 제목을 입력한다.
+        Row columnHeaderRow = sheet.createRow(0);
+        String[] columnHeaders = {"날짜", "소비 분류", "분류", "금액", "내용"};
+        for (int columnIndex = 0; columnIndex < columnHeaders.length; columnIndex++) {
+            Cell cell = columnHeaderRow.createCell(columnIndex);
+            cell.setCellValue(columnHeaders[columnIndex]);
         }
 
-        // 외부 저장소에 엑셀 파일을 저장할 폴더 생성
-        File storageDir = new File(Environment.getExternalStorageDirectory() + "/SmaRed/Excel");
-        if (!storageDir.exists()) {
-            storageDir.mkdirs();
+        // 가계부 데이터를 입력한다.
+        for (int ledgerIndex = 0; ledgerIndex < allLedgerData.size(); ledgerIndex++) {
+            Row row = sheet.createRow(ledgerIndex + 1);
+            String[] columnValues = {
+                    allLedgerData.get(ledgerIndex).getYear() + "-" + allLedgerData.get(ledgerIndex).getMonth() + "-" + allLedgerData.get(ledgerIndex).getDay(),
+                    allLedgerData.get(ledgerIndex).getClassify(),
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getUseItem(),
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getPrice(),
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getPayMemo()
+            };
+            for (int columnIndex = 0; columnIndex < columnHeaders.length; columnIndex++) {
+                Cell cell = row.createCell(columnIndex);
+                cell.setCellValue(columnValues[columnIndex]);
+            }
         }
 
-        // 외부 저장소에 엑셀 파일 생성
-        File xlsFile = new File(Environment.getExternalStorageDirectory() + "/SmaRed/Excel",ledgerName+".xls");
-
-        // 생성한 엑셀 파일의 파일 스트림을 얻어서 workbook에 저장했던 가계부 데이터를 쓴다.
+        FileOutputStream os = null;
         try {
-            FileOutputStream os = new FileOutputStream(xlsFile);
-            workbook.write(os); // 외부 저장소에 엑셀 파일 생성
+            // 외부 저장소에 엑셀 파일을 저장할 폴더 생성
+            String directoryPath = Environment.getExternalStorageDirectory() + "/SmaRed/Excel";
+            String fileName = ledgerName + ".xls";
+            File storageDir = new File(directoryPath);
+            if (!storageDir.exists()) {
+                storageDir.mkdirs();
+            }
+
+            // 엑셀 파일 생성
+            File xlsFile = new File(directoryPath, fileName);
+
+            // 생성한 엑셀 파일에 가계부 데이터를 쓴다.
+            os = new FileOutputStream(xlsFile);
+            workbook.write(os);
+
+            Toast.makeText(getActivity(),xlsFile.getAbsolutePath() + "에 엑셀 파일이 저장되었습니다", Toast.LENGTH_SHORT).show();
+
+            // 엑셀 파일 공유
+            Uri path = Uri.fromFile(xlsFile);
+            Intent exportExcelIntent = new Intent(Intent.ACTION_SEND);
+            exportExcelIntent.setType("application/excel");
+            exportExcelIntent.putExtra(Intent.EXTRA_STREAM, path);
+            startActivity(Intent.createChooser(exportExcelIntent,"엑셀 내보내기"));
         } catch (IOException e) {
-            e.printStackTrace();
+            Toast.makeText(getActivity(), "엑셀 파일 생성에 실패했습니다.", Toast.LENGTH_LONG).show();
+            logger.writeLog("IOException : " + e.getMessage());
+        } catch (Exception e) {
+            Toast.makeText(getActivity(), "엑셀 내보내기에 실패했습니다.", Toast.LENGTH_LONG).show();
+            logger.writeLog("Exception : " + e.getMessage());
+        } finally {
+            try {
+                os.close();
+            } catch (IOException e) {
+                logger.writeLog("IOException close stream : " + e.getMessage());
+            }
         }
-
-        Toast.makeText(getActivity(),xlsFile.getAbsolutePath() + "에 저장되었습니다", Toast.LENGTH_SHORT).show();
-
-        // 데이터가 입력된 엑셀 파일 공유
-        Uri path = Uri.fromFile(xlsFile);
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("application/excel");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, path);
-        startActivity(Intent.createChooser(shareIntent,"엑셀 내보내기"));
     }
 
     // 필요한 권한 중 허가되지 않은 것이 하나라도 있을 경우
@@ -368,7 +355,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         // 필요한 권한 중에 허가되지 않은 권한 목록을 수집한다.
         List<String> deniedPermissions = new ArrayList<>();
         for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(getActivity(), permission) != PackageManager.PERMISSION_GRANTED) {
+            if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(getActivity(), permission)) {
                 deniedPermissions.add(permission);
             }
         }

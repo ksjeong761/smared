@@ -69,10 +69,10 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.mTextView.setText(mChat.get(position).getText());
+        holder.mTextView.setText(mChat.get(position).getMessage());
         holder.tvChatid.setText(mChat.get(position).getNickname());
-        if (!TextUtils.isEmpty(mChat.get(position).getPhoto())) {
-            Picasso.with(context).load(mChat.get(position).getPhoto()).fit().centerInside().into(holder.ivChatimage);
+        if (!TextUtils.isEmpty(mChat.get(position).getPhotoUri())) {
+            Picasso.with(context).load(mChat.get(position).getPhotoUri()).fit().centerInside().into(holder.ivChatimage);
         }
     }
 

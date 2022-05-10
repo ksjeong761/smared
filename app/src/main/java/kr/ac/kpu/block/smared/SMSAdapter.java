@@ -93,7 +93,7 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
 
       holder.btnAddSMS.setOnClickListener(view -> {
           LedgerContent mledgerContent = new LedgerContent();
-          mledgerContent.setPaymemo(mBody.get(position).getPayMemo());
+          mledgerContent.setPayMemo(mBody.get(position).getPayMemo());
           mledgerContent.setPrice(mBody.get(position).getPrice());
           mledgerContent.setUseItem(stUseitem);
 

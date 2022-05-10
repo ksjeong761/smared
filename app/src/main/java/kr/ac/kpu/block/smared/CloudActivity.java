@@ -173,11 +173,8 @@ public class CloudActivity extends Activity {
 
         // 저장 버튼 - 파싱한 OCR 결과물을 가계부 DB에 저장
         viewBinding.btnSave.setOnClickListener(view -> {
-            Hashtable<String, String> ledger = new Hashtable<>();
-            ledger.put("useItem", stUseItem);
-            ledger.put("price", stPrice);
-            ledger.put("paymemo", viewBinding.etPaymemo.getText().toString());
-
+            String stPaymemo = viewBinding.etPaymemo.getText().toString();
+            Hashtable<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashtable();
             String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
             String tableName = viewBinding.rbConsume.isChecked() ? "지출" : "수입";
             myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(tableName).child(stTime).setValue(ledger);

@@ -116,10 +116,8 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseUser user = mAuth.getCurrentUser();
 
                 // HashTable에 회원가입에 필요한 정보 넣고
-                Hashtable<String, String> userInfo = new Hashtable<>();
-                userInfo.put("email", email);
-                userInfo.put("photo", "https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef");
-                userInfo.put("key", user.getUid());
+                String photoUri =  "https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef";
+                Hashtable<String, String> userInfo = new UserInfo(email, photoUri, user.getUid()).toHashtable();
 
                 // DB에 넣기
                 myRef.child(user.getUid()).setValue(userInfo);
@@ -163,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
 
             Toast.makeText(MainActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
 
-            // 사용자 정보를 가져온다.
+            // 전역 객체에 사용자 정보 값을 저장해둔다.
             FirebaseUser user = mAuth.getCurrentUser();
             SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();

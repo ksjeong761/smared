@@ -22,15 +22,13 @@ public class EditDialog extends Dialog {
 
     private List<Ledger> mLedger;
     private int position;
-    private String selectChatuid="";
 
     private FirebaseUser user;
 
-    public EditDialog(Context context, List<Ledger> mLedger, int position, String selectChatuid) {
+    public EditDialog(Context context, List<Ledger> mLedger, int position) {
         super(context);
         this.mLedger = mLedger;
         this.position = position;
-        this.selectChatuid = selectChatuid;
     }
 
     @Override
@@ -45,7 +43,7 @@ public class EditDialog extends Dialog {
         DatabaseReference myRef = database.getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        if (mLedger.get(position).getClassfy().equals("지출")) {
+        if (mLedger.get(position).getClassify().equals("지출")) {
             viewBinding.rbConsume.setChecked(true);
         } else {
             viewBinding.rbIncome.setChecked(true);
@@ -53,19 +51,15 @@ public class EditDialog extends Dialog {
 
         setSpinner();
         viewBinding.date.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
-        viewBinding.price.setText(mLedger.get(position).getPrice());
-        viewBinding.payMemo.setText(mLedger.get(position).getPaymemo());
+        viewBinding.price.setText(mLedger.get(position).getLedgerContent().getPrice());
+        viewBinding.payMemo.setText(mLedger.get(position).getLedgerContent().getPayMemo());
 
         //가계부 수정 버튼 이벤트 - 사용자로부터 데이터를 입력받아 가계부 DB를 수정한다.
         viewBinding.submit.setOnClickListener(view -> {
-            Hashtable<String, String> ledger = new Hashtable<>();
-            ledger.put("useItem", viewBinding.useitem.getSelectedItem().toString());
-            ledger.put("price", viewBinding.price.getText().toString());
-            ledger.put("paymemo", viewBinding.payMemo.getText().toString());
-
-            if (selectChatuid.isEmpty()) {
-                selectChatuid = user.getUid();
-            }
+            String stUseItem = viewBinding.useitem.getSelectedItem().toString();
+            String stPrice = viewBinding.price.getText().toString();
+            String stPaymemo = viewBinding.payMemo.getText().toString();
+            Hashtable<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashtable();
 
             String removeTargetTable = (viewBinding.rbConsume.isChecked()) ? "수입" : "지출";
             String addTargetTable = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
@@ -92,17 +86,17 @@ public class EditDialog extends Dialog {
     }
 
     public void setSpinner() {
-        if (mLedger.get(position).getUseItem().equals("의류비")) {
+        if (mLedger.get(position).getLedgerContent().getUseItem().equals("의류비")) {
             viewBinding.useitem.setSelection(0);
-        } else if (mLedger.get(position).getUseItem().equals("식비")) {
+        } else if (mLedger.get(position).getLedgerContent().getUseItem().equals("식비")) {
             viewBinding.useitem.setSelection(1);
-        } else if (mLedger.get(position).getUseItem().equals("주거비")) {
+        } else if (mLedger.get(position).getLedgerContent().getUseItem().equals("주거비")) {
             viewBinding.useitem.setSelection(2);
-        } else if (mLedger.get(position).getUseItem().equals("교통비")) {
+        } else if (mLedger.get(position).getLedgerContent().getUseItem().equals("교통비")) {
             viewBinding.useitem.setSelection(3);
-        } else if (mLedger.get(position).getUseItem().equals("생필품")) {
+        } else if (mLedger.get(position).getLedgerContent().getUseItem().equals("생필품")) {
             viewBinding.useitem.setSelection(4);
-        } else if (mLedger.get(position).getUseItem().equals("기타")) {
+        } else if (mLedger.get(position).getLedgerContent().getUseItem().equals("기타")) {
             viewBinding.useitem.setSelection(5);
         }
     }

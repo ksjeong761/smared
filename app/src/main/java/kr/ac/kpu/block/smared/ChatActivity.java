@@ -69,11 +69,7 @@ public class ChatActivity extends AppCompatActivity {
             DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat").child(formattedDate);
 
             // 채팅 데이터베이스에 입력받은 채팅 메시지와 사용자 정보를 저장한다.
-            Hashtable<String, String> chat  = new Hashtable<>();
-            chat.put("email", email);
-            chat.put("text", stText);
-            chat.put("photo", photo);
-            chat.put("nickname", nickname);
+            Hashtable<String, String> chat  = new Chat(email, stText, photo, nickname).toHashtable();
             myRef.setValue(chat);
 
             // 사용자가 입력한 채팅 메시지를 비워준다.

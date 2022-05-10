@@ -88,10 +88,10 @@ public class SMSEditDialog extends Dialog {
 
         // 등록 버튼 이벤트 -> 받은 문자에서 파싱한 정보를 가계부 DB에 등록한다.
         viewBinding.submit.setOnClickListener(view -> {
-            Hashtable<String, String> ledger  = new Hashtable<>();
-            ledger.put("useItem", viewBinding.useitem.getSelectedItem().toString());
-            ledger.put("price", viewBinding.price.getText().toString());
-            ledger.put("paymemo", viewBinding.payMemo.getText().toString());
+            String stUseItem = viewBinding.useitem.getSelectedItem().toString();
+            String stPrice = viewBinding.price.getText().toString();
+            String stPaymemo = viewBinding.payMemo.getText().toString();
+            Hashtable<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashtable();
 
             String stConsume = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
             myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(stConsume).child(fdate).setValue(ledger);

@@ -4,11 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Window;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -17,7 +12,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.text.SimpleDateFormat;
-import java.util.Hashtable;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
@@ -91,7 +86,7 @@ public class SMSEditDialog extends Dialog {
             String stUseItem = viewBinding.useitem.getSelectedItem().toString();
             String stPrice = viewBinding.price.getText().toString();
             String stPaymemo = viewBinding.payMemo.getText().toString();
-            Hashtable<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashtable();
+            Map<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashMap();
 
             String stConsume = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
             myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(stConsume).child(fdate).setValue(ledger);

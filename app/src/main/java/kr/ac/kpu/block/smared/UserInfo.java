@@ -1,6 +1,6 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
 public class UserInfo {
     private String email;
@@ -34,13 +34,13 @@ public class UserInfo {
         this.uid = uid;
     }
 
-    public Hashtable<String, String> toHashtable() {
-        Hashtable<String, String> hashtable = new Hashtable<>();
+    public HashMap<String, String> toHashMap() {
+        HashMap<String, String> hashMap = new HashMap<>();
 
-        hashtable.put("email", email);
-        hashtable.put("photo", photoUri);
-        hashtable.put("key", uid);
+        hashMap.put("email", email);
+        hashMap.put("photo", photoUri);
+        hashMap.put("key", uid);
 
-        return hashtable;
+        return hashMap;
     }
 }

@@ -1,6 +1,6 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
 public class Chat {
     private String message;
@@ -51,14 +51,14 @@ public class Chat {
         this.nickname = nickname;
     }
 
-    public Hashtable<String, String> toHashtable() {
-        Hashtable<String, String> hashtable = new Hashtable<>();
+    public HashMap<String, String> toHashMap() {
+        HashMap<String, String> hashMap = new HashMap<>();
 
-        hashtable.put("text", this.message);
-        hashtable.put("email", this.email);
-        hashtable.put("photo", this.photoUri);
-        hashtable.put("nickname", this.nickname);
+        hashMap.put("text", message);
+        hashMap.put("email", email);
+        hashMap.put("photo", photoUri);
+        hashMap.put("nickname", nickname);
 
-        return hashtable;
+        return hashMap;
     }
 }

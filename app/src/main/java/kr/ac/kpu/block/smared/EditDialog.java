@@ -11,8 +11,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
 
@@ -59,7 +59,7 @@ public class EditDialog extends Dialog {
             String stUseItem = viewBinding.useitem.getSelectedItem().toString();
             String stPrice = viewBinding.price.getText().toString();
             String stPaymemo = viewBinding.payMemo.getText().toString();
-            Hashtable<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashtable();
+            Map<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashMap();
 
             String removeTargetTable = (viewBinding.rbConsume.isChecked()) ? "수입" : "지출";
             String addTargetTable = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";

@@ -1,6 +1,6 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 
 public class LedgerContent {
     private String useItem;
@@ -39,14 +39,14 @@ public class LedgerContent {
         this.payMemo = payMemo;
     }
 
-    public Hashtable<String, String> toHashtable() {
-        Hashtable<String, String> hashtable = new Hashtable<>();
+    public HashMap<String, String> toHashMap() {
+        HashMap<String, String> hashMap = new HashMap<>();
 
-        hashtable.put("useItem", useItem);
-        hashtable.put("price", price);
-        hashtable.put("paymemo", payMemo);
+        hashMap.put("useItem", useItem);
+        hashMap.put("price", price);
+        hashMap.put("paymemo", payMemo);
 
-        return hashtable;
+        return hashMap;
     }
 }
 

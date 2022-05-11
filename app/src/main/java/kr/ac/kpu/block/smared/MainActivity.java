@@ -16,7 +16,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.Hashtable;
+import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.ActivityMainBinding;
 
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // HashTable에 회원가입에 필요한 정보 넣고
                 String photoUri =  "https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef";
-                Hashtable<String, String> userInfo = new UserInfo(email, photoUri, user.getUid()).toHashtable();
+                Map<String, String> userInfo = new UserInfo(email, photoUri, user.getUid()).toHashMap();
 
                 // DB에 넣기
                 myRef.child(user.getUid()).setValue(userInfo);

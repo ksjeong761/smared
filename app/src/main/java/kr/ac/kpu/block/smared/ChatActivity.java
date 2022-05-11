@@ -18,8 +18,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.ActivityChatBinding;
 
@@ -69,7 +69,7 @@ public class ChatActivity extends AppCompatActivity {
             DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat").child(formattedDate);
 
             // 채팅 데이터베이스에 입력받은 채팅 메시지와 사용자 정보를 저장한다.
-            Hashtable<String, String> chat  = new Chat(email, stText, photo, nickname).toHashtable();
+            Map<String, String> chat  = new Chat(email, stText, photo, nickname).toHashMap();
             myRef.setValue(chat);
 
             // 사용자가 입력한 채팅 메시지를 비워준다.

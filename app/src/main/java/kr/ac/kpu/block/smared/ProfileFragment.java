@@ -35,7 +35,8 @@ import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.FragmentProfileBinding;
 
@@ -238,7 +239,7 @@ public class ProfileFragment extends Fragment {
             String photoUrl = String.valueOf(downloadUrl);
             logger.writeLog(photoUrl);
 
-            Hashtable<String, Object> profile = new Hashtable<>();
+            Map<String, Object> profile = new HashMap<>();
             profile.put("email", stEmail);
             profile.put("key", stUid);
             profile.put("photo", photoUrl);

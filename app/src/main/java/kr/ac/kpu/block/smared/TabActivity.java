@@ -13,7 +13,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 
-import java.util.Hashtable;
+import java.util.HashMap;
+import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.ActivityTabBinding;
 
@@ -46,7 +47,7 @@ public class TabActivity extends AppCompatActivity  {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         // 토큰으로 로그인 상태를 관리한다.
-        Hashtable<String, Object> token = new Hashtable<>();
+        Map<String, Object> token = new HashMap<>();
         token.put("fcmToken", FirebaseInstanceId.getInstance().getToken());
         myRef.child(user.getUid()).updateChildren(token);
 

@@ -34,7 +34,6 @@
             android:textColor="#FFFFFF"
             android:layout_weight="1"
             android:text="갤러리" />
-
     </LinearLayout>
 
     <LinearLayout

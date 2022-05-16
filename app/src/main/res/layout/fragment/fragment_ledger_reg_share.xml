@@ -75,18 +75,18 @@
         android:textSize="18sp" />
 
     <Spinner
-        android:id="@+id/spnUseItem2"
+        android:id="@+id/spnCategory2"
         android:layout_width="185dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/cvCalender2"
         android:layout_marginLeft="85dp"
         android:layout_marginTop="10dp"
-        android:entries="@array/useItem" />
+        android:entries="@array/category" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spnUseItem2"
+        android:layout_below="@+id/spnCategory2"
         android:layout_marginLeft="25dp"
         android:layout_marginTop="20dp"
         android:text="금액"
@@ -97,7 +97,7 @@
         android:id="@+id/etPrice2"
         android:layout_width="185dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spnUseItem2"
+        android:layout_below="@+id/spnCategory2"
         android:layout_marginLeft="85dp"
         android:layout_marginTop="10dp"
         android:hint="금액을 입력해 주세요"
@@ -106,7 +106,7 @@
         android:id="@+id/tvPrice2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/spnUseItem2"
+        android:layout_below="@+id/spnCategory2"
         android:layout_marginLeft="1dp"
         android:layout_marginTop="20dp"
         android:layout_toRightOf="@+id/etPrice2"
@@ -125,7 +125,7 @@
         android:textSize="18sp" />
 
     <EditText
-        android:id="@+id/etPayMemo2"
+        android:id="@+id/etDescription2"
         android:layout_width="185dp"
         android:layout_height="wrap_content"
         android:layout_below="@+id/etPrice2"

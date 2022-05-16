@@ -1,18 +1,16 @@
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="350dp"
     android:layout_height="250dp"
     android:orientation="vertical"
-    android:layout_centerHorizontal="true"
-    >
+    android:layout_centerHorizontal="true">
+
     <RadioGroup
         android:id="@+id/rgChoice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_centerHorizontal="true">
-
 
         <RadioButton
             android:id="@+id/rbConsume"
@@ -25,11 +23,8 @@
             android:id="@+id/rbIncome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
             android:text="수입" />
-
     </RadioGroup>
-
 
     <TextView
         android:id="@+id/date"
@@ -40,6 +35,7 @@
         android:text="날짜"
         android:textSize="20dp"
         android:textColor="#000000" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -48,33 +44,34 @@
         android:layout_marginTop="7dp"
         android:layout_marginLeft="20dp"
         android:textColor="#000000"
-        android:textSize="17dp"/>
+        android:textSize="17dp" />
+
     <Spinner
-        android:id="@+id/useitem"
+        android:id="@+id/category"
         android:layout_below="@+id/date"
         android:layout_centerHorizontal="true"
         android:layout_width="200dp"
         android:layout_height="40dp"
-        android:entries="@array/useItem">
+        android:entries="@array/category" />
 
-    </Spinner>
     <TextView
-
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="금액"
-        android:layout_below="@+id/useitem"
+        android:layout_below="@+id/category"
         android:layout_marginTop="7dp"
         android:layout_marginLeft="20dp"
         android:textColor="#000000"
-        android:textSize="17dp"/>
+        android:textSize="17dp" />
+
     <EditText
         android:id="@+id/price"
-        android:layout_below="@+id/useitem"
+        android:layout_below="@+id/category"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:inputType="number"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -83,13 +80,14 @@
         android:layout_marginTop="7dp"
         android:layout_marginLeft="20dp"
         android:textColor="#000000"
-        android:textSize="17dp"/>
+        android:textSize="17dp" />
+
     <EditText
-        android:id="@+id/payMemo"
+        android:id="@+id/description"
         android:layout_below="@+id/price"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"/>
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:id="@+id/submit"
@@ -99,8 +97,7 @@
         android:layout_height="wrap_content"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-
-        android:text="확인"/>
+        android:text="확인" />
 
     <Button
         android:id="@+id/dismiss"
@@ -110,9 +107,6 @@
         android:layout_alignParentBottom="true"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-
-
-        android:text="취소"/>
-
+        android:text="취소" />
 
     </RelativeLayout>

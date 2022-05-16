@@ -39,7 +39,7 @@
         <activity android:name=".SMSActivity" />
         <activity android:name=".CloudActivity" />
         <activity android:name=".FriendActivity" />
-        <activity android:name=".ContentActivity" />
+        <activity android:name=".OCRResultActivity" />
         <activity android:name=".MainActivity"/>
 
         <provider

@@ -6,7 +6,6 @@
     android:clickable="true"
     tools:context="kr.ac.kpu.block.smared.ShareLedgerViewFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <ImageButton
         android:id="@+id/ibLastMonth2"
         android:layout_width="wrap_content"
@@ -14,8 +13,8 @@
         android:layout_marginLeft="85dp"
         android:src="@drawable/ic_chevron_left_black_24dp"
         android:layout_below="@+id/spnSelectLedger"
-        android:background="@android:color/transparent"
-        />
+        android:background="@android:color/transparent" />
+
     <TextView
         android:id="@+id/tvLedgerMonth2"
         android:layout_width="wrap_content"
@@ -28,6 +27,7 @@
         android:textColor="#000000"
         android:text="불러오는 중"
         android:layout_below="@+id/spnSelectLedger"/>
+
     <ImageButton
         android:id="@+id/ibNextMonth2"
         android:layout_width="wrap_content"
@@ -35,12 +35,11 @@
         android:layout_toRightOf="@+id/tvLedgerMonth2"
         android:layout_below="@+id/spnSelectLedger"
         android:src="@drawable/ic_chevron_right_black_24dp"
-        android:background="@android:color/transparent"
-        />
+        android:background="@android:color/transparent" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvLedger2"
         android:layout_below="@id/ibNextMonth2"
-
         android:scrollbars="vertical"
         android:layout_width="match_parent"
         android:layout_height="320dp"/>
@@ -53,8 +52,8 @@
         android:textSize="15dp"
         android:layout_centerHorizontal="true"
         android:textColor="@color/DarkBlue"
-        android:layout_below="@id/rvLedger2"
-        />
+        android:layout_below="@id/rvLedger2" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -63,7 +62,7 @@
         android:layout_centerHorizontal="true"
         android:text="지출 합계"
         android:textColor="@color/DarkBlue"
-        android:textSize="15dp"/>
+        android:textSize="15dp" />
 
     <TextView
         android:id="@+id/tvPlusMinus2"
@@ -73,9 +72,7 @@
         android:text="수익"
         android:textSize="15dp"
         android:textColor="@color/DarkBlue"
-        android:layout_centerHorizontal="true"
-
-        />
+        android:layout_centerHorizontal="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -84,22 +81,22 @@
         android:layout_marginTop="20dp"
         android:layout_marginRight="10dp"
         android:textColor="@color/colorPrimaryDark"
-        android:text="공유 가계부 목록 :"/>
+        android:text="공유 가계부 목록 :" />
+
     <Spinner
         android:id="@+id/spnSelectLedger"
         android:layout_alignParentRight="true"
         android:layout_marginRight="20dp"
         android:layout_width="200dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="10dp" />
 
-        />
     <Button
         android:id="@+id/btnExport"
         android:layout_below="@+id/rvLedger2"
         android:layout_alignParentRight="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="내보내기"/>
+        android:text="내보내기" />
 
 </RelativeLayout>

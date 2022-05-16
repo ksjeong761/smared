@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-
-    tools:context="kr.ac.kpu.block.smared.ContentActivity">
+    tools:context="kr.ac.kpu.block.smared.OCRResultActivity">
 
     <TextView
         android:id="@+id/OCRResult"
@@ -15,6 +13,7 @@
         android:layout_centerHorizontal="true"
         android:textColor="#000000"
         android:text="OCR 결과"/>
+
     <TextView
         android:id="@+id/OCRToast"
         android:layout_below="@+id/OCRResult"
@@ -22,8 +21,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="검출 결과"
-        android:textColor="#000000"
-        />
-
+        android:textColor="#000000" />
 
 </RelativeLayout>

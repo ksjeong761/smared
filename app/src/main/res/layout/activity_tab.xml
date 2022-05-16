@@ -36,4 +36,5 @@
                 app:itemTextColor="@color/belowtap_color"
                 app:menu="@menu/navigation" />
     </LinearLayout>
+
 </LinearLayout>

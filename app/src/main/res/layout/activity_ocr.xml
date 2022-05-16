@@ -4,7 +4,7 @@
     android:id="@+id/activity_ocr"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="kr.ac.kpu.block.smared.OCRActivity">
+    tools:context="kr.ac.kpu.block.smared.OCRResultActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -23,7 +23,6 @@
             android:layout_centerVertical="true"
             android:layout_centerHorizontal="true"
             android:clickable="true"/>
-
     </RelativeLayout>
 
     <RelativeLayout
@@ -35,17 +34,17 @@
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent">
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="여기에 결과 출력됩니다."
-            android:id="@+id/OCRTextView"
-            android:textSize="20dp"
-            android:textColor="#169cdf"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:background="#fff"
-            />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="여기에 결과 출력됩니다."
+                android:id="@+id/OCRTextView"
+                android:textSize="20dp"
+                android:textColor="#169cdf"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:background="#fff" />
         </ScrollView>
     </RelativeLayout>
+
 </RelativeLayout>

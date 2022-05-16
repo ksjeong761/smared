@@ -28,7 +28,7 @@
             />
 
         <TextView
-            android:id="@+id/tvUseitem"
+            android:id="@+id/tvCategory"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvChoice"
@@ -41,14 +41,14 @@
             android:id="@+id/tvPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/tvUseitem"
+            android:layout_below="@+id/tvCategory"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp"
             android:textColor="#000000"
             />
 
         <TextView
-            android:id="@+id/tvPaymemo"
+            android:id="@+id/tvDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_below="@+id/tvPrice"

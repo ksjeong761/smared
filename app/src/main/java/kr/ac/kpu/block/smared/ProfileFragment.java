@@ -13,7 +13,6 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,52 +42,45 @@ import kr.ac.kpu.block.smared.databinding.FragmentProfileBinding;
 public class ProfileFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentProfileBinding viewBinding;
-    private String TAG = getClass().getSimpleName();
 
     private DatabaseReference myRef;
     private DatabaseReference chatRef;
     private FirebaseUser user;
 
-    private Bitmap bitmap;
-    private String stUid;
-    private String stEmail;
-    private String stNickname;
-    private int regStatus = 1;
+    private final int EXTERNAL_STORAGE_PERMISSION = 1;
+
+    private String uid;
+    private String email;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentProfileBinding.inflate(inflater, container, false);
 
-        user = FirebaseAuth.getInstance().getCurrentUser();
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
-        stUid = sharedPreferences.getString("uid","");
-        stEmail = sharedPreferences.getString("email","");
-
         myRef = FirebaseDatabase.getInstance().getReference();
         chatRef = FirebaseDatabase.getInstance().getReference("chats");
+        user = FirebaseAuth.getInstance().getCurrentUser();
 
-        // 데이터 변경 및 취소 이벤트
-        myRef.child("users").child(stUid).addValueEventListener(new ValueEventListener() {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
+        uid = sharedPreferences.getString("uid","");
+        email = sharedPreferences.getString("email","");
+
+        // 사용자 닉네임, 프로필 이미지 URI 읽어오기
+        myRef.child("users").child(uid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (regStatus==0) {
-                    getActivity().finish();
-                    return;
-                }
+                // 화면에 닉네임 출력
+                String nickname = dataSnapshot.child("nickname").getValue().toString();
+                viewBinding.tvNickname.setText(nickname);
 
-                logger.writeLog("Value is: " + dataSnapshot.getValue().toString());
-
-                stNickname = dataSnapshot.child("nickname").getValue().toString();
-                viewBinding.tvNickname.setText(stNickname);
-
-                String stPhoto = dataSnapshot.child("photo").getValue().toString();
-                if (TextUtils.isEmpty(stPhoto)) {
+                String photoUri = dataSnapshot.child("photo").getValue().toString();
+                if (TextUtils.isEmpty(photoUri)) {
                     viewBinding.pbLogin.setVisibility(getView().GONE);
                     return;
                 }
 
+                // 화면에 프로필 이미지 출력
                 Picasso.with(getActivity())
-                    .load(stPhoto)
+                    .load(photoUri)
                     .fit()
                     .centerInside()
                     .into(viewBinding.ivUser, new Callback.EmptyCallback() {
@@ -103,7 +95,6 @@ public class ProfileFragment extends Fragment {
 
             @Override
             public void onCancelled(DatabaseError error) {
-                // Failed to read value
                 logger.writeLog("Failed to read value : " + error.toException().getMessage());
             }
         });
@@ -138,16 +129,16 @@ public class ProfileFragment extends Fragment {
             alertDialog.setView(etNickname);
 
             alertDialog.setPositiveButton("확인", (dialog, which) -> {
-                stNickname = etNickname.getText().toString();
-                viewBinding.tvNickname.setText("닉네임 : "+ stNickname);
-                myRef.child("users").child(stUid).child("nickname").setValue(stNickname);
+                String nicknameTo = etNickname.getText().toString();
+                viewBinding.tvNickname.setText("닉네임 : "+ nicknameTo);
+                myRef.child("users").child(uid).child("nickname").setValue(nicknameTo);
             });
 
             alertDialog.setNegativeButton("취소", (dialog, which) -> { });
             alertDialog.show();
         });
 
-        // 회원탈퇴 버튼 이벤트
+        // 회원 탈퇴 버튼 이벤트
         viewBinding.btnWithdrawal.setOnClickListener(view -> {
             AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
             alertDialog.setMessage("정말 탈퇴하시겠습니까?");
@@ -157,16 +148,17 @@ public class ProfileFragment extends Fragment {
                     return;
                 }
 
-                regStatus=0;
-                myRef.child("users").child(stUid).removeValue();
+                // 사용자 DB에서 정보를 삭제한다.
+                myRef.child("users").child(uid).removeValue();
 
+                // 채팅방 참가자 목록에서도 정보를 삭제한다.
                 chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
                             for (DataSnapshot userSnapshot : chatSnapshot.getChildren()) {
                                 for (DataSnapshot uidSnapshot : userSnapshot.getChildren()) {
-                                    if (uidSnapshot.getKey().equals(stUid)) {
+                                    if (uidSnapshot.getKey().equals(uid)) {
                                         chatRef.child(chatSnapshot.getKey()).child("user").child(uidSnapshot.getKey()).removeValue();
                                     }
                                 }
@@ -178,7 +170,6 @@ public class ProfileFragment extends Fragment {
                     public void onCancelled(DatabaseError databaseError) { }
                 });
 
-                Log.d(TAG, "User account deleted.");
                 Toast.makeText(getActivity(),"계정이 삭제되었습니다.",Toast.LENGTH_SHORT).show();
                 getActivity().finish();
             }));
@@ -190,16 +181,16 @@ public class ProfileFragment extends Fragment {
         return viewBinding.getRoot();
     }
 
-    // 이미지뷰 파일 업로드
+    // 변경할 프로필 사진 파일 업로드
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+    public void onActivityResult(int requestCode, int resultCode, Intent priviousIntent) {
+        super.onActivityResult(requestCode, resultCode, priviousIntent);
 
         try {
-            Uri image = data.getData();
+            Uri image = priviousIntent.getData();
             try {
-                bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),image);
-                uploadImage();
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),image);
+                uploadImage(bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -208,49 +199,33 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    // 외부저장소 권한 응답
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // permission was granted, yay! Do the contacts-related task you need to do.
-                } else {
-                    // permission denied, boo! Disable the functionality that depends on this permission.
-                }
 
-                return;
-            }
-        }
-    }
-
-    public void uploadImage() {
+    private void uploadImage(Bitmap bitmap) {
         ByteArrayOutputStream bitmapByteStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bitmapByteStream);
         byte[] bitmapByte = bitmapByteStream.toByteArray();
 
-        StorageReference profileRef = FirebaseStorage.getInstance().getReference().child("users").child(stUid + ".jpg");
+        // 사용자 정보 테이블에 이미지 업로드 시도
+        StorageReference profileRef = FirebaseStorage.getInstance().getReference().child("users").child(uid + ".jpg");
         UploadTask uploadTask = profileRef.putBytes(bitmapByte);
-        // Handle unsuccessful uploads
-        uploadTask.addOnFailureListener(exception -> { }).addOnSuccessListener(taskSnapshot -> {
-            // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-            Uri downloadUrl = taskSnapshot.getDownloadUrl();
-            String photoUrl = String.valueOf(downloadUrl);
-            logger.writeLog(photoUrl);
 
-            Map<String, Object> profile = new HashMap<>();
-            profile.put("email", stEmail);
-            profile.put("key", stUid);
-            profile.put("photo", photoUrl);
-            profile.put("nickname", stNickname);
+        // 업로드 실패 시 다시 한 번 업로드 시도
+        uploadTask.addOnFailureListener(exception -> { }).addOnSuccessListener(taskSnapshot -> {
+            Map<String, Object> userInfo = new HashMap<>();
+            String nickname = viewBinding.tvNickname.getText().toString();
+            String photoUrl = String.valueOf(taskSnapshot.getDownloadUrl());
+            userInfo.put("email", email);
+            userInfo.put("key", uid);
+            userInfo.put("photo", photoUrl);
+            userInfo.put("nickname", nickname);
 
             DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-            myRef.child(stUid).updateChildren(profile);
+            myRef.child(uid).updateChildren(userInfo);
             myRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (dataSnapshot == null ) {
+                        Toast.makeText(getActivity(), "사진 업로드 실패!",Toast.LENGTH_SHORT).show();
                         return;
                     }
 
@@ -262,5 +237,24 @@ public class ProfileFragment extends Fragment {
                 public void onCancelled(DatabaseError databaseError) { }
             });
         });
+    }
+
+    // 외부 저장소 권한 응답
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case EXTERNAL_STORAGE_PERMISSION:
+                if (grantResults.length == 0) {
+                    break;
+                }
+
+                if (PackageManager.PERMISSION_GRANTED == grantResults[0]) {
+                    break;
+                }
+
+                Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
+                getActivity().finish();
+                break;
+        }
     }
 }

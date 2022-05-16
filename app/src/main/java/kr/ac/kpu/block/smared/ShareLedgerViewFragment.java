@@ -299,9 +299,9 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
             String[] columnValues = {
                     allLedgerData.get(ledgerIndex).getYear() + "-" + allLedgerData.get(ledgerIndex).getMonth() + "-" + allLedgerData.get(ledgerIndex).getDay(),
                     allLedgerData.get(ledgerIndex).getClassify(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getUseItem(),
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getCategory(),
                     allLedgerData.get(ledgerIndex).getLedgerContent().getPrice(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getPayMemo()
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getDescription()
             };
             for (int columnIndex = 0; columnIndex < columnHeaders.length; columnIndex++) {
                 Cell cell = row.createCell(columnIndex);

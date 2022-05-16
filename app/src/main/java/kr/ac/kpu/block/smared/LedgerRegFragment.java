@@ -38,32 +38,32 @@ public class LedgerRegFragment extends android.app.Fragment {
             }
 
             // DB 삽입용 Hashtable DTO
-            String usedItem = viewBinding.spnUseitem.getSelectedItem().toString();
-            String stPrice = viewBinding.etPrice.getText().toString();
-            String stPayMemo = viewBinding.etPaymemo.getText().toString();
-            Map<String, String> ledger = new LedgerContent(usedItem, stPrice, stPayMemo).toHashMap();
+            String category = viewBinding.spnCategory.getSelectedItem().toString();
+            String price = viewBinding.etPrice.getText().toString();
+            String description = viewBinding.etDescription.getText().toString();
+            Map<String, String> ledger = new LedgerContent(category, price, description).toHashMap();
 
             // 삽입할 DB 경로 지정
             long selectedDate = viewBinding.cvCalender.getDate();
-            String stYear = new SimpleDateFormat("yyyy").format(selectedDate);
-            String stMonth = new SimpleDateFormat("MM").format(selectedDate);
-            String stDay = new SimpleDateFormat("dd").format(selectedDate);
-            String tableName = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
-            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+            String year = new SimpleDateFormat("yyyy").format(selectedDate);
+            String month = new SimpleDateFormat("MM").format(selectedDate);
+            String day = new SimpleDateFormat("dd").format(selectedDate);
+            String incomeOrExpenditure = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
+            String now = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 
             // DB 삽입
             myRef.child(user.getUid())
                     .child("Ledger")
-                    .child(stYear)
-                    .child(stMonth)
-                    .child(stDay)
-                    .child(tableName)
-                    .child(stTime)
+                    .child(year)
+                    .child(month)
+                    .child(day)
+                    .child(incomeOrExpenditure)
+                    .child(now)
                     .setValue(ledger);
 
             // 입력 받는 부분 UI 초기화
             viewBinding.etPrice.setText("");
-            viewBinding.etPaymemo.setText("");
+            viewBinding.etDescription.setText("");
             Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
         });
 

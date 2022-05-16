@@ -72,16 +72,16 @@ public class CloudActivity extends Activity {
     private final int MAX_LABEL_RESULTS = 10;
     private final int MAX_RESOLUTION = 1200;
 
-    private String stUseItem;
-    private String stPrice;
+    private String category;
+    private String price;
 
     private Calendar calendar = Calendar.getInstance();
-    private String stYear = new SimpleDateFormat("yyyy").format(calendar.getTime());
-    private String stMonth = new SimpleDateFormat("MM").format(calendar.getTime());
-    private String stDay = new SimpleDateFormat("dd").format(calendar.getTime());
+    private String year = new SimpleDateFormat("yyyy").format(calendar.getTime());
+    private String month = new SimpleDateFormat("MM").format(calendar.getTime());
+    private String day = new SimpleDateFormat("dd").format(calendar.getTime());
 
-    private ArrayAdapter<String> spinneradapter;
-    private ArrayAdapter<String> spinneradapterMemo;
+    private ArrayAdapter<String> spinnerAdapter;
+    private ArrayAdapter<String> spinnerAdapterMemo;
     private List<String> listItems = new ArrayList<>();
     private List<String> memoItems = new ArrayList<>();
 
@@ -92,8 +92,8 @@ public class CloudActivity extends Activity {
 
         listItems.clear();
         memoItems.clear();
-        spinneradapter.notifyDataSetChanged();
-        spinneradapterMemo.notifyDataSetChanged();
+        spinnerAdapter.notifyDataSetChanged();
+        spinnerAdapterMemo.notifyDataSetChanged();
 
         startActivity(new Intent(CloudActivity.this, TabActivity.class));
     }
@@ -111,11 +111,11 @@ public class CloudActivity extends Activity {
         StrictMode.setThreadPolicy(policy);
 
         // 파싱한 OCR 결과물을 스피너에 출력하는 것으로 사용자가 직접 올바른 데이터를 선택할 수 있도록 한다.
-        spinneradapter = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, listItems);
-        viewBinding.spnPrice.setAdapter(spinneradapter);
+        spinnerAdapter = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, listItems);
+        viewBinding.spnPrice.setAdapter(spinnerAdapter);
 
-        spinneradapterMemo = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, memoItems);
-        viewBinding.spnPaymemo.setAdapter(spinneradapterMemo);
+        spinnerAdapterMemo = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, memoItems);
+        viewBinding.spnDescription.setAdapter(spinnerAdapterMemo);
 
         try {
             File imagePath = new File("/storage/emulated/0/SmaRed/s2.jpg");
@@ -132,17 +132,17 @@ public class CloudActivity extends Activity {
 
         // 날짜 선택 이벤트 - 선택된 날짜를 클래스 내부에 기록
         viewBinding.cvCalender.setOnDateChangeListener((calendarView, year, month, day) -> {
-            stYear = Integer.toString(year);
-            stMonth = Integer.toString(month+1);
-            stDay = Integer.toString(day);
-            Toast.makeText(CloudActivity.this, stYear + "-" + stMonth + "-" + stDay, Toast.LENGTH_SHORT).show();
+            this.year = Integer.toString(year);
+            this.month = Integer.toString(month+1);
+            this.day = Integer.toString(day);
+            Toast.makeText(CloudActivity.this, this.year + "-" + this.month + "-" + this.day, Toast.LENGTH_SHORT).show();
         });
 
         // 스피너 선택 이벤트 - 선택된 분류를 클래스 내부에 기록
-        viewBinding.spnUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        viewBinding.spnCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                stUseItem = (String) adapterView.getItemAtPosition(i);
+                category = (String) adapterView.getItemAtPosition(i);
             }
 
             @Override
@@ -153,7 +153,7 @@ public class CloudActivity extends Activity {
         viewBinding.spnPrice.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                stPrice = (String) parent.getItemAtPosition(position);
+                price = (String) parent.getItemAtPosition(position);
             }
 
             @Override
@@ -161,10 +161,10 @@ public class CloudActivity extends Activity {
         });
 
         // 스피너 선택 이벤트 - 선택된 내용을 클래스 내부에 기록
-        viewBinding.spnPaymemo.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        viewBinding.spnDescription.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                viewBinding.etPaymemo.setText((String) parent.getItemAtPosition(position));
+                viewBinding.etDescription.setText((String) parent.getItemAtPosition(position));
             }
 
             @Override
@@ -173,11 +173,11 @@ public class CloudActivity extends Activity {
 
         // 저장 버튼 - 파싱한 OCR 결과물을 가계부 DB에 저장
         viewBinding.btnSave.setOnClickListener(view -> {
-            String stPaymemo = viewBinding.etPaymemo.getText().toString();
-            Map<String, String> ledger = new LedgerContent(stUseItem, stPrice, stPaymemo).toHashMap();
-            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
-            String tableName = viewBinding.rbConsume.isChecked() ? "지출" : "수입";
-            myRef.child(user.getUid()).child("Ledger").child(stYear).child(stMonth).child(stDay).child(tableName).child(stTime).setValue(ledger);
+            String description = viewBinding.etDescription.getText().toString();
+            Map<String, String> ledger = new LedgerContent(category, price, description).toHashMap();
+            String now = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+            String incomeOrExpenditure = viewBinding.rbConsume.isChecked() ? "지출" : "수입";
+            myRef.child(user.getUid()).child("Ledger").child(year).child(month).child(day).child(incomeOrExpenditure).child(now).setValue(ledger);
 
             Toast.makeText(CloudActivity.this, "저장하였습니다.", Toast.LENGTH_SHORT).show();
         });
@@ -186,13 +186,13 @@ public class CloudActivity extends Activity {
         viewBinding.btnFinish.setOnClickListener(view -> {
             listItems.clear();
             memoItems.clear();
-            spinneradapter.notifyDataSetChanged();
-            spinneradapterMemo.notifyDataSetChanged();
+            spinnerAdapter.notifyDataSetChanged();
+            spinnerAdapterMemo.notifyDataSetChanged();
             startActivity(new Intent(CloudActivity.this, TabActivity.class));
         });
 
         // OCR 결과 버튼 - ContentActivity로 이동
-        viewBinding.btnOCRResult.setOnClickListener(view -> startActivity(new Intent(this, ContentActivity.class)));
+        viewBinding.btnOCRResult.setOnClickListener(view -> startActivity(new Intent(this, OCRResultActivity.class)));
     }
 
     // 기준 해상도에 맞게 이미지를 축소한다.

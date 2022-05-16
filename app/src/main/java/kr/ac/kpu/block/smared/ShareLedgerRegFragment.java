@@ -72,31 +72,31 @@ public class ShareLedgerRegFragment extends Fragment {
             }
 
             // DB 삽입용 데이터
-            String spendCategory = viewBinding.spnUseitem2.getSelectedItem().toString();
-            String stPrice = viewBinding.etPrice2.getText().toString();
-            String stPayMemo = viewBinding.etPayMemo2.getText().toString();
-            Map<String, String> ledger = new LedgerContent(spendCategory, stPrice, stPayMemo).toHashMap();
+            String spendCategory = viewBinding.spnCategory2.getSelectedItem().toString();
+            String price = viewBinding.etPrice2.getText().toString();
+            String description = viewBinding.etDescription2.getText().toString();
+            Map<String, String> ledger = new LedgerContent(spendCategory, price, description).toHashMap();
 
             // 삽입할 DB 경로 지정
             long selectedDate = viewBinding.cvCalender2.getDate();
-            String stYear = new SimpleDateFormat("yyyy").format(selectedDate);
-            String stMonth = new SimpleDateFormat("MM").format(selectedDate);
-            String stDay = new SimpleDateFormat("dd").format(selectedDate);
-            String tableName = (viewBinding.rbConsume2.isChecked()) ? "지출" : "수입";
-            String stTime = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
+            String year = new SimpleDateFormat("yyyy").format(selectedDate);
+            String month = new SimpleDateFormat("MM").format(selectedDate);
+            String day = new SimpleDateFormat("dd").format(selectedDate);
+            String incomeOrExpenditure = (viewBinding.rbConsume2.isChecked()) ? "지출" : "수입";
+            String now = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
 
             // DB 삽입
             chatRef.child(selectedChatRoomUid)
                     .child("Ledger")
-                    .child(stYear)
-                    .child(stMonth)
-                    .child(stDay)
-                    .child(tableName)
-                    .child(stTime)
+                    .child(year)
+                    .child(month)
+                    .child(day)
+                    .child(incomeOrExpenditure)
+                    .child(now)
                     .setValue(ledger);
 
             // 입력 받는 부분 UI 초기화
-            viewBinding.etPayMemo2.setText("");
+            viewBinding.etDescription2.setText("");
             viewBinding.etPrice2.setText("");
             Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
         });
@@ -125,14 +125,14 @@ public class ShareLedgerRegFragment extends Fragment {
                     selectedChatRoomUid = chatRef.push().getKey();
 
                     // 채팅방 추가
-                    Map<String, String> makeChat = new HashMap<>();
-                    makeChat.put("chatname", editText.getText().toString());
-                    chatRef.child(selectedChatRoomUid).setValue(makeChat);
+                    Map<String, String> chatData = new HashMap<>();
+                    chatData.put("chatname", editText.getText().toString());
+                    chatRef.child(selectedChatRoomUid).setValue(chatData);
 
                     // 채팅방 참가자 목록 갱신
                     SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
-                    String stEmail = sharedPreferences.getString("email", "");
-                    chatRef.child(selectedChatRoomUid).child("user").child(user.getUid()).setValue(stEmail);
+                    String email = sharedPreferences.getString("email", "");
+                    chatRef.child(selectedChatRoomUid).child("user").child(user.getUid()).setValue(email);
 
                     // 채팅방이 새로 추가되었으므로 목록을 다시 불러온다.
                     loadJoiningChatRooms();
@@ -161,6 +161,7 @@ public class ShareLedgerRegFragment extends Fragment {
                 return;
             }
 
+            //초대할 사람의 이메일을 입력받는 다이얼로그를 출력한다.
             AlertDialog.Builder inviteUserDialog = new AlertDialog.Builder(getActivity());
             final EditText editText = new EditText(getActivity());
             inviteUserDialog.setTitle("초대할 이메일을 입력해주세요");

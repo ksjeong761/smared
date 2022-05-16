@@ -36,8 +36,8 @@ public class SMSReceiver extends BroadcastReceiver {
         }
 
         // SMS 처리
-        for (int i = 0; i < pdusObj.length; i++) {
-            SmsMessage smsObj = SmsMessage.createFromPdu((byte[]) pdusObj[i]);
+        for (int pdusIndex = 0; pdusIndex < pdusObj.length; pdusIndex++) {
+            SmsMessage smsObj = SmsMessage.createFromPdu((byte[]) pdusObj[pdusIndex]);
             String smsMessage = smsObj.getMessageBody();
             long smsReceivedDate = smsObj.getTimestampMillis();
 

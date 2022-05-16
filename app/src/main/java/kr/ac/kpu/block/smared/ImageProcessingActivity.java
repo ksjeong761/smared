@@ -37,7 +37,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityImageProcessingBinding viewBinding;
 
-    private final int PERMISSION_REQUEST_CODE = 1;
+    private final int EXTERNAL_STORAGE_PERMISSION = 1;
     private final String[] permissions = {
         "android.permission.WRITE_EXTERNAL_STORAGE"
     };
@@ -71,7 +71,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
 
             // 마시멜로( API 23 )이상에서 런타임 권한(Runtime Permission) 요청
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+                this.requestPermissions(permissions, EXTERNAL_STORAGE_PERMISSION);
             }
         }
 
@@ -95,7 +95,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
         switch (permsRequestCode) {
-            case PERMISSION_REQUEST_CODE:
+            case EXTERNAL_STORAGE_PERMISSION:
                 if (grantResults.length == 0) {
                     break;
                 }
@@ -119,7 +119,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
         myDialog.setCancelable(false);
         myDialog.setPositiveButton("예", (arg0, arg1) -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+                this.requestPermissions(permissions, EXTERNAL_STORAGE_PERMISSION);
             }
         });
 

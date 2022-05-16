@@ -4,9 +4,7 @@ import java.util.HashMap;
 
 public class Chat {
     private String message;
-    private String email;
-    private String photoUri;
-    private String nickname;
+    private UserInfo userInfo;
 
     public String getMessage() {
         return message;
@@ -15,49 +13,31 @@ public class Chat {
         this.message = message;
     }
 
-    public String getEmail() {
-        return email;
+    public UserInfo getUserInfo() {
+        return userInfo;
     }
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPhotoUri() {
-        return photoUri;
-    }
-    public void setPhotoUri(String photoUri) {
-        this.photoUri = photoUri;
-    }
-
-    public String getNickname() {
-        return nickname;
-    }
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
+    public void setUserInfo(UserInfo userInfo) {
+        this.userInfo = userInfo;
     }
 
     public Chat() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
         this.message = "";
-        this.email = "";
-        this.photoUri = "";
-        this.nickname = "";
+        this.userInfo = new UserInfo();
     }
 
-    public Chat(String text, String email, String photo, String nickname) {
-        this.message = text;
-        this.email = email;
-        this.photoUri = photo;
-        this.nickname = nickname;
+    public Chat(String message, UserInfo userInfo) {
+        this.message = message;
+        this.userInfo = userInfo;
     }
 
     public HashMap<String, String> toHashMap() {
         HashMap<String, String> hashMap = new HashMap<>();
 
         hashMap.put("text", message);
-        hashMap.put("email", email);
-        hashMap.put("photo", photoUri);
-        hashMap.put("nickname", nickname);
+        hashMap.put("email", userInfo.getEmail());
+        hashMap.put("photo", userInfo.getPhotoUri());
+        hashMap.put("nickname", userInfo.getNickname());
 
         return hashMap;
     }

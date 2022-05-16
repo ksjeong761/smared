@@ -143,16 +143,17 @@ public class LedgerViewFragment extends android.app.Fragment {
         });
     }
 
+    // 전역 인덱스에 따라 한 달치 데이터를 화면에 출력한다.
     private void showListByMonth() {
         viewBinding.tvLedgerMonth.setText(yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex));
-        String parsing = yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex).replaceAll("[^0-9]", "");
+        String onlyNumber = yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex).replaceAll("[^0-9]", "");
 
         int totalIncome = 0;
         int totalExpenditure = 0;
         List<Ledger> oneMonthLedgerData = new ArrayList<>();
 
         for (int ledgerDataIndex = 0; ledgerDataIndex < allLedgerData.size(); ledgerDataIndex++) {
-            if (!parsing.equals(allLedgerData.get(ledgerDataIndex).getYear() + allLedgerData.get(ledgerDataIndex).getMonth())) {
+            if (!onlyNumber.equals(allLedgerData.get(ledgerDataIndex).getYear() + allLedgerData.get(ledgerDataIndex).getMonth())) {
                 continue;
             }
 
@@ -236,9 +237,9 @@ public class LedgerViewFragment extends android.app.Fragment {
             String[] columnValues = {
                     allLedgerData.get(ledgerIndex).getYear() + "-" + allLedgerData.get(ledgerIndex).getMonth() + "-" + allLedgerData.get(ledgerIndex).getDay(),
                     allLedgerData.get(ledgerIndex).getClassify(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getUseItem(),
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getCategory(),
                     allLedgerData.get(ledgerIndex).getLedgerContent().getPrice(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getPayMemo()
+                    allLedgerData.get(ledgerIndex).getLedgerContent().getDescription()
             };
             for (int columnIndex = 0; columnIndex < columnHeaders.length; columnIndex++) {
                 Cell cell = row.createCell(columnIndex);

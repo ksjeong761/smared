@@ -143,7 +143,7 @@ public class ImageActivity extends Activity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent previousIntent) {
         if (resultCode != RESULT_OK) {
             Toast.makeText(this, "취소되었습니다.", Toast.LENGTH_SHORT).show();
             return;
@@ -151,17 +151,22 @@ public class ImageActivity extends Activity {
 
         switch (requestCode) {
             case PICK_FROM_ALBUM:
-                if (data == null) {
+                if (previousIntent == null) {
                     return;
                 }
 
-                photoUri = data.getData();
+                // 갤러리에서 이미지를 가져왔을 경우 uri를 기록한다..
+                photoUri = previousIntent.getData();
+
+                // 이미지 자르기
                 cropImage();
                 break;
 
             case PICK_FROM_CAMERA:
+                // 이미지 자르기
                 cropImage();
-                // 갤러리에 나타나게
+
+                // 잘려진 이미지 파일을 갤러리에 출력할 수 있도록 파일 목록을 다시 스캔한다.
                 MediaScannerConnection.scanFile(ImageActivity.this, new String[]{ photoUri.getPath() }, null, (path, uri) -> { });
                 break;
 
@@ -171,18 +176,18 @@ public class ImageActivity extends Activity {
         }
     }
 
-    public void cropImage() {
+    private void cropImage() {
         Intent cameraIntent = new Intent("com.android.camera.action.CROP");
         cameraIntent.setDataAndType(photoUri, "image/*");
 
-        List<ResolveInfo> list = getPackageManager().queryIntentActivities(cameraIntent, 0);
-        if (list.size() == 0) {
+        List<ResolveInfo> resolvedIntentFilters = getPackageManager().queryIntentActivities(cameraIntent, 0);
+        if (resolvedIntentFilters.size() == 0) {
             Toast.makeText(this, "취소 되었습니다.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         this.grantUriPermission("camera", photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        this.grantUriPermission(list.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        this.grantUriPermission(resolvedIntentFilters.get(0).activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
         Toast.makeText(this, "용량이 큰 사진의 경우 시간이 오래 걸릴 수 있습니다.", Toast.LENGTH_SHORT).show();
 
@@ -207,15 +212,15 @@ public class ImageActivity extends Activity {
         cameraIntent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString());
 
         Intent cropIntent = new Intent(cameraIntent);
-        ResolveInfo res = list.get(0);
+        ResolveInfo resolvedIntentFilter = resolvedIntentFilters.get(0);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             cropIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             cropIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
 
-            this.grantUriPermission(res.activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            this.grantUriPermission(resolvedIntentFilter.activityInfo.packageName, photoUri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
         }
 
-        cropIntent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+        cropIntent.setComponent(new ComponentName(resolvedIntentFilter.activityInfo.packageName, resolvedIntentFilter.activityInfo.name));
         startActivityForResult(cropIntent, CROP_FROM_CAMERA);
     }
 }

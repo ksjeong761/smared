@@ -179,26 +179,26 @@ public class ShareLedgerStatFragment extends android.app.Fragment {
 
         // 소비 카테고리 별 합계를 구한다.
         for (int ledgerDataIndex = 0; ledgerDataIndex < allLedgerData.size(); ledgerDataIndex++) {
-            int usedItemPrice = Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
-            String usedItemCategory = allLedgerData.get(ledgerDataIndex).getLedgerContent().getUseItem();
-            switch (usedItemCategory) {
+            int price = Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
+            String category = allLedgerData.get(ledgerDataIndex).getLedgerContent().getCategory();
+            switch (category) {
                 case "의류비":
-                    clothPrice += usedItemPrice;
+                    clothPrice += price;
                     break;
                 case "식비":
-                    foodPrice += usedItemPrice;
+                    foodPrice += price;
                     break;
                 case "주거비":
-                    homePrice += usedItemPrice;
+                    homePrice += price;
                     break;
                 case "교통비":
-                    transPrice += usedItemPrice;
+                    transPrice += price;
                     break;
                 case "생필품":
-                    marketPrice += usedItemPrice;
+                    marketPrice += price;
                     break;
                 case "기타":
-                    etcPrice += usedItemPrice;
+                    etcPrice += price;
                     break;
             }
         }

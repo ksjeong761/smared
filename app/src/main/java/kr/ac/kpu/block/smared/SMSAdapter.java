@@ -29,31 +29,31 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
     private FirebaseUser user;
 
     private Context context;
-    private List<SMS> mBody;
-    private String stUseitem = "";
+    private List<SMS> smsList;
+    private String category = "";
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private Button btnSMSDay;
         private Button btnAddSMS;
-        private TextView tvSMSPaymemo;
+        private TextView tvSMSDescription;
         private TextView tvSMSPrice;
         private TextView tvSMSTime;
-        private Spinner smsUseitem;
+        private Spinner spnCategory;
 
         public ViewHolder(ListSmsBinding viewBinding) {
             super(viewBinding.getRoot());
             this.btnSMSDay = viewBinding.btnSMSDay;
             this.btnAddSMS = viewBinding.btnAddSMS;
-            this.tvSMSPaymemo = viewBinding.tvSMSPaymemo;
+            this.tvSMSDescription = viewBinding.tvSMSDescription;
             this.tvSMSPrice = viewBinding.tvSMSPrice;
             this.tvSMSTime = viewBinding.tvSMSTime;
-            this.smsUseitem = viewBinding.smsUseitem;
+            this.spnCategory = viewBinding.spnCategory;
         }
     }
 
-    public SMSAdapter(List<SMS> mBody , Context context) {
-        this.mBody = mBody;
+    public SMSAdapter(List<SMS> smsList , Context context) {
+        this.smsList = smsList;
         this.context = context;
     }
 
@@ -67,7 +67,6 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
         myRef = database.getReference("users");
         user = FirebaseAuth.getInstance().getCurrentUser();
 
-        //View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.list_sms, parent, false);
         ListSmsBinding viewBinding = ListSmsBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new ViewHolder(viewBinding);
     }
@@ -76,15 +75,15 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-      holder.tvSMSPaymemo.setText(mBody.get(position).getPayMemo());
-      holder.btnSMSDay.setText(mBody.get(position).getYear() + "-" + mBody.get(position).getMonth() + "-" + mBody.get(position).getDay());
-      holder.tvSMSPrice.setText("-" + mBody.get(position).getPrice() + "원");
-      holder.tvSMSTime.setText("[신한체크]" + mBody.get(position).getTime());
+      holder.tvSMSDescription.setText(smsList.get(position).getDescription());
+      holder.btnSMSDay.setText(smsList.get(position).getYear() + "-" + smsList.get(position).getMonth() + "-" + smsList.get(position).getDay());
+      holder.tvSMSPrice.setText("-" + smsList.get(position).getPrice() + "원");
+      holder.tvSMSTime.setText("[신한체크]" + smsList.get(position).getTime());
 
-      holder.smsUseitem.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+      holder.spnCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
           @Override
           public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-              stUseitem = (String) parent.getItemAtPosition(position);
+              category = (String) parent.getItemAtPosition(position);
           }
 
           @Override
@@ -92,18 +91,18 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
       });
 
       holder.btnAddSMS.setOnClickListener(view -> {
-          LedgerContent mledgerContent = new LedgerContent();
-          mledgerContent.setPayMemo(mBody.get(position).getPayMemo());
-          mledgerContent.setPrice(mBody.get(position).getPrice());
-          mledgerContent.setUseItem(stUseitem);
+          LedgerContent ledgerContent = new LedgerContent();
+          ledgerContent.setDescription(smsList.get(position).getDescription());
+          ledgerContent.setPrice(smsList.get(position).getPrice());
+          ledgerContent.setCategory(category);
 
           myRef.child(user.getUid()).child("Ledger")
-              .child(mBody.get(position).getYear())
-              .child(mBody.get(position).getMonth())
-              .child(mBody.get(position).getDay())
+              .child(smsList.get(position).getYear())
+              .child(smsList.get(position).getMonth())
+              .child(smsList.get(position).getDay())
               .child("지출")
-              .child(mBody.get(position).getTime())
-              .setValue(mledgerContent);
+              .child(smsList.get(position).getTime())
+              .setValue(ledgerContent);
 
           Toast.makeText(context, "가계부에 추가되었습니다.", Toast.LENGTH_SHORT).show();
       });
@@ -112,6 +111,6 @@ public class SMSAdapter extends RecyclerView.Adapter<SMSAdapter.ViewHolder> {
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
-        return mBody.size();
+        return smsList.size();
     }
 }

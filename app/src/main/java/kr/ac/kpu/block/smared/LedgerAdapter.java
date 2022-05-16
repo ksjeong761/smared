@@ -27,16 +27,16 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     private DatabaseReference myRef;
 
     private Context context;
-    private List<Ledger> mLedger;
+    private List<Ledger> ledgerData;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private Button btnDelete;
         private Button btnEdit;
         private Button btnDay;
-        private TextView tvUseitem;
+        private TextView tvCategory;
         private TextView tvPrice;
-        private TextView tvPaymemo;
+        private TextView tvDescription;
         private TextView tvChoice;
 
         public ViewHolder(ListLedgerBinding viewBinding) {
@@ -44,9 +44,9 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
             this.btnDelete = viewBinding.btnDelete;
             this.btnEdit = viewBinding.btnEdit;
             this.btnDay = viewBinding.btnDay;
-            this.tvUseitem = viewBinding.tvUseitem;
+            this.tvCategory = viewBinding.tvCategory;
             this.tvPrice = viewBinding.tvPrice;
-            this.tvPaymemo = viewBinding.tvPaymemo;
+            this.tvDescription = viewBinding.tvDescription;
             this.tvChoice = viewBinding.tvChoice;
         }
 
@@ -54,22 +54,22 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
             super(viewBinding.getRoot());
             this.btnDelete = viewBinding.btnDelete;
             this.btnEdit = viewBinding.btnEdit;
-            this.tvUseitem = viewBinding.tvUseitem;
+            this.tvCategory = viewBinding.tvCategory;
             this.tvPrice = viewBinding.tvPrice;
-            this.tvPaymemo = viewBinding.tvPaymemo;
+            this.tvDescription = viewBinding.tvDescription;
             this.tvChoice = viewBinding.tvChoice;
         }
     }
 
-    public LedgerAdapter(List<Ledger> mLedger , Context context) {
-        this.mLedger = mLedger;
+    public LedgerAdapter(List<Ledger> ledgerData , Context context) {
+        this.ledgerData = ledgerData;
         this.context = context;
     }
 
     // 목록에 날짜가 다른 요소가 있다면 뷰 타입은 2이고 다른 경우는 1이다.
     @Override
     public int getItemViewType(int position) {
-        return hasDifferentDate(mLedger, position, position-1) ? 2 : 1;
+        return hasDifferentDate(ledgerData, position, position-1) ? 2 : 1;
     }
 
     // ViewHolder를 새로 만들어야 할 때 호출되는 메서드이다.
@@ -89,17 +89,17 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        if (hasDifferentDate(mLedger, position, position-1)) {
-            holder.btnDay.setText(mLedger.get(position).getYear() + "-" + mLedger.get(position).getMonth() + "-" + mLedger.get(position).getDay());
+        if (hasDifferentDate(ledgerData, position, position-1)) {
+            holder.btnDay.setText(ledgerData.get(position).getYear() + "-" + ledgerData.get(position).getMonth() + "-" + ledgerData.get(position).getDay());
         }
 
-        holder.tvChoice.setText("[ " + mLedger.get(position).getClassify() + " ]");
-        holder.tvUseitem.setText("분류 : " + mLedger.get(position).getLedgerContent().getUseItem());
-        holder.tvPrice.setText("가격 : " + mLedger.get(position).getLedgerContent().getPrice() + "원");
-        holder.tvPaymemo.setText("내용 : " + mLedger.get(position).getLedgerContent().getPayMemo());
+        holder.tvChoice.setText("[ " + ledgerData.get(position).getClassify() + " ]");
+        holder.tvCategory.setText("분류 : " + ledgerData.get(position).getLedgerContent().getCategory());
+        holder.tvPrice.setText("가격 : " + ledgerData.get(position).getLedgerContent().getPrice() + "원");
+        holder.tvDescription.setText("내용 : " + ledgerData.get(position).getLedgerContent().getDescription());
 
         // 수정 버튼
-        holder.btnEdit.setOnClickListener(view -> new EditDialog(context, mLedger, position).show());
+        holder.btnEdit.setOnClickListener(view -> new EditDialog(context, ledgerData, position).show());
 
         // 삭제 버튼
         holder.btnDelete.setOnClickListener(view -> {
@@ -108,18 +108,18 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
 
             // 확인 버튼
             alertdialog.setPositiveButton("확인", (dialog, which) -> {
-                if (!mLedger.get(position).getClassify().equals("지출") && !mLedger.get(position).getClassify().equals("수입")) {
+                if (!ledgerData.get(position).getClassify().equals("지출") && !ledgerData.get(position).getClassify().equals("수입")) {
                     logger.writeLog("Error : getClassify() - 잘못된 값이 입력됨");
                     return;
                 }
 
                 // 가계부에서 선택한 데이터 삭제
                 myRef.child(user.getUid()).child("Ledger")
-                    .child(mLedger.get(position).getYear())
-                    .child(mLedger.get(position).getMonth())
-                    .child(mLedger.get(position).getDay())
-                    .child(mLedger.get(position).getClassify())
-                    .child(mLedger.get(position).getTimes())
+                    .child(ledgerData.get(position).getYear())
+                    .child(ledgerData.get(position).getMonth())
+                    .child(ledgerData.get(position).getDay())
+                    .child(ledgerData.get(position).getClassify())
+                    .child(ledgerData.get(position).getTimes())
                     .removeValue();
 
                 Toast.makeText(context, "삭제되었습니다", Toast.LENGTH_SHORT).show();
@@ -135,7 +135,7 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
 
     @Override
     public int getItemCount() {
-        return mLedger.size();
+        return ledgerData.size();
     }
 
     private boolean hasDifferentDate(List<Ledger> ledger, int positionA, int positionB) {

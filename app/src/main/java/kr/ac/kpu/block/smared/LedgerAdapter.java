@@ -99,7 +99,7 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         holder.tvDescription.setText("내용 : " + ledgerData.get(position).getLedgerContent().getDescription());
 
         // 수정 버튼
-        holder.btnEdit.setOnClickListener(view -> new EditDialog(context, ledgerData, position).show());
+        holder.btnEdit.setOnClickListener(view -> new LedgerEditDialog(context, ledgerData, position).show());
 
         // 삭제 버튼
         holder.btnDelete.setOnClickListener(view -> {

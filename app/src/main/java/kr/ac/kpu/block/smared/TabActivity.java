@@ -69,7 +69,7 @@ public class TabActivity extends AppCompatActivity  {
 
                 // 사용자 프로필 화면
                 case R.id.navigation_profile:
-                    switchFragment(new ProfileFragment());
+                    switchFragment(new UserProfileFragment());
                     return true;
 
                 default:

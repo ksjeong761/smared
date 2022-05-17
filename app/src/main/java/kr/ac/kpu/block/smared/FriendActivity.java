@@ -42,8 +42,7 @@ public class FriendActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-                    final String value = chatSnapshot.getKey();
-                    myRef.child(value).addListenerForSingleValueEvent(new ValueEventListener() {
+                    myRef.child(chatSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             friends.add(dataSnapshot.getValue(UserInfo.class));

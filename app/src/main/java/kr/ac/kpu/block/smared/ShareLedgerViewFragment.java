@@ -40,11 +40,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import kr.ac.kpu.block.smared.databinding.FragmentLedgerViewShareBinding;
+import kr.ac.kpu.block.smared.databinding.FragmentShareLedgerViewBinding;
 
 public class ShareLedgerViewFragment extends android.app.Fragment {
     private FormattedLogger logger = new FormattedLogger();
-    private FragmentLedgerViewShareBinding viewBinding;
+    private FragmentShareLedgerViewBinding viewBinding;
 
     private DatabaseReference chatRef;
     private FirebaseUser user;
@@ -68,7 +68,7 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerViewShareBinding.inflate(inflater, container, false);
+        viewBinding = FragmentShareLedgerViewBinding.inflate(inflater, container, false);
 
         chatRef = FirebaseDatabase.getInstance().getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();

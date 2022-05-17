@@ -14,18 +14,18 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.util.List;
 import java.util.Map;
 
-import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
+import kr.ac.kpu.block.smared.databinding.DialogLedgerEditBinding;
 
-public class EditDialog extends Dialog {
+public class LedgerEditDialog extends Dialog {
     private FormattedLogger logger = new FormattedLogger();
-    private DialogEditBinding viewBinding;
+    private DialogLedgerEditBinding viewBinding;
 
     private List<Ledger> ledgerData;
     private int position;
 
     private FirebaseUser user;
 
-    public EditDialog(Context context, List<Ledger> ledgerData, int position) {
+    public LedgerEditDialog(Context context, List<Ledger> ledgerData, int position) {
         super(context);
         this.ledgerData = ledgerData;
         this.position = position;
@@ -34,7 +34,7 @@ public class EditDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = DialogEditBinding.inflate(getLayoutInflater());
+        viewBinding = DialogLedgerEditBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
         requestWindowFeature(Window.FEATURE_NO_TITLE); //타이틀 바 삭제

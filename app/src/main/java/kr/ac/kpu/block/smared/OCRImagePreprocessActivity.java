@@ -20,11 +20,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import kr.ac.kpu.block.smared.databinding.ActivityImageProcessingBinding;
+import kr.ac.kpu.block.smared.databinding.ActivityOcrImagePreprocessBinding;
 
 import static android.view.Gravity.CENTER;
 
-public class ImageProcessingActivity extends AppCompatActivity {
+public class OCRImagePreprocessActivity extends AppCompatActivity {
     static {
         System.loadLibrary("opencv_java3");
         System.loadLibrary("native-lib");
@@ -35,7 +35,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
     public native void imageprocessing(long inputImage, long outputImage);
 
     private FormattedLogger logger = new FormattedLogger();
-    private ActivityImageProcessingBinding viewBinding;
+    private ActivityOcrImagePreprocessBinding viewBinding;
 
     private final int EXTERNAL_STORAGE_PERMISSION = 1;
     private final String[] permissions = {
@@ -45,20 +45,20 @@ public class ImageProcessingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityImageProcessingBinding.inflate(getLayoutInflater());
+        viewBinding = ActivityOcrImagePreprocessBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        LinearLayout layout = new LinearLayout(ImageProcessingActivity.this);
+        LinearLayout layout = new LinearLayout(OCRImagePreprocessActivity.this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
         layout.setGravity(CENTER);
-        Button scan = new Button(ImageProcessingActivity.this);
-        Button camera = new Button(ImageProcessingActivity.this);
+        Button scan = new Button(OCRImagePreprocessActivity.this);
+        Button camera = new Button(OCRImagePreprocessActivity.this);
         scan.setText("스캔 파일");
         camera.setText("촬영한 파일");
         layout.addView(scan);
         layout.addView(camera);
 
-        AlertDialog.Builder alertdialog = new AlertDialog.Builder(ImageProcessingActivity.this);
+        AlertDialog.Builder alertdialog = new AlertDialog.Builder(OCRImagePreprocessActivity.this);
         alertdialog.setView(layout);
         alertdialog.setTitle("파일 타입을 골라주세요");
         AlertDialog alert = alertdialog.create();
@@ -87,7 +87,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
 
         viewBinding.btnRunOCR.setOnClickListener(view -> {
             viewBinding.pbLogins.setVisibility(View.VISIBLE);
-            startActivity(new Intent(ImageProcessingActivity.this, CloudActivity.class));
+            startActivity(new Intent(OCRImagePreprocessActivity.this, OCRRequestActivity.class));
             viewBinding.pbLogins.setVisibility(View.GONE);
         });
     }
@@ -113,7 +113,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
     }
 
     private void showDialogforPermission(String msg) {
-        final AlertDialog.Builder myDialog = new AlertDialog.Builder(ImageProcessingActivity.this);
+        final AlertDialog.Builder myDialog = new AlertDialog.Builder(OCRImagePreprocessActivity.this);
         myDialog.setTitle("알림");
         myDialog.setMessage(msg);
         myDialog.setCancelable(false);

@@ -59,11 +59,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 
-import kr.ac.kpu.block.smared.databinding.ActivityCloudBinding;
+import kr.ac.kpu.block.smared.databinding.ActivityOcrRequestBinding;
 
-public class CloudActivity extends Activity {
+public class OCRRequestActivity extends Activity {
     private FormattedLogger logger = new FormattedLogger();
-    private ActivityCloudBinding viewBinding;
+    private ActivityOcrRequestBinding viewBinding;
 
     private final String CLOUD_VISION_API_KEY = "AIzaSyC6FyPlYCwLuwVhE8s3Td_zbbbwcMr41Oc";
     private final String ANDROID_CERT_HEADER = "X-Android-Cert";
@@ -95,13 +95,13 @@ public class CloudActivity extends Activity {
         spinnerAdapter.notifyDataSetChanged();
         spinnerAdapterMemo.notifyDataSetChanged();
 
-        startActivity(new Intent(CloudActivity.this, TabActivity.class));
+        startActivity(new Intent(OCRRequestActivity.this, TabActivity.class));
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityCloudBinding.inflate(getLayoutInflater());
+        viewBinding = ActivityOcrRequestBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
         DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
@@ -111,10 +111,10 @@ public class CloudActivity extends Activity {
         StrictMode.setThreadPolicy(policy);
 
         // 파싱한 OCR 결과물을 스피너에 출력하는 것으로 사용자가 직접 올바른 데이터를 선택할 수 있도록 한다.
-        spinnerAdapter = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, listItems);
+        spinnerAdapter = new ArrayAdapter<>(OCRRequestActivity.this, R.layout.support_simple_spinner_dropdown_item, listItems);
         viewBinding.spnPrice.setAdapter(spinnerAdapter);
 
-        spinnerAdapterMemo = new ArrayAdapter<>(CloudActivity.this, R.layout.support_simple_spinner_dropdown_item, memoItems);
+        spinnerAdapterMemo = new ArrayAdapter<>(OCRRequestActivity.this, R.layout.support_simple_spinner_dropdown_item, memoItems);
         viewBinding.spnDescription.setAdapter(spinnerAdapterMemo);
 
         try {
@@ -135,7 +135,7 @@ public class CloudActivity extends Activity {
             this.year = Integer.toString(year);
             this.month = Integer.toString(month+1);
             this.day = Integer.toString(day);
-            Toast.makeText(CloudActivity.this, this.year + "-" + this.month + "-" + this.day, Toast.LENGTH_SHORT).show();
+            Toast.makeText(OCRRequestActivity.this, this.year + "-" + this.month + "-" + this.day, Toast.LENGTH_SHORT).show();
         });
 
         // 스피너 선택 이벤트 - 선택된 분류를 클래스 내부에 기록
@@ -179,7 +179,7 @@ public class CloudActivity extends Activity {
             String incomeOrExpenditure = viewBinding.rbConsume.isChecked() ? "지출" : "수입";
             myRef.child(user.getUid()).child("Ledger").child(year).child(month).child(day).child(incomeOrExpenditure).child(now).setValue(ledger);
 
-            Toast.makeText(CloudActivity.this, "저장하였습니다.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(OCRRequestActivity.this, "저장하였습니다.", Toast.LENGTH_SHORT).show();
         });
 
         // 끝내기 버튼 - 데이터를 비우고 TabActivity로 이동
@@ -188,11 +188,11 @@ public class CloudActivity extends Activity {
             memoItems.clear();
             spinnerAdapter.notifyDataSetChanged();
             spinnerAdapterMemo.notifyDataSetChanged();
-            startActivity(new Intent(CloudActivity.this, TabActivity.class));
+            startActivity(new Intent(OCRRequestActivity.this, TabActivity.class));
         });
 
         // OCR 결과 버튼 - ContentActivity로 이동
-        viewBinding.btnOCRResult.setOnClickListener(view -> startActivity(new Intent(this, OCRResultActivity.class)));
+        viewBinding.btnOCRResult.setOnClickListener(view -> startActivity(new Intent(this, OCRResultDisplayActivity.class)));
     }
 
     // 기준 해상도에 맞게 이미지를 축소한다.
@@ -272,10 +272,10 @@ public class CloudActivity extends Activity {
     // https://developer.android.com/reference/android/os/AsyncTask
     // 비동기 API 호출을 위한 내부 클래스 (상속 받은 추상 클래스 AsyncTask는 API 30부터 Deprecated 처리됨)
     private class LableDetectionTask extends AsyncTask<Object, Void, String> {
-        private final WeakReference<CloudActivity> mActivityWeakReference;
+        private final WeakReference<OCRRequestActivity> mActivityWeakReference;
         private Vision.Images.Annotate mRequest;
 
-        LableDetectionTask(CloudActivity activity, Vision.Images.Annotate annotate) {
+        LableDetectionTask(OCRRequestActivity activity, Vision.Images.Annotate annotate) {
             mActivityWeakReference = new WeakReference<>(activity);
             mRequest = annotate;
         }
@@ -302,7 +302,7 @@ public class CloudActivity extends Activity {
         @Override
         protected void onPostExecute(String ocrResultText) {
             // 다이얼로그 호출 전 액티비티 참조 얻기
-            CloudActivity activity = mActivityWeakReference.get();
+            OCRRequestActivity activity = mActivityWeakReference.get();
             if (activity == null) return;
             if (!activity.isFinishing()) return;
 
@@ -311,7 +311,7 @@ public class CloudActivity extends Activity {
             if (ocrResultText.length() == 0) return;
 
             // OCR 인식 결과물 파싱
-            ReceiptStringParser receiptParser = new ReceiptStringParser();
+            OCRResultParser receiptParser = new OCRResultParser();
             List<String> texts = receiptParser.extractKoreanText(ocrResultText);
             List<String> prices = receiptParser.extractPrice(ocrResultText);
             StringBuilder showingResult = new StringBuilder();

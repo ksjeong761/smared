@@ -7,15 +7,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import kr.ac.kpu.block.smared.databinding.FragmentShareBinding;
+import kr.ac.kpu.block.smared.databinding.FragmentShareLedgerHomeBinding;
 
 public class ShareLedgerHomeFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
-    private FragmentShareBinding viewBinding;
+    private FragmentShareLedgerHomeBinding viewBinding;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentShareBinding.inflate(inflater, container, false);
+        viewBinding = FragmentShareLedgerHomeBinding.inflate(inflater, container, false);
 
         // 기본으로 표시될 화면은 공유 가계부 기록 화면이다.
         switchFragment(new ShareLedgerRegFragment());

@@ -17,7 +17,7 @@ import kr.ac.kpu.block.smared.databinding.ListFriendBinding;
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
-    private List<UserInfo> friends;  // email,photo,key 저장
+    private List<UserInfo> friends;
     private Context context;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.

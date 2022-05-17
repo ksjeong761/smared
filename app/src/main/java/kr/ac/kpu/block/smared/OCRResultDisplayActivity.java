@@ -4,16 +4,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-import kr.ac.kpu.block.smared.databinding.ActivityContentBinding;
+import kr.ac.kpu.block.smared.databinding.ActivityOcrResultDisplayBinding;
 
-public class OCRResultActivity extends AppCompatActivity  {
+public class OCRResultDisplayActivity extends AppCompatActivity  {
     private FormattedLogger logger = new FormattedLogger();
-    private ActivityContentBinding viewBinding;
+    private ActivityOcrResultDisplayBinding viewBinding;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityContentBinding.inflate(getLayoutInflater());
+        viewBinding = ActivityOcrResultDisplayBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
         Intent previousIntent = getIntent();

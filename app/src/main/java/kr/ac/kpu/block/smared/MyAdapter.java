@@ -52,7 +52,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // 자신의 뷰 타입은 1 다른 사람은 2
     @Override
     public int getItemViewType(int position) {
-        return (chatMessages.get(position).getEmail().equals(email)) ? 1 : 2;
+        return (chatMessages.get(position).getUserInfo().getEmail().equals(email)) ? 1 : 2;
     }
 
     // ViewHolder를 새로 만들어야 할 때 호출되는 메서드이다.
@@ -70,9 +70,9 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         holder.mTextView.setText(chatMessages.get(position).getMessage());
-        holder.tvChatid.setText(chatMessages.get(position).getNickname());
-        if (!TextUtils.isEmpty(chatMessages.get(position).getPhotoUri())) {
-            Picasso.with(context).load(chatMessages.get(position).getPhotoUri()).fit().centerInside().into(holder.ivChatimage);
+        holder.tvChatid.setText(chatMessages.get(position).getUserInfo().getNickname());
+        if (!TextUtils.isEmpty(chatMessages.get(position).getUserInfo().getPhotoUri())) {
+            Picasso.with(context).load(chatMessages.get(position).getUserInfo().getPhotoUri()).fit().centerInside().into(holder.ivChatimage);
         }
     }
 

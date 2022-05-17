@@ -13,7 +13,7 @@ using namespace std;
 extern "C" {
     // 영상처리할 이미지 파일 불러오기
     JNIEXPORT void JNICALL
-    Java_kr_ac_kpu_block_smared_ImageProcessingActivity_loadImage (
+    Java_kr_ac_kpu_block_smared_OCRImagePreprocessActivity_loadImage (
             JNIEnv *env,
             jobject instance,
             jstring imageFileName,
@@ -30,7 +30,7 @@ extern "C" {
 
     // OCR 인식률을 높이기 위한 영수증 이미지 전처리
     JNIEXPORT void JNICALL
-    Java_kr_ac_kpu_block_smared_ImageProcessingActivity_imageprocessing (
+    Java_kr_ac_kpu_block_smared_OCRImagePreprocessActivity_imageprocessing (
             JNIEnv *env,
             jobject instance,
             jlong inputImage,

@@ -27,11 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegShareBinding;
+import kr.ac.kpu.block.smared.databinding.FragmentShareLedgerRegBinding;
 
 public class ShareLedgerRegFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
-    private FragmentLedgerRegShareBinding viewBinding;
+    private FragmentShareLedgerRegBinding viewBinding;
 
     private DatabaseReference myRef;
     private DatabaseReference chatRef;
@@ -45,7 +45,7 @@ public class ShareLedgerRegFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentLedgerRegShareBinding.inflate(inflater, container, false);
+        viewBinding = FragmentShareLedgerRegBinding.inflate(inflater, container, false);
 
         myRef = FirebaseDatabase.getInstance().getReference("users");
         chatRef = FirebaseDatabase.getInstance().getReference("chats");

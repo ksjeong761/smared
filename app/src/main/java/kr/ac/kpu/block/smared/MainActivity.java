@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
                 // HashTable에 회원가입에 필요한 정보 넣고
                 String photoUri =  "https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef";
-                Map<String, String> userInfo = new UserInfo(email, photoUri, user.getUid()).toHashMap();
+                Map<String, String> userInfo = new UserInfo(email, photoUri, user.getUid(), "").toHashMap();
 
                 // DB에 넣기
                 myRef.child(user.getUid()).setValue(userInfo);

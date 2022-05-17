@@ -15,11 +15,11 @@ import java.text.SimpleDateFormat;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-import kr.ac.kpu.block.smared.databinding.DialogEditBinding;
+import kr.ac.kpu.block.smared.databinding.DialogLedgerEditBinding;
 
 public class SMSEditDialog extends Dialog {
     private FormattedLogger logger = new FormattedLogger();
-    private DialogEditBinding viewBinding;
+    private DialogLedgerEditBinding viewBinding;
 
     // 데이터베이스 관련
     private FirebaseDatabase database;
@@ -39,7 +39,7 @@ public class SMSEditDialog extends Dialog {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = DialogEditBinding.inflate(getLayoutInflater());
+        viewBinding = DialogLedgerEditBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
         // 타이틀 바 제거

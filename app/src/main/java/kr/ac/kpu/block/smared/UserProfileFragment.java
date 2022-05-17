@@ -37,11 +37,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import kr.ac.kpu.block.smared.databinding.FragmentProfileBinding;
+import kr.ac.kpu.block.smared.databinding.FragmentUserProfileBinding;
 
-public class ProfileFragment extends Fragment {
+public class UserProfileFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
-    private FragmentProfileBinding viewBinding;
+    private FragmentUserProfileBinding viewBinding;
 
     private DatabaseReference myRef;
     private DatabaseReference chatRef;
@@ -54,7 +54,7 @@ public class ProfileFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        viewBinding = FragmentProfileBinding.inflate(inflater, container, false);
+        viewBinding = FragmentUserProfileBinding.inflate(inflater, container, false);
 
         myRef = FirebaseDatabase.getInstance().getReference();
         chatRef = FirebaseDatabase.getInstance().getReference("chats");

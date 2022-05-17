@@ -9,7 +9,7 @@
         android:clickable="true"
         android:background="@color/grayLight"
         android:orientation="vertical"
-        tools:context="kr.ac.kpu.block.smared.ProfileFragment">
+        tools:context="kr.ac.kpu.block.smared.UserProfileFragment">
 
         <RelativeLayout
             android:layout_width="match_parent"

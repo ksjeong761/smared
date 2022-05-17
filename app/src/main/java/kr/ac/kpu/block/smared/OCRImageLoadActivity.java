@@ -25,11 +25,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import kr.ac.kpu.block.smared.databinding.ActivityImageBinding;
+import kr.ac.kpu.block.smared.databinding.ActivityOcrImageLoadBinding;
 
-public class ImageActivity extends Activity {
+public class OCRImageLoadActivity extends Activity {
     private FormattedLogger logger = new FormattedLogger();
-    private ActivityImageBinding viewBinding;
+    private ActivityOcrImageLoadBinding viewBinding;
 
     private static final int PICK_FROM_CAMERA = 1;
     private static final int PICK_FROM_ALBUM = 2;
@@ -48,7 +48,7 @@ public class ImageActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityImageBinding.inflate(getLayoutInflater());
+        viewBinding = ActivityOcrImageLoadBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
         // 필요한 권한이 있는지 확인
@@ -68,13 +68,13 @@ public class ImageActivity extends Activity {
         viewBinding.btnCamera.setOnClickListener(view -> {
             try {
                 File photoFile = createImageFile();
-                photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", photoFile);
+                photoUri = FileProvider.getUriForFile(OCRImageLoadActivity.this, "kr.ac.kpu.block.smared.provider", photoFile);
 
                 Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(cameraIntent, PICK_FROM_CAMERA);
             } catch (IOException e) {
-                Toast.makeText(ImageActivity.this, "이미지 처리 오류! 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(OCRImageLoadActivity.this, "이미지 처리 오류! 다시 시도해주세요.", Toast.LENGTH_SHORT).show();
                 finish();
             }
         });
@@ -90,7 +90,7 @@ public class ImageActivity extends Activity {
                 return;
             }
 
-            Intent nextIntent = new Intent(ImageActivity.this, ImageProcessingActivity.class);
+            Intent nextIntent = new Intent(OCRImageLoadActivity.this, OCRImagePreprocessActivity.class);
             nextIntent.putExtra("ipath", imagePath);
             nextIntent.putExtra("input", photoUri);
             startActivity(nextIntent);
@@ -167,7 +167,7 @@ public class ImageActivity extends Activity {
                 cropImage();
 
                 // 잘려진 이미지 파일을 갤러리에 출력할 수 있도록 파일 목록을 다시 스캔한다.
-                MediaScannerConnection.scanFile(ImageActivity.this, new String[]{ photoUri.getPath() }, null, (path, uri) -> { });
+                MediaScannerConnection.scanFile(OCRImageLoadActivity.this, new String[]{ photoUri.getPath() }, null, (path, uri) -> { });
                 break;
 
             case CROP_FROM_CAMERA:
@@ -205,7 +205,7 @@ public class ImageActivity extends Activity {
             return;
         }
 
-        photoUri = FileProvider.getUriForFile(ImageActivity.this, "kr.ac.kpu.block.smared.provider", croppedFileName);
+        photoUri = FileProvider.getUriForFile(OCRImageLoadActivity.this, "kr.ac.kpu.block.smared.provider", croppedFileName);
 
         cameraIntent.putExtra("return-data", false);
         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);

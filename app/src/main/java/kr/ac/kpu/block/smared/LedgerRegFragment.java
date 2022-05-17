@@ -68,7 +68,7 @@ public class LedgerRegFragment extends android.app.Fragment {
         });
 
         // OCR 버튼 이벤트 - ImageActivity로 이동한다.
-        viewBinding.btnOcr.setOnClickListener(view -> startActivity(new Intent(getActivity(), ImageActivity.class)));
+        viewBinding.btnOcr.setOnClickListener(view -> startActivity(new Intent(getActivity(), OCRImageLoadActivity.class)));
 
         // SMS 버튼 이벤트 - SMSActivity로 이동한다.
         viewBinding.btnSMS.setOnClickListener(view -> startActivity(new Intent(getActivity(), SMSActivity.class)));

@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * Provides utility logic for getting the app's SHA1 signature. Used with restricted API keys.
- *
  */
 public class PackageManagerUtils {
     private FormattedLogger logger = new FormattedLogger();
@@ -33,8 +32,7 @@ public class PackageManagerUtils {
                 return null;
             }
             return signatureDigest(packageInfo.signatures[0]);
-        }
-        catch (PackageManager.NameNotFoundException e) {
+        } catch (PackageManager.NameNotFoundException e) {
             return null;
         }
     }
@@ -45,8 +43,7 @@ public class PackageManagerUtils {
             MessageDigest md = MessageDigest.getInstance("SHA1");
             byte[] digest = md.digest(signature);
             return BaseEncoding.base16().lowerCase().encode(digest);
-        }
-        catch (NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             return null;
         }
     }

@@ -12,7 +12,6 @@ import com.google.firebase.messaging.RemoteMessage;
 
 public class MyFirebaseMessagingService extends com.google.firebase.messaging.FirebaseMessagingService {
     private FormattedLogger logger = new FormattedLogger();
-    private static final String TAG = "FirebaseMsgService";
 
     /**
      * Called when message is received.
@@ -34,16 +33,16 @@ public class MyFirebaseMessagingService extends com.google.firebase.messaging.Fi
 
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
-        Log.d(TAG, "From: " + remoteMessage.getFrom());
+        logger.writeLog("From: " + remoteMessage.getFrom());
 
         // Check if message contains a data payload.
         if (remoteMessage.getData().size() > 0) {
-            Log.d(TAG, "Message data payload: " + remoteMessage.getData());
+            logger.writeLog("Message data payload: " + remoteMessage.getData());
         }
 
         // Check if message contains a notification payload.
         if (remoteMessage.getNotification() != null) {
-            Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+            logger.writeLog("Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
 
         String msg = remoteMessage.getNotification().getBody();

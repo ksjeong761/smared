@@ -20,11 +20,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import kr.ac.kpu.block.smared.databinding.ActivityImageProcessingBinding;
+import kr.ac.kpu.block.smared.databinding.ActivityOcrImagePreprocessBinding;
 
 import static android.view.Gravity.CENTER;
 
-public class ImageProcessingActivity extends AppCompatActivity {
+public class OCRImagePreprocessActivity extends AppCompatActivity {
     static {
         System.loadLibrary("opencv_java3");
         System.loadLibrary("native-lib");
@@ -35,9 +35,9 @@ public class ImageProcessingActivity extends AppCompatActivity {
     public native void imageprocessing(long inputImage, long outputImage);
 
     private FormattedLogger logger = new FormattedLogger();
-    private ActivityImageProcessingBinding viewBinding;
+    private ActivityOcrImagePreprocessBinding viewBinding;
 
-    private final int PERMISSION_REQUEST_CODE = 1;
+    private final int EXTERNAL_STORAGE_PERMISSION = 1;
     private final String[] permissions = {
         "android.permission.WRITE_EXTERNAL_STORAGE"
     };
@@ -45,20 +45,20 @@ public class ImageProcessingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityImageProcessingBinding.inflate(getLayoutInflater());
+        viewBinding = ActivityOcrImagePreprocessBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        LinearLayout layout = new LinearLayout(ImageProcessingActivity.this);
+        LinearLayout layout = new LinearLayout(OCRImagePreprocessActivity.this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
         layout.setGravity(CENTER);
-        Button scan = new Button(ImageProcessingActivity.this);
-        Button camera = new Button(ImageProcessingActivity.this);
+        Button scan = new Button(OCRImagePreprocessActivity.this);
+        Button camera = new Button(OCRImagePreprocessActivity.this);
         scan.setText("스캔 파일");
         camera.setText("촬영한 파일");
         layout.addView(scan);
         layout.addView(camera);
 
-        AlertDialog.Builder alertdialog = new AlertDialog.Builder(ImageProcessingActivity.this);
+        AlertDialog.Builder alertdialog = new AlertDialog.Builder(OCRImagePreprocessActivity.this);
         alertdialog.setView(layout);
         alertdialog.setTitle("파일 타입을 골라주세요");
         AlertDialog alert = alertdialog.create();
@@ -71,7 +71,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
 
             // 마시멜로( API 23 )이상에서 런타임 권한(Runtime Permission) 요청
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+                this.requestPermissions(permissions, EXTERNAL_STORAGE_PERMISSION);
             }
         }
 
@@ -85,9 +85,9 @@ public class ImageProcessingActivity extends AppCompatActivity {
             alert.cancel();
         });
 
-        viewBinding.btnRunOCR.setOnClickListener(v -> {
+        viewBinding.btnRunOCR.setOnClickListener(view -> {
             viewBinding.pbLogins.setVisibility(View.VISIBLE);
-            startActivity(new Intent(ImageProcessingActivity.this, CloudActivity.class));
+            startActivity(new Intent(OCRImagePreprocessActivity.this, OCRRequestActivity.class));
             viewBinding.pbLogins.setVisibility(View.GONE);
         });
     }
@@ -95,7 +95,7 @@ public class ImageProcessingActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
         switch (permsRequestCode) {
-            case PERMISSION_REQUEST_CODE:
+            case EXTERNAL_STORAGE_PERMISSION:
                 if (grantResults.length == 0) {
                     break;
                 }
@@ -113,13 +113,13 @@ public class ImageProcessingActivity extends AppCompatActivity {
     }
 
     private void showDialogforPermission(String msg) {
-        final AlertDialog.Builder myDialog = new AlertDialog.Builder(ImageProcessingActivity.this);
+        final AlertDialog.Builder myDialog = new AlertDialog.Builder(OCRImagePreprocessActivity.this);
         myDialog.setTitle("알림");
         myDialog.setMessage(msg);
         myDialog.setCancelable(false);
         myDialog.setPositiveButton("예", (arg0, arg1) -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, PERMISSION_REQUEST_CODE);
+                this.requestPermissions(permissions, EXTERNAL_STORAGE_PERMISSION);
             }
         });
 
@@ -142,15 +142,12 @@ public class ImageProcessingActivity extends AppCompatActivity {
             bitmapFile.createNewFile();
             outputStream = new FileOutputStream(bitmapFile);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
                 outputStream.close();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }

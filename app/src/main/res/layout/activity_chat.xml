@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,8 +12,8 @@
         android:text="이전"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-        android:id="@+id/btnFinish"
-        />
+        android:id="@+id/btnFinish" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,24 +21,24 @@
         android:text="참여자 보기"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-        android:id="@+id/btnViewFriend"
-        />
+        android:id="@+id/btnViewFriend" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/rvChat"
         android:scrollbars="vertical"
         android:layout_below="@+id/btnFinish"
         android:layout_above="@+id/etText"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
+
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="메시지 입력"
         android:layout_toLeftOf="@id/btnSend"
         android:layout_alignParentBottom="true"
-        android:id="@+id/etText"
+        android:id="@+id/etText" />
 
-        />
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -48,6 +47,6 @@
         android:text="Send"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-        android:id="@+id/btnSend"
-        />
+        android:id="@+id/btnSend" />
+
 </RelativeLayout>

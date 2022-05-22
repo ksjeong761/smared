@@ -18,8 +18,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.ActivityChatBinding;
 
@@ -33,7 +33,7 @@ public class ChatActivity extends AppCompatActivity {
         viewBinding = ActivityChatBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        // Firebase Database 연결
+        // Firebase DB 객체 얻어오기
         FirebaseDatabase database = FirebaseDatabase.getInstance();
 
         // 유저 정보 추출
@@ -45,7 +45,7 @@ public class ChatActivity extends AppCompatActivity {
         // 인텐트를 통해 이전 액티비티에서 데이터 전달받기
         Intent previousIntent = getIntent();
         final String chatUid = previousIntent.getStringExtra("chatUid");
-        String photo = previousIntent.getStringExtra("photo");
+        String photoUri = previousIntent.getStringExtra("photo");
         String nickname = previousIntent.getStringExtra("nickname");
         String email = user.getEmail();
 
@@ -56,63 +56,56 @@ public class ChatActivity extends AppCompatActivity {
             startActivity(nextIntent);
         });
 
-        // 메시지 보내기 버튼 이벤트 - DB에 사용자 정보, 사진, 메시지를 저장한다.
+        // 메시지 보내기 버튼 이벤트 - 채팅 데이터베이스에 입력받은 채팅 메시지와 사용자 정보를 저장한다.
         viewBinding.btnSend.setOnClickListener(view -> {
-            String stText = viewBinding.etText.getText().toString();
-            if (stText.isEmpty()) {
+            String chatMessage = viewBinding.etText.getText().toString();
+            if (chatMessage.isEmpty()) {
                 Toast.makeText(ChatActivity.this, "내용을 입력해 주세요.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // Firebase내에 날짜로 저장
-            String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
-            DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat").child(formattedDate);
+            // 현재 시간을 기준으로 채팅 데이터베이스에 기록한다.
+            String now = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(Calendar.getInstance().getTime());
+            DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat").child(now);
 
-            // HashTable로 연결
-            Hashtable<String, String> chat  = new Hashtable<>();
-            chat.put("email", email);
-            chat.put("text", stText);
-            chat.put("photo", photo);
-            chat.put("nickname", nickname);
-
+            // 채팅 데이터베이스에 입력받은 채팅 메시지와 사용자 정보를 저장한다.
+            UserInfo userInfo = new UserInfo(email, photoUri, "", nickname);
+            Map<String, String> chat  = new Chat(chatMessage, userInfo).toHashMap();
             myRef.setValue(chat);
+
+            // 사용자가 입력한 채팅 메시지를 비워준다.
             viewBinding.etText.setText("");
         });
 
-        // 닫기 버튼 이벤트
-        viewBinding.btnFinish.setOnClickListener(view -> {
-            finish();
-        });
+        // 닫기 버튼 이벤트 - 액티비티를 종료한다.
+        viewBinding.btnFinish.setOnClickListener(view -> finish());
 
         // RecyclerView를 통해 채팅 메시지와 이미지를 보여줄 것이다.
-        // 메시지가 추가될 때마다 RecyclerView의 크기가 바뀌게 되고
-        // 그 때문에 다시 UI가 로딩되는 것을 방지해야 한다.
-        viewBinding.rvChat.setHasFixedSize(true);
-
-        // 레이아웃을 Linear로 설정한다.
+        // LinearLayout을 적용한다.
         viewBinding.rvChat.setLayoutManager(new LinearLayoutManager(this));
 
-        // 어댑터를 사용해 데이터를 뷰로 만든다.
-        List<Chat> mChat = new ArrayList<>();
-        RecyclerView.Adapter mAdapter = new MyAdapter(mChat, email,ChatActivity.this);
+        // 메시지가 추가될 때마다 RecyclerView의 크기가 바뀌게 되고 그 때문에 다시 UI가 로딩되는 것을 방지하기 위한 코드이다.
+        viewBinding.rvChat.setHasFixedSize(true);
 
-        // 어댑터를 적용한다.
+        // 어댑터를 사용해 데이터를 뷰로 만든다.
+        List<Chat> chatMessages = new ArrayList<>();
+        RecyclerView.Adapter mAdapter = new MyAdapter(chatMessages, email,ChatActivity.this);
         viewBinding.rvChat.setAdapter(mAdapter);
 
-        // 새 채팅 메시지가 있다면 DB에서 받아오기 위해 이벤트를 등록한다
+        // 이벤트를 이용해 새 채팅 메시지가 있다면 DB에서 받아온다.
         DatabaseReference myRef = database.getReference("chats").child(chatUid).child("chat");
         myRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 // 새 메시지를 화면에 보여준다.
                 Chat chat = dataSnapshot.getValue(Chat.class);
-                mChat.add(chat);
+                chatMessages.add(chat);
 
                 // 스크롤을 내린다.
-                viewBinding.rvChat.scrollToPosition(mChat.size() - 1);
+                viewBinding.rvChat.scrollToPosition(chatMessages.size() - 1);
 
                 // 어댑터에 데이터가 변경되었음을 알린다.
-                mAdapter.notifyItemInserted(mChat.size() - 1);
+                mAdapter.notifyItemInserted(chatMessages.size() - 1);
             }
 
             @Override

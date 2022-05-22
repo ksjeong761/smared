@@ -6,7 +6,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ReceiptStringParser {
+public class OCRResultParser {
     private FormattedLogger logger = new FormattedLogger();
 
     // 영수증 OCR 결과 문자열로부터 날짜 정보를 추출한다.

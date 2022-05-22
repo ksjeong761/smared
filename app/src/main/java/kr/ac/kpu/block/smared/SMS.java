@@ -1,18 +1,18 @@
 package kr.ac.kpu.block.smared;
 
 public class SMS {
-    private String payMemo;
+    private String description;
     private String price;
     private String year;
     private String month;
     private String day;
     private String time;
 
-    public String getPayMemo() {
-        return payMemo;
+    public String getDescription() {
+        return description;
     }
-    public void setPayMemo(String payMemo) {
-        this.payMemo = payMemo;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getPrice() {

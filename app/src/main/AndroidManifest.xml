@@ -34,12 +34,12 @@
             android:name=".TabActivity"
             android:screenOrientation="portrait" />
         <activity android:name=".ChatActivity" />
-        <activity android:name=".ImageProcessingActivity" />
-        <activity android:name=".ImageActivity" />
+        <activity android:name=".OCRImagePreprocessActivity" />
+        <activity android:name=".OCRImageLoadActivity" />
         <activity android:name=".SMSActivity" />
-        <activity android:name=".CloudActivity" />
+        <activity android:name=".OCRRequestActivity" />
         <activity android:name=".FriendActivity" />
-        <activity android:name=".ContentActivity" />
+        <activity android:name=".OCRResultDisplayActivity" />
         <activity android:name=".MainActivity"/>
 
         <provider

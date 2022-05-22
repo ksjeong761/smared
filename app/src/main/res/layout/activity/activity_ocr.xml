@@ -4,7 +4,7 @@
     android:id="@+id/activity_ocr"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="kr.ac.kpu.block.smared.OCRActivity">
+    tools:context="kr.ac.kpu.block.smared.OCRRequestActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"

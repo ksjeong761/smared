@@ -14,10 +14,8 @@
         android:id="@+id/tvChatid"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="60dp"
+        android:layout_marginLeft="60dp" />
 
-
-        />
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -31,7 +29,6 @@
         android:paddingBottom="5dp"
         android:layout_marginLeft="60dp"
         android:layout_marginBottom="5dp"
-        android:layout_below="@+id/tvChatid"
-        />
+        android:layout_below="@+id/tvChatid" />
 
 </RelativeLayout>

@@ -32,9 +32,9 @@ public class SMSActivity extends AppCompatActivity {
 
         viewBinding.rvSMS.setHasFixedSize(true);
         viewBinding.rvSMS.setLayoutManager(new LinearLayoutManager(this));
-        List<SMS> mBody = new ArrayList<>();
-        SMSAdapter mAdapter = new SMSAdapter(mBody, this);
-        viewBinding.rvSMS.setAdapter(mAdapter);
+        List<SMS> smsList = new ArrayList<>();
+        SMSAdapter smsAdapter = new SMSAdapter(smsList, this);
+        viewBinding.rvSMS.setAdapter(smsAdapter);
 
         // SMS 읽기 권한이 부여되어 있는지 확인
         if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS)) {
@@ -67,15 +67,15 @@ public class SMSActivity extends AppCompatActivity {
         // SMS 불러오기 버튼 이벤트 -> 모든 SMS를 확인해서 신한 체크카드 결제 문자인 경우 파싱 후 리스트로 화면에 보여준다.
         viewBinding.btnLoadSMS.setOnClickListener(view -> {
             // 한 번만 불러오게 하기
-            if (mBody.size() > 0) {
+            if (smsList.size() > 0) {
                 return;
             }
 
             // 전체 문자 받아오기
-            Cursor cur = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
-            while (cur.moveToNext()) {
+            Cursor smsCursor = getContentResolver().query(Uri.parse("content://sms/inbox"), null, null, null, null);
+            while (smsCursor.moveToNext()) {
                 // 현재 신한 체크카드 메시지만 처리할 수 있다.
-                String msg = cur.getString(cur.getColumnIndex("body"));
+                String msg = smsCursor.getString(smsCursor.getColumnIndex("body"));
                 if (!msg.contains("신한체크승인")) {
                     continue;
                 }
@@ -101,24 +101,24 @@ public class SMSActivity extends AppCompatActivity {
                 }
 
                 // 날짜를 파싱한다.
-                long date = cur.getLong(cur.getColumnIndex("date"));
-                String sdate = new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(date);
+                long smsReceiptDate = smsCursor.getLong(smsCursor.getColumnIndex("date"));
+                String timeToParse = new SimpleDateFormat("yyyyMMdd HH:mm:ss").format(smsReceiptDate);
 
-                SMS mSMS = new SMS();
-                mSMS.setPayMemo(description);
-                mSMS.setPrice(price);
-                mSMS.setYear(sdate.substring(0,4));
-                mSMS.setMonth(sdate.substring(4,6));
-                mSMS.setDay(sdate.substring(6,8));
-                mSMS.setTime(sdate.substring(9, 17));
+                SMS sms = new SMS();
+                sms.setDescription(description);
+                sms.setPrice(price);
+                sms.setYear(timeToParse.substring(0,4));
+                sms.setMonth(timeToParse.substring(4,6));
+                sms.setDay(timeToParse.substring(6,8));
+                sms.setTime(timeToParse.substring(9, 17));
 
                 // RecyclerView에 문자 목록을 보여준다.
-                mBody.add(mSMS);
-                mAdapter.notifyItemInserted(mBody.size() - 1);
+                smsList.add(sms);
+                smsAdapter.notifyItemInserted(smsList.size() - 1);
                 viewBinding.rvSMS.scrollToPosition(0);
             }
 
-            viewBinding.tvCountSMS.setText(mBody.size() + "건의 기록이 확인되었습니다.");
+            viewBinding.tvCountSMS.setText(smsList.size() + "건의 기록이 확인되었습니다.");
         });
     }
 
@@ -128,8 +128,7 @@ public class SMSActivity extends AppCompatActivity {
             case SMS_RECEIVE_PERMISSION:
                 if (grantResults.length > 0 && PackageManager.PERMISSION_GRANTED == grantResults[0]) {
                     Toast.makeText(getApplicationContext(), "SMS권한 승인함", Toast.LENGTH_SHORT).show();
-                }
-                else {
+                } else {
                     Toast.makeText(getApplicationContext(), "SMS권한 거부함", Toast.LENGTH_SHORT).show();
                 }
 

@@ -19,32 +19,34 @@ public class FriendActivity extends AppCompatActivity {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityFriendBinding viewBinding;
 
+    DatabaseReference myRef;
+    DatabaseReference chatRef;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewBinding = ActivityFriendBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        String stChatId = this.getIntent().getStringExtra("chatUid");
-        List<Friend> mFriend= new ArrayList<>();
-        FriendAdapter mAdapter = new FriendAdapter(mFriend,this);
+        String chatRoomUid = this.getIntent().getStringExtra("chatUid");
+        myRef = FirebaseDatabase.getInstance().getReference("users");
+        chatRef = FirebaseDatabase.getInstance().getReference("chats").child(chatRoomUid).child("user");
 
+        List<UserInfo> friends = new ArrayList<>();
+        FriendAdapter friendAdapter = new FriendAdapter(friends,this);
         viewBinding.rvFriend.setHasFixedSize(true);
         viewBinding.rvFriend.setLayoutManager(new LinearLayoutManager(this));
-        viewBinding.rvFriend.setAdapter(mAdapter);
+        viewBinding.rvFriend.setAdapter(friendAdapter);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("users");
-        DatabaseReference chatRef = database.getReference("chats").child(stChatId).child("user");
+        // DB에서 친구 목록을 불러와 화면에 출력한다.
         chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot dataSnapshot2 : dataSnapshot.getChildren()) {
-                    final String value = dataSnapshot2.getKey();
-                    myRef.child(value).addListenerForSingleValueEvent(new ValueEventListener() {
+                for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
+                    myRef.child(chatSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            mFriend.add(dataSnapshot.getValue(Friend.class));
-                            mAdapter.notifyItemInserted(mFriend.size() - 1);
+                            friends.add(dataSnapshot.getValue(UserInfo.class));
+                            friendAdapter.notifyItemInserted(friends.size() - 1);
                         }
 
                         @Override

@@ -4,11 +4,9 @@ public class Ledger {
     private String year;
     private String month;
     private String day;
-    private String classfy;
+    private String classify;
     private String times;
-    private String price;
-    private String paymemo;
-    private String useItem;
+    private LedgerContent ledgerContent;
 
     public String getYear() {
         return year;
@@ -31,11 +29,11 @@ public class Ledger {
         this.day = day;
     }
 
-    public String getClassfy() {
-        return classfy;
+    public String getClassify() {
+        return classify;
     }
-    public void setClassfy(String classfy) {
-        this.classfy = classfy;
+    public void setClassify(String classify) {
+        this.classify = classify;
     }
 
     public String getTimes() {
@@ -45,33 +43,16 @@ public class Ledger {
         this.times = time;
     }
 
-    public String getPrice() {
-        return price;
-    }
-    public void setPrice(String price) {
-        this.price = price;
-    }
-
-    public String getPaymemo() {
-        return paymemo;
-    }
-    public void setPaymemo(String payMemo) {
-        this.paymemo = payMemo;
-    }
-
-    public String getUseItem() {
-        return useItem;
-    }
-    public void setUseItem(String useItem) {
-        this.useItem = useItem;
-    }
+    public LedgerContent getLedgerContent() { return ledgerContent; }
+    public void setLedgerContent(LedgerContent ledgerContent) { this.ledgerContent = ledgerContent; }
 
     public Ledger() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
-        this.year = null;
-        this.month = null;
-        this.day = null;
-        this.classfy = null;
-        this.times = null;
+        this.year = "";
+        this.month = "";
+        this.day = "";
+        this.classify = "";
+        this.times = "";
+        this.ledgerContent = new LedgerContent();
     }
 }

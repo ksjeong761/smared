@@ -8,16 +8,16 @@
         android:layout_height="wrap_content"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-        android:clickable="false"
-        />
+        android:clickable="false" />
 
     <Spinner
         android:layout_height="wrap_content"
         android:layout_width="120dp"
-        android:id="@+id/smsUseitem"
+        android:id="@+id/smsCategory"
         android:layout_below="@id/btnSMSDay"
         android:layout_toLeftOf="@id/tvSMSTime"
-        android:entries="@array/useItem"/>
+        android:entries="@array/category"/>
+
     <Button
         android:id="@+id/btnAddSMS"
         android:layout_width="wrap_content"
@@ -28,8 +28,7 @@
         android:textColor="#FFFFFF"
         android:layout_alignParentRight="true"
         android:layout_marginTop="5dp"
-        android:layout_marginRight="10dp"
-        />
+        android:layout_marginRight="10dp" />
 
     <TextView
         android:id="@+id/tvSMSTime"
@@ -38,8 +37,7 @@
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
         android:layout_below="@id/btnSMSDay"
-        android:layout_centerHorizontal="true"
-        />
+        android:layout_centerHorizontal="true" />
 
     <TextView
         android:id="@+id/tvSMSPrice"
@@ -48,21 +46,15 @@
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
         android:layout_below="@id/tvSMSTime"
-        android:layout_centerHorizontal="true"
-
-
-        />
+        android:layout_centerHorizontal="true" />
 
     <TextView
-        android:id="@+id/tvSMSPaymemo"
+        android:id="@+id/tvSMSDescription"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:layout_marginLeft="10dp"
-       android:layout_below="@id/tvSMSPrice"
-        android:layout_centerHorizontal="true"
-        />
-
-
+        android:layout_below="@id/tvSMSPrice"
+        android:layout_centerHorizontal="true" />
 
 </RelativeLayout>

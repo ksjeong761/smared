@@ -17,7 +17,7 @@ import kr.ac.kpu.block.smared.databinding.ListFriendBinding;
 public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
-    private List<Friend> mFriend;  // email,photo,key 저장
+    private List<UserInfo> friends;
     private Context context;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
@@ -32,8 +32,8 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         }
     }
 
-    public FriendAdapter(List<Friend> mFriend , Context context) {
-        this.mFriend = mFriend;
+    public FriendAdapter(List<UserInfo> friends , Context context) {
+        this.friends = friends;
         this.context = context;
     }
 
@@ -50,16 +50,16 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, final int position) {
-        holder.tvNickname.setText(mFriend.get(position).getNickname());
-        String stPhoto = mFriend.get(position).getPhoto();
+        holder.tvNickname.setText(friends.get(position).getNickname());
+        String photoUri = friends.get(position).getPhotoUri();
 
-        if (!TextUtils.isEmpty(stPhoto)) {
-            Picasso.with(context).load(stPhoto).fit().centerInside().into(holder.ivUser);
+        if (!TextUtils.isEmpty(photoUri)) {
+            Picasso.with(context).load(photoUri).fit().centerInside().into(holder.ivUser);
         }
     }
 
     @Override
     public int getItemCount() {
-        return mFriend.size();
+        return friends.size();
     }
 }

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="wrap_content"
-    android:layout_marginLeft="60dp"
-    >
-
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="60dp">
 
     <Button
         android:layout_width="match_parent"
@@ -12,50 +11,43 @@
         android:id="@+id/btnDay"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentRight="true" />
 
-        />
+    <TextView
+        android:id="@+id/tvChoice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginTop="60dp"
+        android:textColor="#000000" />
 
+    <TextView
+        android:id="@+id/tvCategory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvChoice"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:textColor="#000000" />
 
-        <TextView
-            android:id="@+id/tvChoice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:layout_marginLeft="10dp"
-            android:layout_marginTop="60dp"
-            android:textColor="#000000"
-            />
+    <TextView
+        android:id="@+id/tvPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvCategory"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:textColor="#000000" />
 
-        <TextView
-            android:id="@+id/tvUseitem"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tvChoice"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
-            android:textColor="#000000"
-            />
-
-        <TextView
-            android:id="@+id/tvPrice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tvUseitem"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
-            android:textColor="#000000"
-            />
-
-        <TextView
-            android:id="@+id/tvPaymemo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tvPrice"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="10dp"
-            android:textColor="#000000"
-            />
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/tvPrice"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:textColor="#000000" />
 
     <Button
         android:id="@+id/btnEdit"
@@ -65,7 +57,8 @@
         android:layout_alignParentRight="true"
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
-        android:text="수정"/>
+        android:text="수정" />
+
     <Button
         android:id="@+id/btnDelete"
         android:layout_width="60dp"
@@ -74,5 +67,6 @@
         android:background="@drawable/mybutton"
         android:textColor="#FFFFFF"
         android:layout_below="@+id/btnEdit"
-        android:text="삭제"/>
+        android:text="삭제" />
+
 </RelativeLayout>

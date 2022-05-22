@@ -19,8 +19,8 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
     private Context context;
-    private List<Chat> mChat;
-    private String stEmail;
+    private List<Chat> chatMessages;
+    private String email;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -43,16 +43,16 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    public MyAdapter(List<Chat> mChat, String email, Context context) {
-        this.mChat = mChat;
-        this.stEmail = email;
+    public MyAdapter(List<Chat> chatMessages, String email, Context context) {
+        this.chatMessages = chatMessages;
+        this.email = email;
         this.context = context;
     }
 
     // 자신의 뷰 타입은 1 다른 사람은 2
     @Override
     public int getItemViewType(int position) {
-        return (mChat.get(position).getEmail().equals(stEmail)) ? 1 : 2;
+        return (chatMessages.get(position).getUserInfo().getEmail().equals(email)) ? 1 : 2;
     }
 
     // ViewHolder를 새로 만들어야 할 때 호출되는 메서드이다.
@@ -69,15 +69,15 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.mTextView.setText(mChat.get(position).getText());
-        holder.tvChatid.setText(mChat.get(position).getNickname());
-        if (!TextUtils.isEmpty(mChat.get(position).getPhoto())) {
-            Picasso.with(context).load(mChat.get(position).getPhoto()).fit().centerInside().into(holder.ivChatimage);
+        holder.mTextView.setText(chatMessages.get(position).getMessage());
+        holder.tvChatid.setText(chatMessages.get(position).getUserInfo().getNickname());
+        if (!TextUtils.isEmpty(chatMessages.get(position).getUserInfo().getPhotoUri())) {
+            Picasso.with(context).load(chatMessages.get(position).getUserInfo().getPhotoUri()).fit().centerInside().into(holder.ivChatimage);
         }
     }
 
     @Override
     public int getItemCount() {
-        return mChat.size();
+        return chatMessages.size();
     }
 }

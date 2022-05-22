@@ -1,10 +1,8 @@
 package kr.ac.kpu.block.smared;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.media.MediaScannerConnection;
@@ -13,15 +11,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.widget.Toast;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -30,17 +25,11 @@ import kr.ac.kpu.block.smared.databinding.ActivityOcrImageLoadBinding;
 public class OCRImageLoadActivity extends Activity {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityOcrImageLoadBinding viewBinding;
+    private PermissionChecker permissionChecker;
 
     private static final int PICK_FROM_CAMERA = 1;
     private static final int PICK_FROM_ALBUM = 2;
     private static final int CROP_FROM_CAMERA = 3;
-
-    private static final int MULTIPLE_PERMISSIONS = 101;
-    private String[] necessaryPermissions = {
-        Manifest.permission.READ_EXTERNAL_STORAGE,
-        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-        Manifest.permission.CAMERA
-    };
 
     private Uri photoUri;
     private String imagePath = "";
@@ -51,18 +40,13 @@ public class OCRImageLoadActivity extends Activity {
         viewBinding = ActivityOcrImageLoadBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        // 필요한 권한이 있는지 확인
-        List<String> notGrantedPermissions = new ArrayList<>();
-        for (String permission : necessaryPermissions) {
-            if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, permission)) {
-                notGrantedPermissions.add(permission);
-            }
-        }
-
-        // 필요한 권한이 없다면 요청한다.
-        if (!notGrantedPermissions.isEmpty()) {
-            ActivityCompat.requestPermissions(this, notGrantedPermissions.toArray(new String[notGrantedPermissions.size()]), MULTIPLE_PERMISSIONS);
-        }
+        final String[] necessaryPermissions = {
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            android.Manifest.permission.CAMERA
+        };
+        permissionChecker = new PermissionChecker(this, necessaryPermissions);
+        permissionChecker.requestLackingPermissions();
 
         // 카메라 버튼
         viewBinding.btnCamera.setOnClickListener(view -> {
@@ -116,29 +100,9 @@ public class OCRImageLoadActivity extends Activity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String requestedPermissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MULTIPLE_PERMISSIONS: {
-                if (grantResults.length == 0) {
-                    Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
-                    finish();
-                    return;
-                }
-
-                for (int i = 0; i < requestedPermissions.length; i++) {
-                    for (int j = 0; j < this.necessaryPermissions.length; j++) {
-                        if (!requestedPermissions[i].equals(this.necessaryPermissions[j])) {
-                            continue;
-                        }
-
-                        if (PackageManager.PERMISSION_GRANTED != grantResults[i]) {
-                            Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                    }
-                }
-
-                return;
-            }
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 

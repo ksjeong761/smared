@@ -5,13 +5,10 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,12 +39,11 @@ import kr.ac.kpu.block.smared.databinding.FragmentUserProfileBinding;
 public class UserProfileFragment extends Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentUserProfileBinding viewBinding;
+    private PermissionChecker permissionChecker;
 
     private DatabaseReference myRef;
     private DatabaseReference chatRef;
     private FirebaseUser user;
-
-    private final int EXTERNAL_STORAGE_PERMISSION = 1;
 
     private String uid;
     private String email;
@@ -55,6 +51,12 @@ public class UserProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentUserProfileBinding.inflate(inflater, container, false);
+
+        final String[] necessaryPermissions = {
+            android.Manifest.permission.READ_EXTERNAL_STORAGE
+        };
+        permissionChecker = new PermissionChecker(getActivity(), necessaryPermissions);
+        permissionChecker.requestLackingPermissions();
 
         myRef = FirebaseDatabase.getInstance().getReference();
         chatRef = FirebaseDatabase.getInstance().getReference("chats");
@@ -98,15 +100,6 @@ public class UserProfileFragment extends Fragment {
                 logger.writeLog("Failed to read value : " + error.toException().getMessage());
             }
         });
-
-        // 외부 저장소 권한 확인
-        if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(getActivity(), android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            // 사용자가 명시적으로 권한을 거부한 것이 아니라면
-            if (!ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                // 권한을 요청한다.
-                ActivityCompat.requestPermissions(getActivity(), new String[]{ android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
-            }
-        }
 
         // 프로필 사진 변경 버튼 이벤트
         viewBinding.btnChangePhoto.setOnClickListener(view -> {
@@ -239,22 +232,11 @@ public class UserProfileFragment extends Fragment {
         });
     }
 
-    // 외부 저장소 권한 응답
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case EXTERNAL_STORAGE_PERMISSION:
-                if (grantResults.length == 0) {
-                    break;
-                }
-
-                if (PackageManager.PERMISSION_GRANTED == grantResults[0]) {
-                    break;
-                }
-
-                Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
-                getActivity().finish();
-                break;
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
         }
     }
 }

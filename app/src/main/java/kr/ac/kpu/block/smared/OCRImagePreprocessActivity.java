@@ -1,16 +1,15 @@
 package kr.ac.kpu.block.smared;
 
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
@@ -36,17 +35,19 @@ public class OCRImagePreprocessActivity extends AppCompatActivity {
 
     private FormattedLogger logger = new FormattedLogger();
     private ActivityOcrImagePreprocessBinding viewBinding;
-
-    private final int EXTERNAL_STORAGE_PERMISSION = 1;
-    private final String[] permissions = {
-        "android.permission.WRITE_EXTERNAL_STORAGE"
-    };
+    private PermissionChecker permissionChecker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewBinding = ActivityOcrImagePreprocessBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
+
+        final String[] necessaryPermissions = {
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+        permissionChecker = new PermissionChecker(this, necessaryPermissions);
+        permissionChecker.requestLackingPermissions();
 
         LinearLayout layout = new LinearLayout(OCRImagePreprocessActivity.this);
         layout.setOrientation(LinearLayout.HORIZONTAL);
@@ -63,17 +64,6 @@ public class OCRImagePreprocessActivity extends AppCompatActivity {
         alertdialog.setTitle("파일 타입을 골라주세요");
         AlertDialog alert = alertdialog.create();
         alertdialog.create().show();
-
-        for (String perms : permissions){
-            if (PackageManager.PERMISSION_GRANTED == checkCallingOrSelfPermission(perms)) {
-                continue;
-            }
-
-            // 마시멜로( API 23 )이상에서 런타임 권한(Runtime Permission) 요청
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, EXTERNAL_STORAGE_PERMISSION);
-            }
-        }
 
         scan.setOnClickListener(view -> {
             imageprocess_and_showResult();
@@ -94,40 +84,13 @@ public class OCRImagePreprocessActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int permsRequestCode, String[] permissions, int[] grantResults){
-        switch (permsRequestCode) {
-            case EXTERNAL_STORAGE_PERMISSION:
-                if (grantResults.length == 0) {
-                    break;
-                }
-
-                if (PackageManager.PERMISSION_GRANTED == grantResults[1]) {
-                    break;
-                }
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    this.showDialogforPermission("앱을 실행하려면 권한을 허가하셔야합니다.");
-                }
-
-                break;
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 
-    private void showDialogforPermission(String msg) {
-        final AlertDialog.Builder myDialog = new AlertDialog.Builder(OCRImagePreprocessActivity.this);
-        myDialog.setTitle("알림");
-        myDialog.setMessage(msg);
-        myDialog.setCancelable(false);
-        myDialog.setPositiveButton("예", (arg0, arg1) -> {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                this.requestPermissions(permissions, EXTERNAL_STORAGE_PERMISSION);
-            }
-        });
-
-        myDialog.setNegativeButton("아니오", (arg0, arg1) -> finish());
-        myDialog.show();
-    }
-
-    public void SaveBitmapFile(Bitmap bitmap, String directoryPath, String fileName) {
+    private void SaveBitmapFile(Bitmap bitmap, String directoryPath, String fileName) {
         // 폴더가 없다면 만든다.
         File directory = new File(directoryPath);
         if (!directory.exists()) {

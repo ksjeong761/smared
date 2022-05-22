@@ -2,12 +2,9 @@ package kr.ac.kpu.block.smared;
 
 import android.app.AlertDialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,6 +42,7 @@ import kr.ac.kpu.block.smared.databinding.FragmentShareLedgerViewBinding;
 public class ShareLedgerViewFragment extends android.app.Fragment {
     private FormattedLogger logger = new FormattedLogger();
     private FragmentShareLedgerViewBinding viewBinding;
+    private PermissionChecker permissionChecker;
 
     private DatabaseReference chatRef;
     private FirebaseUser user;
@@ -60,20 +58,19 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
     private List<String> yearsAndMonthsHavingDataList = new ArrayList<>(); // 데이터가 존재하는 년,월만을 기록
     private int yearsAndMonthsIndex = 0; // 년,월 인덱스
 
-    private final int MULTIPLE_PERMISSIONS = 101;
-    private String[] permissions = {
-            android.Manifest.permission.READ_EXTERNAL_STORAGE,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-    };
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentShareLedgerViewBinding.inflate(inflater, container, false);
 
+        final String[] necessaryPermissions = {
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+        };
+        permissionChecker = new PermissionChecker(getActivity(), necessaryPermissions);
+        permissionChecker.requestLackingPermissions();
+
         chatRef = FirebaseDatabase.getInstance().getReference("chats");
         user = FirebaseAuth.getInstance().getCurrentUser();
-
-        checkPermissions();
 
         // 스피너에 출력할 채팅방 목록을 불러온다.
         loadJoiningChatRooms();
@@ -349,58 +346,12 @@ public class ShareLedgerViewFragment extends android.app.Fragment {
         }
     }
 
-    // 필요한 권한 중 허가되지 않은 것이 하나라도 있을 경우
-    // 필요한 모든 권한을 요청하고 실패 처리한다.
-    private boolean checkPermissions() {
-        // 필요한 권한 중에 허가되지 않은 권한 목록을 수집한다.
-        List<String> deniedPermissions = new ArrayList<>();
-        for (String permission : permissions) {
-            if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(getActivity(), permission)) {
-                deniedPermissions.add(permission);
-            }
-        }
-
-        // 허가되지 않은 권한이 있을 경우 필요한 모든 권한을 요청하고 실패 처리한다.
-        if (!deniedPermissions.isEmpty()) {
-            ActivityCompat.requestPermissions(getActivity(), deniedPermissions.toArray(new String[deniedPermissions.size()]), MULTIPLE_PERMISSIONS);
-            return false;
-        }
-
-        // 필요한 모든 권한이 있으므로 성공 처리한다.
-        return true;
-    }
-
     // 권한을 요청했을 때 결과를 알려주는 콜백 함수
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case MULTIPLE_PERMISSIONS:
-                // 새로 허가된 권한이 없는 경우 사용자에게 알리고 액티비티를 종료한다.
-                if (grantResults.length == 0) {
-                    showNoPermissionToastAndFinish();
-                    return;
-                }
-
-                // 새로 허가된 권한이 있다면 필요한 모든 권한이 허가되었는지 확인한다.
-                for (int i = 0; i < permissions.length; i++) {
-                    for (int j = 0; j < this.permissions.length; j++) {
-                        if (permissions[i].equals(this.permissions[j])) {
-                            continue;
-                        }
-
-                        if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
-                            showNoPermissionToastAndFinish();
-                        }
-                    }
-                }
-
-                break;
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
         }
-    }
-
-    // 필요한 권한이 허가되지 않았음을 사용자에게 알리고 액티비티를 종료한다.
-    private void showNoPermissionToastAndFinish() {
-        Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한 허용 하시기 바랍니다.", Toast.LENGTH_SHORT).show();
-        getActivity().finish();
     }
 }

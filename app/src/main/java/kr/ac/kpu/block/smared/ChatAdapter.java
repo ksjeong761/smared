@@ -15,7 +15,7 @@ import java.util.List;
 import kr.ac.kpu.block.smared.databinding.MyTextViewBinding;
 import kr.ac.kpu.block.smared.databinding.TheyTextViewBinding;
 
-public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
+public class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
     private Context context;
@@ -43,7 +43,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
         }
     }
 
-    public MyAdapter(List<Chat> chatMessages, String email, Context context) {
+    public ChatAdapter(List<Chat> chatMessages, String email, Context context) {
         this.chatMessages = chatMessages;
         this.email = email;
         this.context = context;
@@ -59,7 +59,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.ViewHolder> {
     // 이 메서드를 통해 각 아이템을 위한 XML 레이아웃을 이용한 뷰 객체를 생성하고 뷰 홀더에 담아 리턴한다.
     // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
     @Override
-    public MyAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ChatAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         MyTextViewBinding viewBinding = MyTextViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         TheyTextViewBinding viewBinding2 = TheyTextViewBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return  (viewType == 1) ? new ViewHolder(viewBinding) : new ViewHolder(viewBinding2);

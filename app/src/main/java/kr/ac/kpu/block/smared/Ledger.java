@@ -1,58 +1,125 @@
 package kr.ac.kpu.block.smared;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TimeZone;
+
 public class Ledger {
-    private String year;
-    private String month;
-    private String day;
-    private String classify;
-    private String times;
-    private LedgerContent ledgerContent;
+    private long paymentTimestamp; // 결제 시간
+    private String paymentMethod;    // 결제 수단
 
-    public String getYear() {
-        return year;
-    }
-    public void setYear(String year) {
-        this.year = year;
-    }
+    private String storeName;           // 가게 이름
+    private String storeAddress;        // 가게 주소
 
-    public String getMonth() {
-        return month;
-    }
-    public void setMonth(String month) {
-        this.month = month;
-    }
+    private String description;           // 비고
+    private String category;               // 소비 카테고리
+    private double totalPrice;             // 총 소비 금액
 
-    public String getDay() {
-        return day;
+    private Product[] products;         // 구매한 상품 목록
+
+    public long getPaymentTimestamp() {
+        return paymentTimestamp;
     }
-    public void setDay(String day) {
-        this.day = day;
+    public String getPaymentTimestamp(String format) {
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());
+        return localDateTime.format(DateTimeFormatter.ofPattern(format));
+    }
+    public void setPaymentTimestamp(long paymentTimestamp) {
+        this.paymentTimestamp = paymentTimestamp;
     }
 
-    public String getClassify() {
-        return classify;
+    public String getPaymentMethod() {
+        return paymentMethod;
     }
-    public void setClassify(String classify) {
-        this.classify = classify;
-    }
-
-    public String getTimes() {
-        return times;
-    }
-    public void setTimes(String time) {
-        this.times = time;
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 
-    public LedgerContent getLedgerContent() { return ledgerContent; }
-    public void setLedgerContent(LedgerContent ledgerContent) { this.ledgerContent = ledgerContent; }
+    public String getStoreAddress() {
+        return storeAddress;
+    }
+    public void setStoreAddress(String storeAddress) {
+        this.storeAddress = storeAddress;
+    }
+
+    public String getStoreName() {
+        return storeName;
+    }
+    public void setStoreName(String storeName) {
+        this.storeName = storeName;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public Product[] getProducts() {
+        return products;
+    }
+    public void setProducts(Product[] products) {
+        this.products = products;
+    }
+
+    public double getTotalPrice() {
+        return totalPrice;
+    }
+    public void setTotalPrice(double totalPrice) {
+        this.totalPrice = totalPrice;
+    }
 
     public Ledger() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
-        this.year = "";
-        this.month = "";
-        this.day = "";
-        this.classify = "";
-        this.times = "";
-        this.ledgerContent = new LedgerContent();
+        paymentTimestamp = 0;
+        paymentMethod = "";
+
+        storeName = "";
+        storeAddress = "";
+
+        description = "";
+        category = "";
+        totalPrice = 0;
+
+        products = new Product[0];         // 구매한 상품 목록
+    }
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> map = new HashMap<>();
+
+        map.put("paymentTimestamp", paymentTimestamp);
+        map.put("paymentMethod", paymentMethod);
+
+        map.put("storeName", storeName);
+        map.put("storeAddress", storeAddress);
+
+        map.put("description", description);
+        map.put("category", category);
+
+        map.put("productCount", products.length);
+        for (int i = 0; i < products.length; i++) {
+            map.put("product" + i, products[i].toMap());
+        }
+
+        return map;
+    }
+
+    public int compareDate(Ledger that) {
+        LocalDate dateA = LocalDateTime.ofInstant(Instant.ofEpochMilli(this.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
+        LocalDate dateB = LocalDateTime.ofInstant(Instant.ofEpochMilli(that.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
+
+        return dateA.compareTo(dateB);
     }
 }

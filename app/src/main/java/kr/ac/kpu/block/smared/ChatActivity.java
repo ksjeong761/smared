@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -89,7 +90,7 @@ public class ChatActivity extends AppCompatActivity {
 
         // 어댑터를 사용해 데이터를 뷰로 만든다.
         List<Chat> chatMessages = new ArrayList<>();
-        RecyclerView.Adapter mAdapter = new MyAdapter(chatMessages, email,ChatActivity.this);
+        RecyclerView.Adapter mAdapter = new ChatAdapter(chatMessages, email,ChatActivity.this);
         viewBinding.rvChat.setAdapter(mAdapter);
 
         // 이벤트를 이용해 새 채팅 메시지가 있다면 DB에서 받아온다.

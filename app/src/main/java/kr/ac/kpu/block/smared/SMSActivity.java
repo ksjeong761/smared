@@ -1,12 +1,8 @@
 package kr.ac.kpu.block.smared;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.widget.Toast;
@@ -21,8 +17,7 @@ import kr.ac.kpu.block.smared.databinding.ActivitySmsBinding;
 public class SMSActivity extends AppCompatActivity {
     private FormattedLogger logger = new FormattedLogger();
     private ActivitySmsBinding viewBinding;
-
-    private final int SMS_RECEIVE_PERMISSION = 1;
+    private PermissionChecker permissionChecker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,39 +25,17 @@ public class SMSActivity extends AppCompatActivity {
         viewBinding = ActivitySmsBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
+        final String[] necessaryPermissions = {
+            android.Manifest.permission.READ_SMS,
+            android.Manifest.permission.RECEIVE_SMS
+        };
+        permissionChecker = new PermissionChecker(this, necessaryPermissions);
+
         viewBinding.rvSMS.setHasFixedSize(true);
         viewBinding.rvSMS.setLayoutManager(new LinearLayoutManager(this));
         List<SMS> smsList = new ArrayList<>();
         SMSAdapter smsAdapter = new SMSAdapter(smsList, this);
         viewBinding.rvSMS.setAdapter(smsAdapter);
-
-        // SMS 읽기 권한이 부여되어 있는지 확인
-        if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_SMS)) {
-            Toast.makeText(getApplicationContext(), "SMS 읽기 권한 없음", Toast.LENGTH_SHORT).show();
-
-            // Dialog를 통해 요청된 권한을 사용자가 거부했을 경우 알림 메시지를 보여준다.
-            // 사용자가 "Don't ask again"을 체크한 경우 알림 메시지는 보여지지 않는다.
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, android.Manifest.permission.READ_SMS)){
-                Toast.makeText(getApplicationContext(), "SMS 읽기 권한이 필요합니다", Toast.LENGTH_SHORT).show();
-            }
-
-            // 다시 권한을 요청한다.
-            ActivityCompat.requestPermissions(this, new String[]{ android.Manifest.permission.READ_SMS}, SMS_RECEIVE_PERMISSION);
-        }
-
-        // SMS 수신 권한이 부여되어 있는지 확인
-        if (PackageManager.PERMISSION_GRANTED != ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS)) {
-            Toast.makeText(getApplicationContext(), "SMS 수신 권한 없음", Toast.LENGTH_SHORT).show();
-
-            // Dialog를 통해 요청된 권한을 사용자가 거부했을 경우 알림 메시지를 보여준다.
-            // 사용자가 "Don't ask again"을 체크한 경우 알림 메시지는 보여지지 않는다.
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.RECEIVE_SMS)) {
-                Toast.makeText(getApplicationContext(), "SMS 수신 권한이 필요합니다", Toast.LENGTH_SHORT).show();
-            }
-
-            // 다시 권한을 요청한다.
-            ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.RECEIVE_SMS}, SMS_RECEIVE_PERMISSION);
-        }
 
         // SMS 불러오기 버튼 이벤트 -> 모든 SMS를 확인해서 신한 체크카드 결제 문자인 경우 파싱 후 리스트로 화면에 보여준다.
         viewBinding.btnLoadSMS.setOnClickListener(view -> {
@@ -124,15 +97,9 @@ public class SMSActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int grantResults[]) {
-        switch (requestCode) {
-            case SMS_RECEIVE_PERMISSION:
-                if (grantResults.length > 0 && PackageManager.PERMISSION_GRANTED == grantResults[0]) {
-                    Toast.makeText(getApplicationContext(), "SMS권한 승인함", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "SMS권한 거부함", Toast.LENGTH_SHORT).show();
-                }
-
-                break;
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 }

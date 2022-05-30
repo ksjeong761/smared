@@ -18,53 +18,37 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Map;
 
-import kr.ac.kpu.block.smared.databinding.ActivityMainBinding;
+import kr.ac.kpu.block.smared.databinding.ActivityLoginBinding;
 
 // 메인 액티비티에서는 로그인을 수행
-public class MainActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
     private FormattedLogger logger = new FormattedLogger();
-    private ActivityMainBinding viewBinding;
+    private ActivityLoginBinding viewBinding;
 
-    // 데이터베이스를 통한 사용자 인증
     private FirebaseAuth mAuth;
     private DatabaseReference myRef;
 
-    // 안드로이드 생명주기 onCreate() -> onStart() -> onResume() -> onPause() -> onStop() -> onDestory()
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // 뷰 바인딩 적용
         super.onCreate(savedInstanceState);
-        viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        viewBinding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        // 데이터베이스 연결
-        connectDB();
+        myRef = FirebaseDatabase.getInstance().getReference("users");
+        mAuth = FirebaseAuth.getInstance();
 
-        // 회원가입 버튼에 이벤트 등록
         viewBinding.btnRegister.setOnClickListener(view -> signUp());
-
-        // 로그인 버튼에 이벤트 등록
         viewBinding.btnLogin.setOnClickListener(view -> signIn());
     }
 
-    private void connectDB() {
-        // 파이어베이스 DB에서 users 데이터를 불러온다.
-        myRef = FirebaseDatabase.getInstance().getReference("users");
-
-        // 파이어베이스 인증 객체 생성
-        mAuth = FirebaseAuth.getInstance();
-    }
-
-    // https://firebase.google.com/docs/auth/android/password-auth
-    // 회원 가입
     private void signUp() {
         // 얼럿 다이얼로그 빌더
-        final AlertDialog.Builder alertdialog = new AlertDialog.Builder(MainActivity.this);
+        final AlertDialog.Builder alertdialog = new AlertDialog.Builder(LoginActivity.this);
 
         // 이메일, 비밀번호, 닉네임 입력받기
-        final EditText etEmail = new EditText(MainActivity.this);
-        final EditText etPassword = new EditText(MainActivity.this);
-        final EditText etNickname = new EditText(MainActivity.this);
+        final EditText etEmail = new EditText(LoginActivity.this);
+        final EditText etPassword = new EditText(LoginActivity.this);
+        final EditText etNickname = new EditText(LoginActivity.this);
 
         // 아무것도 입력되지 않았을 때 보이는 기본 메시지
         etEmail.setHint("Email을 입력해주세요");
@@ -75,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
         etPassword.setTransformationMethod(PasswordTransformationMethod.getInstance());
 
         // addView를 통해 선형 레이아웃에 UI 컴포넌트 추가
-        LinearLayout layout = new LinearLayout(MainActivity.this);
+        LinearLayout layout = new LinearLayout(LoginActivity.this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.addView(etEmail);
         layout.addView(etPassword);
@@ -93,13 +77,13 @@ public class MainActivity extends AppCompatActivity {
 
             // 입력 값이 없는 경우
             if (email.isEmpty() || password.isEmpty() || nickname.isEmpty()) {
-                Toast.makeText(MainActivity.this, "양식을 모두 채워주세요", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "양식을 모두 채워주세요", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             // 입력 값 형식이 잘못된 경우
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(MainActivity.this, "이메일 형식이 잘못되었습니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "이메일 형식이 잘못되었습니다.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -107,12 +91,12 @@ public class MainActivity extends AppCompatActivity {
             mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
                 // 회원가입 실패
                 if (!task.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "회원가입 실패", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(LoginActivity.this, "회원가입 실패", Toast.LENGTH_SHORT).show();
                     return;
                 }
 
                 // 회원가입 성공
-                Toast.makeText(MainActivity.this, "회원가입 성공", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "회원가입 성공", Toast.LENGTH_SHORT).show();
                 FirebaseUser user = mAuth.getCurrentUser();
 
                 // HashTable에 회원가입에 필요한 정보 넣고
@@ -131,18 +115,17 @@ public class MainActivity extends AppCompatActivity {
         alertdialog.create().show();
     }
 
-    // 로그인
     private void signIn() {
         String email = viewBinding.etEmail.getText().toString();
         String password = viewBinding.etPassword.getText().toString();
 
         if (email.isEmpty()) {
-            Toast.makeText(MainActivity.this, "이메일을 입력해주세요.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "이메일을 입력해주세요.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (password.isEmpty()) {
-            Toast.makeText(MainActivity.this, "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -155,11 +138,11 @@ public class MainActivity extends AppCompatActivity {
             viewBinding.pbLogin.setVisibility(View.GONE);
 
             if (!task.isSuccessful()) {
-                Toast.makeText(MainActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            Toast.makeText(MainActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
+            Toast.makeText(LoginActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
 
             // 전역 객체에 사용자 정보 값을 저장해둔다.
             FirebaseUser user = mAuth.getCurrentUser();
@@ -170,7 +153,7 @@ public class MainActivity extends AppCompatActivity {
             editor.apply();
 
             // 탭 액티비티 화면으로 넘어간다.
-            startActivity(new Intent(MainActivity.this, TabActivity.class));
+            startActivity(new Intent(LoginActivity.this, TabActivity.class));
         });
     }
 }

@@ -22,12 +22,11 @@ import kr.ac.kpu.block.smared.databinding.ListLedgerBinding;
 public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
-    // 데이터베이스 관련
-    private FirebaseUser user;
-    private DatabaseReference myRef;
-
-    private Context context;
+    private Context parentContext;
     private List<Ledger> ledgerData;
+
+    private final int VIEW_TYPE_LIST_LEDGER = 1;
+    private final int VIEW_TYPE_LIST_CONTENT = 2;
 
     // 리스트의 각 요소마다 뷰를 만들어서 뷰홀더에 저장해두는 것으로 findViewById가 매번 호출되는 것을 방지한다.
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -61,15 +60,9 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         }
     }
 
-    public LedgerAdapter(List<Ledger> ledgerData , Context context) {
+    public LedgerAdapter(List<Ledger> ledgerData , Context parentContext) {
         this.ledgerData = ledgerData;
-        this.context = context;
-    }
-
-    // 목록에 날짜가 다른 요소가 있다면 뷰 타입은 2이고 다른 경우는 1이다.
-    @Override
-    public int getItemViewType(int position) {
-        return hasDifferentDate(ledgerData, position, position-1) ? 2 : 1;
+        this.parentContext = parentContext;
     }
 
     // ViewHolder를 새로 만들어야 할 때 호출되는 메서드이다.
@@ -77,59 +70,49 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
     @Override
     public LedgerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        myRef = FirebaseDatabase.getInstance().getReference("users");
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        ViewHolder listLedgerViewHolder = new ViewHolder(ListLedgerBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
+        ViewHolder listContentViewHolder = new ViewHolder(ListContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
 
-        ListLedgerBinding listLedgerBinding = ListLedgerBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        ListContentBinding listContentBinding = ListContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        return (viewType == 1) ? new ViewHolder(listLedgerBinding) : new ViewHolder(listContentBinding);
+        return (viewType == VIEW_TYPE_LIST_LEDGER) ? listLedgerViewHolder : listContentViewHolder;
     }
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
-    public void onBindViewHolder(ViewHolder holder, final int position) {
-        if (hasDifferentDate(ledgerData, position, position-1)) {
-            holder.btnDay.setText(ledgerData.get(position).getYear() + "-" + ledgerData.get(position).getMonth() + "-" + ledgerData.get(position).getDay());
+    public void onBindViewHolder(ViewHolder viewHolder, final int index) {
+        if (hasDifferentDate(ledgerData, index, index-1)) {
+            viewHolder.btnDay.setText(ledgerData.get(index).getPaymentTimestamp("yyyy-MM-dd"));
         }
 
-        holder.tvChoice.setText("[ " + ledgerData.get(position).getClassify() + " ]");
-        holder.tvCategory.setText("분류 : " + ledgerData.get(position).getLedgerContent().getCategory());
-        holder.tvPrice.setText("가격 : " + ledgerData.get(position).getLedgerContent().getPrice() + "원");
-        holder.tvDescription.setText("내용 : " + ledgerData.get(position).getLedgerContent().getDescription());
+        viewHolder.tvCategory.setText("소비 분류 : " + ledgerData.get(index).getCategory());
+        viewHolder.tvPrice.setText("총 소비 금액 : " + ledgerData.get(index).getTotalPrice() + "원");
+        viewHolder.tvDescription.setText("비고 : " + ledgerData.get(index).getDescription());
 
         // 수정 버튼
-        holder.btnEdit.setOnClickListener(view -> new LedgerEditDialog(context, ledgerData, position).show());
+        viewHolder.btnEdit.setOnClickListener(view -> new LedgerEditDialog(parentContext, ledgerData, index).show());
 
         // 삭제 버튼
-        holder.btnDelete.setOnClickListener(view -> {
-            AlertDialog.Builder alertdialog = new AlertDialog.Builder(context);
-            alertdialog.setMessage("정말 삭제 하시겠습니까?");
+        viewHolder.btnDelete.setOnClickListener(view -> {
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(parentContext);
+            alertDialog.setMessage("정말 삭제 하시겠습니까?");
 
             // 확인 버튼
-            alertdialog.setPositiveButton("확인", (dialog, which) -> {
-                if (!ledgerData.get(position).getClassify().equals("지출") && !ledgerData.get(position).getClassify().equals("수입")) {
-                    logger.writeLog("Error : getClassify() - 잘못된 값이 입력됨");
-                    return;
-                }
-
+            alertDialog.setPositiveButton("확인", (dialog, which) -> {
                 // 가계부에서 선택한 데이터 삭제
-                myRef.child(user.getUid()).child("Ledger")
-                    .child(ledgerData.get(position).getYear())
-                    .child(ledgerData.get(position).getMonth())
-                    .child(ledgerData.get(position).getDay())
-                    .child(ledgerData.get(position).getClassify())
-                    .child(ledgerData.get(position).getTimes())
-                    .removeValue();
+                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("ledger");
+                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+                myRef.child(user.getUid())
+                        .child(String.valueOf(ledgerData.get(index).getPaymentTimestamp()))
+                        .removeValue();
 
-                Toast.makeText(context, "삭제되었습니다", Toast.LENGTH_SHORT).show();
+                Toast.makeText(parentContext, "삭제되었습니다", Toast.LENGTH_SHORT).show();
             });
 
             // 취소 버튼
-            alertdialog.setNegativeButton("취소", (dialog, which) -> { });
+            alertDialog.setNegativeButton("취소", (dialog, which) -> { });
 
             // 알럿 다이얼로그 생성
-            alertdialog.create().show();
+            alertDialog.create().show();
         });
     }
 
@@ -138,19 +121,17 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         return ledgerData.size();
     }
 
-    private boolean hasDifferentDate(List<Ledger> ledger, int positionA, int positionB) {
-        if (positionA < 0 || positionB < 0)
+    @Override
+    public int getItemViewType(int position) {
+        return (hasDifferentDate(ledgerData, position, position-1)) ? VIEW_TYPE_LIST_CONTENT : VIEW_TYPE_LIST_LEDGER;
+    }
+
+    private boolean hasDifferentDate(List<Ledger> ledger, int indexA, int indexB) {
+        if (indexA < 0 || indexA >= ledger.size())
+            return true;
+        if (indexB < 0 || indexB >= ledger.size())
             return true;
 
-        if (!ledger.get(positionA).getYear().equals(ledger.get(positionB).getYear()))
-            return true;
-
-        if (!ledger.get(positionA).getMonth().equals(ledger.get(positionB).getMonth()))
-            return true;
-
-        if (!ledger.get(positionA).getDay().equals(ledger.get(positionB).getDay()))
-            return true;
-
-        return false;
+        return (ledger.get(indexA).compareDate(ledger.get(indexB)) != 0);
     }
 }

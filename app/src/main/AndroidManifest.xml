@@ -40,7 +40,7 @@
         <activity android:name=".OCRRequestActivity" />
         <activity android:name=".FriendActivity" />
         <activity android:name=".OCRResultDisplayActivity" />
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".LoginActivity"/>
 
         <provider
             android:name="android.support.v4.content.FileProvider"

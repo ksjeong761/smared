@@ -25,38 +25,22 @@ public class MainActivity extends AppCompatActivity {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityMainBinding viewBinding;
 
-    // 데이터베이스를 통한 사용자 인증
     private FirebaseAuth mAuth;
     private DatabaseReference myRef;
 
-    // 안드로이드 생명주기 onCreate() -> onStart() -> onResume() -> onPause() -> onStop() -> onDestory()
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // 뷰 바인딩 적용
         super.onCreate(savedInstanceState);
         viewBinding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        // 데이터베이스 연결
-        connectDB();
+        myRef = FirebaseDatabase.getInstance().getReference("users");
+        mAuth = FirebaseAuth.getInstance();
 
-        // 회원가입 버튼에 이벤트 등록
         viewBinding.btnRegister.setOnClickListener(view -> signUp());
-
-        // 로그인 버튼에 이벤트 등록
         viewBinding.btnLogin.setOnClickListener(view -> signIn());
     }
 
-    private void connectDB() {
-        // 파이어베이스 DB에서 users 데이터를 불러온다.
-        myRef = FirebaseDatabase.getInstance().getReference("users");
-
-        // 파이어베이스 인증 객체 생성
-        mAuth = FirebaseAuth.getInstance();
-    }
-
-    // https://firebase.google.com/docs/auth/android/password-auth
-    // 회원 가입
     private void signUp() {
         // 얼럿 다이얼로그 빌더
         final AlertDialog.Builder alertdialog = new AlertDialog.Builder(MainActivity.this);
@@ -131,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
         alertdialog.create().show();
     }
 
-    // 로그인
     private void signIn() {
         String email = viewBinding.etEmail.getText().toString();
         String password = viewBinding.etPassword.getText().toString();

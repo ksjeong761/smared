@@ -1,7 +1,5 @@
 package kr.ac.kpu.block.smared;
 
-import android.util.Log;
-
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
 

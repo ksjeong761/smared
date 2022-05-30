@@ -5,20 +5,24 @@ import android.content.Intent;
 import android.os.Handler;
 import android.os.Bundle;
 
-// 프로그램을 실행했을 때 이미지 보여주는 액티비티
+// 프로그램을 실행했을 때 타이틀 이미지 보여주는 액티비티
 public class SplashActivity extends Activity {
     private FormattedLogger logger = new FormattedLogger();
-    private final int SPLASH_TIME_MILISECOND = 2000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 프로그램을 실행했을 때 이미지를 보여주고 메인 액티비티로 넘어간다.
+        startNextActivityAfterAnimation();
+    }
+
+    private void startNextActivityAfterAnimation() {
+        final int SPLASH_TIME_MILLISECONDS = 2000;
+
         new Handler().postDelayed(() -> {
+            startActivity(new Intent(SplashActivity.this, LoginActivity.class));
             overridePendingTransition(0, android.R.anim.fade_in);
-            startActivity(new Intent(SplashActivity.this, MainActivity.class));
             finish();
-        }, SPLASH_TIME_MILISECOND);
+        }, SPLASH_TIME_MILLISECONDS);
     }
 }

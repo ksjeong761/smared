@@ -80,6 +80,9 @@ public class Ledger {
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
+    public void setTotalPrice(String totalPriceString) {
+        this.totalPrice = Double.parseDouble(totalPriceString);
+    }
 
     public Ledger() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
@@ -121,5 +124,18 @@ public class Ledger {
         LocalDate dateB = LocalDateTime.ofInstant(Instant.ofEpochMilli(that.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
 
         return dateA.compareTo(dateB);
+    }
+
+    public int getCategoryIndex() {
+        Map<String, Integer> map = new HashMap<>();
+        map.put("의류비", 0);
+        map.put("식비", 1);
+        map.put("주거비", 2);
+        map.put("교통비", 3);
+        map.put("생필품", 4);
+        map.put("기타", 5);
+
+        Integer categoryIndex = map.get(category);
+        return (categoryIndex != null) ? categoryIndex : -1;
     }
 }

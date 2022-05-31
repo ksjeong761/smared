@@ -8,13 +8,8 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerRegBinding;
 
@@ -27,52 +22,42 @@ public class LedgerRegFragment extends android.app.Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerRegBinding.inflate(inflater, container, false);
 
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        // 저장 버튼 이벤트 - UI에 정보가 모두 입력되었다면 DB에 저장한다.
-        viewBinding.btnSave.setOnClickListener(view -> {
-            if (viewBinding.etPrice.getText().toString().isEmpty()) {
-                Toast.makeText(getActivity(), "금액란을 채워주세요", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            // DB 삽입용 Hashtable DTO
-            String category = viewBinding.spnCategory.getSelectedItem().toString();
-            String price = viewBinding.etPrice.getText().toString();
-            String description = viewBinding.etDescription.getText().toString();
-            Map<String, String> ledger = new LedgerContent(category, price, description).toHashMap();
-
-            // 삽입할 DB 경로 지정
-            long selectedDate = viewBinding.cvCalender.getDate();
-            String year = new SimpleDateFormat("yyyy").format(selectedDate);
-            String month = new SimpleDateFormat("MM").format(selectedDate);
-            String day = new SimpleDateFormat("dd").format(selectedDate);
-            String incomeOrExpenditure = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
-            String now = new SimpleDateFormat("HHmmss").format(Calendar.getInstance().getTime());
-
-            // DB 삽입
-            myRef.child(user.getUid())
-                    .child("Ledger")
-                    .child(year)
-                    .child(month)
-                    .child(day)
-                    .child(incomeOrExpenditure)
-                    .child(now)
-                    .setValue(ledger);
-
-            // 입력 받는 부분 UI 초기화
-            viewBinding.etPrice.setText("");
-            viewBinding.etDescription.setText("");
-            Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
-        });
-
-        // OCR 버튼 이벤트 - ImageActivity로 이동한다.
-        viewBinding.btnOcr.setOnClickListener(view -> startActivity(new Intent(getActivity(), OCRImageLoadActivity.class)));
-
-        // SMS 버튼 이벤트 - SMSActivity로 이동한다.
+        viewBinding.btnSaveLedger.setOnClickListener(view -> insertLedgerDB());
+        viewBinding.btnOCR.setOnClickListener(view -> startActivity(new Intent(getActivity(), OCRImageLoadActivity.class)));
         viewBinding.btnSMS.setOnClickListener(view -> startActivity(new Intent(getActivity(), SMSActivity.class)));
 
         return viewBinding.getRoot();
+    }
+
+    public void insertLedgerDB() {
+        if (viewBinding.etTotalPrice.getText().toString().isEmpty()) {
+            Toast.makeText(getActivity(), "금액란을 채워주세요", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 사용자가 입력한 데이터를 객체에 반영한다.
+        Ledger ledger = new Ledger();
+        ledger.setDescription(viewBinding.etDescription.getText().toString());
+        ledger.setTotalPrice(viewBinding.etTotalPrice.getText().toString());
+        ledger.setCategory(viewBinding.spnCategory.getSelectedItem().toString());
+        ledger.setPaymentTimestamp(viewBinding.cvCalender.getDate());
+
+        // DB 경로를 지정한다.
+        String timestamp = String.valueOf(ledger.getPaymentTimestamp());
+        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String databasePath = "ledger" + "/" + userUid + "/" + timestamp;
+        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
+
+        // DB에 데이터를 저장한다.
+        ledgerDBRef.setValue(ledger.toMap()).addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Toast.makeText(getActivity(), "저장에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Toast.makeText(getActivity(), "저장하였습니다.", Toast.LENGTH_SHORT).show();
+            viewBinding.etTotalPrice.setText("");
+            viewBinding.etDescription.setText("");
+        });
     }
 }

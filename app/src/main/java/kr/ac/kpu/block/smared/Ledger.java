@@ -1,5 +1,8 @@
 package kr.ac.kpu.block.smared;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.IgnoreExtraProperties;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
+@IgnoreExtraProperties
 public class Ledger {
     private long paymentTimestamp; // 결제 시간
     private String paymentMethod;    // 결제 수단
@@ -19,7 +23,7 @@ public class Ledger {
     private String category;               // 소비 카테고리
     private double totalPrice;             // 총 소비 금액
 
-    private Product[] products;         // 구매한 상품 목록
+    //private Product[] products;         // 구매한 상품 목록
 
     public long getPaymentTimestamp() {
         return paymentTimestamp;
@@ -67,25 +71,21 @@ public class Ledger {
         this.category = category;
     }
 
-    public Product[] getProducts() {
-        return products;
-    }
-    public void setProducts(Product[] products) {
-        this.products = products;
-    }
-
     public double getTotalPrice() {
         return totalPrice;
     }
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
     }
-    public void setTotalPrice(String totalPriceString) {
-        this.totalPrice = Double.parseDouble(totalPriceString);
-    }
+
+//    public Product[] getProducts() {
+//        return products;
+//    }
+//    public void setProducts(Product[] products) {
+//        this.products = products;
+//    }
 
     public Ledger() {
-        // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
         paymentTimestamp = 0;
         paymentMethod = "";
 
@@ -96,7 +96,7 @@ public class Ledger {
         category = "";
         totalPrice = 0;
 
-        products = new Product[0];         // 구매한 상품 목록
+        //products = new Product[0];         // 구매한 상품 목록
     }
 
     public Map<String, Object> toMap() {
@@ -110,11 +110,12 @@ public class Ledger {
 
         map.put("description", description);
         map.put("category", category);
+        map.put("totalPrice", totalPrice);
 
-        map.put("productCount", products.length);
-        for (int i = 0; i < products.length; i++) {
-            map.put("product" + i, products[i].toMap());
-        }
+//        map.put("productCount", products.length);
+//        for (int i = 0; i < products.length; i++) {
+//            map.put("product" + i, products[i].toMap());
+//        }
 
         return map;
     }

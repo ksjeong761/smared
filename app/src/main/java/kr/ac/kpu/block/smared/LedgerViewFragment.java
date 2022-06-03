@@ -13,7 +13,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,11 +28,13 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Calendar;
 import java.util.List;
-import java.util.Set;
+import java.util.TimeZone;
 
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerViewBinding;
 
@@ -42,21 +43,24 @@ public class LedgerViewFragment extends android.app.Fragment {
     private FragmentLedgerViewBinding viewBinding;
     private PermissionChecker permissionChecker;
 
-    private DatabaseReference myRef;
-    private FirebaseUser user;
-
     // 가계부 전체 데이터
     private List<Ledger> allLedgerData = new ArrayList<>();
+    private LocalDateTime displayedDateTime = LocalDateTime.now();
 
-    // 데이터가 존재하는 년,월만을 기록하여 월별 데이터를 조회할 수 있도록 한다.
-    private Set<String> yearsAndMonthsHavingDataSet = new HashSet<>(); // 중복제거용 Set
-    private List<String> yearsAndMonthsHavingDataList = new ArrayList<>(); // 데이터가 존재하는 년,월만을 기록
-    private int yearsAndMonthsIndex = 0; // 년,월 인덱스
+    // 권한을 요청했을 때 결과를 알려주는 콜백 함수
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         viewBinding = FragmentLedgerViewBinding.inflate(inflater, container, false);
 
+        // 권한 체크
         final String[] necessaryPermissions = {
             android.Manifest.permission.READ_EXTERNAL_STORAGE,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -64,152 +68,18 @@ public class LedgerViewFragment extends android.app.Fragment {
         permissionChecker = new PermissionChecker(getActivity(), necessaryPermissions);
         permissionChecker.requestLackingPermissions();
 
-        myRef = FirebaseDatabase.getInstance().getReference("users");
-        user = FirebaseAuth.getInstance().getCurrentUser();
-
-        // 가계부 데이터를 출력한다.
-        loadLedgerAndShowList();
-
-        // 엑셀 내보내기 버튼 이벤트 - 가계부를 지정한 이름의 엑셀 파일로 저장하고 공유한다.
-        viewBinding.btnExport.setOnClickListener(view -> {
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-            alertDialog.setTitle("저장할 가계부 이름을 설정해주세요");
-            EditText editName = new EditText(getActivity());
-            alertDialog.setView(editName);
-            alertDialog.setPositiveButton("확인", (dialog, which) -> {
-                String ledgerName = editName.getText().toString();
-                if (ledgerName.isEmpty()) {
-                    Toast.makeText(getActivity(), "파일 이름을 지정해 주세요", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                ledgerToExcelFileAndExport(ledgerName);
-            });
-
-            alertDialog.setNegativeButton("취소", (dialog, which) -> {});
-            alertDialog.create().show();
-        });
-
-        // 이전 달 버튼 이벤트
-        viewBinding.ibLastMonth.setOnClickListener(view -> {
-            yearsAndMonthsIndex--;
-            if (yearsAndMonthsIndex < 0) {
-                yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;
-            }
-
-            showListByMonth();
-        });
-
-        // 다음 달 버튼 이벤트
-        viewBinding.ibNextMonth.setOnClickListener(view -> {
-            yearsAndMonthsIndex++;
-            if (yearsAndMonthsIndex > yearsAndMonthsHavingDataList.size() - 1) {
-                yearsAndMonthsIndex = 0;
-            }
-
-            showListByMonth();
-        });
-
-        return viewBinding.getRoot();
-    }
-
-    // 선택한 채팅방의 가계부 데이터를 불러와 화면에 출력한다.
-    private void loadLedgerAndShowList() {
-        myRef.child(user.getUid()).child("Ledger").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // 사용자의 전체 가계부 목록을 불러온다.
-                viewBinding.tvLedgerMonth.setText("전체 가계부");
-                loadLedger(dataSnapshot);
-
-                // 가계부 목록을 출력한다.
-                showListByMonth();
-
-                // 년 월만 빼서 따로 리스트 생성
-                yearsAndMonthsHavingDataList = new ArrayList(yearsAndMonthsHavingDataSet);
-                Collections.sort(yearsAndMonthsHavingDataList);
-                if (!yearsAndMonthsHavingDataList.isEmpty()) {
-                    yearsAndMonthsIndex = yearsAndMonthsHavingDataList.size() - 1;
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                logger.writeLog("Failed to read value : " + error.toException().getMessage());
-            }
-        });
-    }
-
-    // 전역 인덱스에 따라 한 달치 데이터를 화면에 출력한다.
-    private void showListByMonth() {
-        viewBinding.tvLedgerMonth.setText(yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex));
-        String onlyNumber = yearsAndMonthsHavingDataList.get(yearsAndMonthsIndex).replaceAll("[^0-9]", "");
-
-        int totalIncome = 0;
-        int totalExpenditure = 0;
-        List<Ledger> oneMonthLedgerData = new ArrayList<>();
-
-        for (int ledgerDataIndex = 0; ledgerDataIndex < allLedgerData.size(); ledgerDataIndex++) {
-            if (!onlyNumber.equals(allLedgerData.get(ledgerDataIndex).getYear() + allLedgerData.get(ledgerDataIndex).getMonth())) {
-                continue;
-            }
-
-            oneMonthLedgerData.add(allLedgerData.get(ledgerDataIndex));
-            if (allLedgerData.get(ledgerDataIndex).getClassify().equals("지출")) {
-                totalExpenditure += Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
-            } else if (allLedgerData.get(ledgerDataIndex).getClassify().equals("수입")) {
-                totalIncome += Integer.parseInt(allLedgerData.get(ledgerDataIndex).getLedgerContent().getPrice());
-            }
-        }
-
-        viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
-        viewBinding.tvTotalconsume.setText("지출 합계 : " + totalExpenditure + "원");
-        viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalExpenditure) + "원");
-
+        // UI 초기화
         viewBinding.rvLedger.setHasFixedSize(true);
         viewBinding.rvLedger.setLayoutManager(new LinearLayoutManager(getActivity()));
-        viewBinding.rvLedger.setAdapter(new LedgerAdapter(oneMonthLedgerData, getActivity()));
-        viewBinding.rvLedger.scrollToPosition(0);
-    }
 
-    // DB에서 사용자의 전체 가계부 목록을 얻어오고 총 수입,지출을 EditText에 출력한다.
-    private void loadLedger(DataSnapshot dataSnapshot) {
-        int totalIncome = 0;
-        int totalExpenditure = 0;
+        readLedgerDB();
 
-        allLedgerData.clear();
-        yearsAndMonthsHavingDataSet.clear();
-        for (DataSnapshot yearSnapshot : dataSnapshot.getChildren()) { // 년
-            for (DataSnapshot monthSnapshot : yearSnapshot.getChildren()) { // 월
-                for (DataSnapshot daySnapshot : monthSnapshot.getChildren()) { // 일
-                    for (DataSnapshot classifySnapshot : daySnapshot.getChildren()) { // 소비 분류
-                        for (DataSnapshot timesSnapshot : classifySnapshot.getChildren()) { // 가계부 정보
-                            Ledger ledger = new Ledger();
-                            LedgerContent ledgerContent = timesSnapshot.getValue(LedgerContent.class);
-                            ledger.setClassify(classifySnapshot.getKey()); // 분류
-                            ledger.setYear(yearSnapshot.getKey()); // 년
-                            ledger.setMonth(monthSnapshot.getKey()); // 월
-                            ledger.setDay(daySnapshot.getKey()); // 일
-                            ledger.setTimes(timesSnapshot.getKey()); // 시간
-                            ledger.setLedgerContent(ledgerContent); // 내용, 금액, 물품 분류
+        // 이벤트 등록
+        viewBinding.btnExport.setOnClickListener(view -> showExportExcelDialog());
+        viewBinding.ibLastMonth.setOnClickListener(view -> displayPreviousMonthData());
+        viewBinding.ibNextMonth.setOnClickListener(view -> displayNextMonthData());
 
-                            if (ledger.getClassify().equals("지출")) {
-                                totalExpenditure += Integer.parseInt(ledger.getLedgerContent().getPrice());
-                            } else if (ledger.getClassify().equals("수입")) {
-                                totalIncome += Integer.parseInt(ledger.getLedgerContent().getPrice());
-                            }
-
-                            yearsAndMonthsHavingDataSet.add(ledger.getYear() + "년 " + ledger.getMonth() + "월");
-                            allLedgerData.add(ledger);
-                        }
-                    }
-                }
-            }
-        }
-
-        viewBinding.tvTotalincome.setText("수입 합계 : " + totalIncome + "원");
-        viewBinding.tvTotalconsume.setText("지출 합계 : " + totalExpenditure + "원");
-        viewBinding.tvPlusMinus.setText("수익 : " + (totalIncome - totalExpenditure) + "원");
+        return viewBinding.getRoot();
     }
 
     // Apache POI 3.17 라이브러리를 사용해 가계부 정보를 액셀 파일로 만들어 공유한다.
@@ -232,11 +102,10 @@ public class LedgerViewFragment extends android.app.Fragment {
         for (int ledgerIndex = 0; ledgerIndex < allLedgerData.size(); ledgerIndex++) {
             Row row = sheet.createRow(ledgerIndex + 1);
             String[] columnValues = {
-                    allLedgerData.get(ledgerIndex).getYear() + "-" + allLedgerData.get(ledgerIndex).getMonth() + "-" + allLedgerData.get(ledgerIndex).getDay(),
-                    allLedgerData.get(ledgerIndex).getClassify(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getCategory(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getPrice(),
-                    allLedgerData.get(ledgerIndex).getLedgerContent().getDescription()
+                    allLedgerData.get(ledgerIndex).getPaymentTimestamp("yyyy-MM-dd"),
+                    allLedgerData.get(ledgerIndex).getCategory(),
+                    String.valueOf(allLedgerData.get(ledgerIndex).getTotalPrice()),
+                    allLedgerData.get(ledgerIndex).getDescription()
             };
             for (int columnIndex = 0; columnIndex < columnHeaders.length; columnIndex++) {
                 Cell cell = row.createCell(columnIndex);
@@ -284,12 +153,96 @@ public class LedgerViewFragment extends android.app.Fragment {
         }
     }
 
-    // 권한을 요청했을 때 결과를 알려주는 콜백 함수
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
-            Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
-            getActivity().finish();
+    private void showExportExcelDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        alertDialog.setTitle("저장할 가계부 이름을 설정해주세요");
+        EditText editName = new EditText(getActivity());
+        alertDialog.setView(editName);
+        alertDialog.setPositiveButton("확인", (dialog, which) -> {
+            String ledgerName = editName.getText().toString();
+            if (ledgerName.isEmpty()) {
+                Toast.makeText(getActivity(), "파일 이름을 지정해 주세요", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            ledgerToExcelFileAndExport(ledgerName);
+        });
+
+        alertDialog.setNegativeButton("취소", (dialog, which) -> {});
+        alertDialog.create().show();
+    }
+
+    private void displayPreviousMonthData() {
+        displayedDateTime = displayedDateTime.withMonth(displayedDateTime.getMonthValue() - 1);
+        displayOneMonthData(allLedgerData, displayedDateTime);
+    }
+
+    private void displayNextMonthData() {
+        displayedDateTime = displayedDateTime.withMonth(displayedDateTime.getMonthValue() + 1);
+        displayOneMonthData(allLedgerData, displayedDateTime);
+    }
+
+    private void displayOneMonthData(List<Ledger> ledgerData, LocalDateTime dateTime) {
+        // 월초, 월말 시간을 구하여 월간 데이터를 추출한다.
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(dateTime.getYear(), dateTime.getMonthValue()-1, 1, 0, 0, 0);
+        long startOfMonth = calendar.getTimeInMillis();
+        calendar.set(dateTime.getYear(), dateTime.getMonthValue(), 1, 0, 0, 0);
+        long endOfMonth = calendar.getTimeInMillis()-1;
+
+        // 한 달간 작성된 가계부 목록을 화면에 출력한다.
+        List<Ledger> oneMonthData = new ArrayList<>();
+        for (Ledger ledger : ledgerData) {
+            if (startOfMonth > ledger.getPaymentTimestamp())
+                continue;
+            if (endOfMonth < ledger.getPaymentTimestamp())
+                break;
+
+            oneMonthData.add(ledger);
         }
+        viewBinding.rvLedger.setAdapter(new LedgerAdapter(oneMonthData, getActivity()));
+        viewBinding.rvLedger.scrollToPosition(0);
+
+        // 한 달간 수입, 지출 합계를 화면에 출력한다.
+        double totalIncome = 0;
+        double totalExpenditure = 0;
+        for (Ledger ledger : oneMonthData) {
+            if (ledger.getTotalPrice() < 0) {
+                totalIncome += ledger.getTotalPrice();
+            }
+            if (ledger.getTotalPrice() > 0) {
+                totalExpenditure += ledger.getTotalPrice();
+            }
+        }
+        viewBinding.tvIncome.setText("수입 합계 : " + totalIncome + "원");
+        viewBinding.tvExpenditure.setText("지출 합계 : " + totalExpenditure + "원");
+        viewBinding.tvResult.setText("총 합계 : " + (totalIncome - totalExpenditure) + "원");
+    }
+
+    private void readLedgerDB() {
+        // DB 경로 지정
+        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String databasePath = "ledger" + "/"+ userUid;
+        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
+
+        // DB 읽어오기
+        ledgerDBRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot userSnapshot) {
+                // 전체 데이터를 읽어온다.
+                for (DataSnapshot timesSnapshot : userSnapshot.getChildren()) {
+                    allLedgerData.add(timesSnapshot.getValue(Ledger.class));
+                }
+
+                // 이번 달 데이터만 잘라 표시한다.
+                displayOneMonthData(allLedgerData, displayedDateTime);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(getActivity(), "Failed to read value : " + error.toException().getMessage(), Toast.LENGTH_SHORT).show();
+                logger.writeLog("Failed to read value : " + error.toException().getMessage());
+            }
+        });
     }
 }

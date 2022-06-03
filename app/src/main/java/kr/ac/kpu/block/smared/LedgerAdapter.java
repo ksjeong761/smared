@@ -10,7 +10,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -88,32 +87,8 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         viewHolder.tvPrice.setText("총 소비 금액 : " + ledgerData.get(index).getTotalPrice() + "원");
         viewHolder.tvDescription.setText("비고 : " + ledgerData.get(index).getDescription());
 
-        // 수정 버튼
         viewHolder.btnEdit.setOnClickListener(view -> new LedgerEditDialog(parentContext, ledgerData, index).show());
-
-        // 삭제 버튼
-        viewHolder.btnDelete.setOnClickListener(view -> {
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(parentContext);
-            alertDialog.setMessage("정말 삭제 하시겠습니까?");
-
-            // 확인 버튼
-            alertDialog.setPositiveButton("확인", (dialog, which) -> {
-                // 가계부에서 선택한 데이터 삭제
-                DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("ledger");
-                FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-                myRef.child(user.getUid())
-                        .child(String.valueOf(ledgerData.get(index).getPaymentTimestamp()))
-                        .removeValue();
-
-                Toast.makeText(parentContext, "삭제되었습니다", Toast.LENGTH_SHORT).show();
-            });
-
-            // 취소 버튼
-            alertDialog.setNegativeButton("취소", (dialog, which) -> { });
-
-            // 알럿 다이얼로그 생성
-            alertDialog.create().show();
-        });
+        viewHolder.btnDelete.setOnClickListener(view -> showDeleteDialog(index));
     }
 
     @Override
@@ -122,8 +97,8 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     }
 
     @Override
-    public int getItemViewType(int position) {
-        return (hasDifferentDate(ledgerData, position, position-1)) ? VIEW_TYPE_LIST_CONTENT : VIEW_TYPE_LIST_LEDGER;
+    public int getItemViewType(int index) {
+        return (hasDifferentDate(ledgerData, index, index-1)) ? VIEW_TYPE_LIST_CONTENT : VIEW_TYPE_LIST_LEDGER;
     }
 
     private boolean hasDifferentDate(List<Ledger> ledger, int indexA, int indexB) {
@@ -133,5 +108,31 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
             return true;
 
         return (ledger.get(indexA).compareDate(ledger.get(indexB)) != 0);
+    }
+
+    private void showDeleteDialog(int deleteTargetIndex) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(parentContext);
+        alertDialog.setMessage("정말 삭제 하시겠습니까?");
+
+        alertDialog.setPositiveButton("확인", (dialog, which) -> deleteLedgerDB(deleteTargetIndex));
+        alertDialog.setNegativeButton("취소", (dialog, which) -> { });
+
+        alertDialog.create().show();
+    }
+
+    private void deleteLedgerDB(int deleteTargetIndex) {
+        String timestamp = String.valueOf(ledgerData.get(deleteTargetIndex).getPaymentTimestamp());
+        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String databasePath = "ledger" + "/"+ userUid + "/" + timestamp;
+        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
+
+        ledgerDBRef.removeValue().addOnCompleteListener(task -> {
+            if (!task.isSuccessful()) {
+                Toast.makeText(parentContext, "삭제에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Toast.makeText(parentContext, "삭제되었습니다", Toast.LENGTH_SHORT).show();
+        });
     }
 }

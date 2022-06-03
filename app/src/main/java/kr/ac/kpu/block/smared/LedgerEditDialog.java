@@ -7,12 +7,13 @@ import android.view.Window;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
-import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.DialogLedgerEditBinding;
 
@@ -21,14 +22,12 @@ public class LedgerEditDialog extends Dialog {
     private DialogLedgerEditBinding viewBinding;
 
     private List<Ledger> ledgerData;
-    private int position;
+    private int selectedLedgerIndex;
 
-    private FirebaseUser user;
-
-    public LedgerEditDialog(Context context, List<Ledger> ledgerData, int position) {
+    LedgerEditDialog(Context context, List<Ledger> ledgerData, int selectedLedgerIndex) {
         super(context);
         this.ledgerData = ledgerData;
-        this.position = position;
+        this.selectedLedgerIndex = selectedLedgerIndex;
     }
 
     @Override
@@ -36,65 +35,67 @@ public class LedgerEditDialog extends Dialog {
         super.onCreate(savedInstanceState);
         viewBinding = DialogLedgerEditBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
 
-        requestWindowFeature(Window.FEATURE_NO_TITLE); //타이틀 바 삭제
-
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-        user = FirebaseAuth.getInstance().getCurrentUser();
-
-        if (ledgerData.get(position).getClassify().equals("지출")) {
-            viewBinding.rbConsume.setChecked(true);
-        } else {
-            viewBinding.rbIncome.setChecked(true);
+        // UI 초기화
+        viewBinding.etDate.setText(ledgerData.get(selectedLedgerIndex).getPaymentTimestamp("yyyy-MM-dd"));
+        viewBinding.etTotalPrice.setText(String.valueOf(ledgerData.get(selectedLedgerIndex).getTotalPrice()));
+        viewBinding.etDescription.setText(ledgerData.get(selectedLedgerIndex).getDescription());
+        int categoryIndex = ledgerData.get(selectedLedgerIndex).getCategoryIndex();
+        if (categoryIndex >= 0) {
+            viewBinding.spnCategory.setSelection(categoryIndex);
         }
 
-        if (ledgerData.get(position).getLedgerContent().getCategory().equals("의류비")) {
-            viewBinding.category.setSelection(0);
-        } else if (ledgerData.get(position).getLedgerContent().getCategory().equals("식비")) {
-            viewBinding.category.setSelection(1);
-        } else if (ledgerData.get(position).getLedgerContent().getCategory().equals("주거비")) {
-            viewBinding.category.setSelection(2);
-        } else if (ledgerData.get(position).getLedgerContent().getCategory().equals("교통비")) {
-            viewBinding.category.setSelection(3);
-        } else if (ledgerData.get(position).getLedgerContent().getCategory().equals("생필품")) {
-            viewBinding.category.setSelection(4);
-        } else if (ledgerData.get(position).getLedgerContent().getCategory().equals("기타")) {
-            viewBinding.category.setSelection(5);
-        }
+        // 이벤트 등록
+        viewBinding.btnSubmit.setOnClickListener(view -> updateLedgerDB());
+        viewBinding.btnCancel.setOnClickListener(view -> dismiss());
+    }
 
-        viewBinding.date.setText(ledgerData.get(position).getYear() + "-" + ledgerData.get(position).getMonth() + "-" + ledgerData.get(position).getDay());
-        viewBinding.price.setText(ledgerData.get(position).getLedgerContent().getPrice());
-        viewBinding.description.setText(ledgerData.get(position).getLedgerContent().getDescription());
+    private void updateLedgerDB() {
+        String timestamp = String.valueOf(ledgerData.get(selectedLedgerIndex).getPaymentTimestamp());
+        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String databasePath = "ledger" + "/"+ userUid + "/" + timestamp;
+        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
 
-        // 가계부 수정 버튼 이벤트 - 사용자로부터 데이터를 입력받아 가계부 DB를 수정한다.
-        viewBinding.submit.setOnClickListener(view -> {
-            String category = viewBinding.category.getSelectedItem().toString();
-            String price = viewBinding.price.getText().toString();
-            String description = viewBinding.description.getText().toString();
-            Map<String, String> ledger = new LedgerContent(category, price, description).toHashMap();
+        // DB에서 데이터를 읽어오기 위해 이벤트를 등록해야 한다.
+        ledgerDBRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // DB에서 기존 내역을 불러온다.
+                Ledger ledger = dataSnapshot.getValue(Ledger.class);
+                if (ledger == null) {
+                    Toast.makeText(getContext(), "기존 내역 불러오기에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            // 기존 내역을 삭제하고
-            String removeTargetTable = (viewBinding.rbConsume.isChecked()) ? "수입" : "지출";
-            myRef.child(user.getUid()).child("Ledger").child(ledgerData.get(position).getYear())
-                    .child(ledgerData.get(position).getMonth())
-                    .child(ledgerData.get(position).getDay())
-                    .child(removeTargetTable)
-                    .child(ledgerData.get(position).getTimes())
-                    .removeValue();
+                // 불러온 기존 내역을 수정한다.
+                ledger.setCategory(viewBinding.spnCategory.getSelectedItem().toString());
+                ledger.setTotalPrice(viewBinding.etTotalPrice.getText().toString());
+                ledger.setDescription(viewBinding.etDescription.getText().toString());
 
-            // 새로 추가한다.
-            String addTargetTable = (viewBinding.rbConsume.isChecked()) ? "지출" : "수입";
-            myRef.child(user.getUid()).child("Ledger").child(ledgerData.get(position).getYear())
-                    .child(ledgerData.get(position).getMonth())
-                    .child(ledgerData.get(position).getDay())
-                    .child(addTargetTable)
-                    .child(ledgerData.get(position).getTimes())
-                    .setValue(ledger);
+                // DB에서 수정하기 전 데이터를 삭제한다.
+                ledgerDBRef.removeValue().addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Toast.makeText(getContext(), "기존 내역 삭제에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                });
 
-            Toast.makeText(getContext(), "가계부가 수정되었습니다", Toast.LENGTH_SHORT).show();
-            dismiss();
+                // DB에 다시 데이터를 추가하는 것으로 수정한 내용을 반영한다.
+                ledgerDBRef.setValue(ledger.toMap()).addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Toast.makeText(getContext(), "가계부 수정에 실패하였습니다.", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    Toast.makeText(getContext(), "가계부가 수정되었습니다", Toast.LENGTH_SHORT).show();
+                    dismiss();
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                logger.writeLog("기존 내역 불러오기에 실패하였습니다. - " + databaseError.toException());
+            }
         });
-
-        viewBinding.dismiss.setOnClickListener(view -> dismiss());
     }
 }

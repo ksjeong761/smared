@@ -73,14 +73,20 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
         ViewHolder listContentViewHolder = new ViewHolder(ListContentBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false));
 
         return (viewType == VIEW_TYPE_LIST_LEDGER) ? listLedgerViewHolder : listContentViewHolder;
-    }
+}
 
     // ViewHolder를 데이터와 연결할 때 호출되는 메서드이다.
     // 이 메서드를 통해 뷰홀더의 레이아웃을 채우게 된다.
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, final int index) {
+        if (index < 0 || index >= ledgerData.size()) {
+            return;
+        }
+
         if (hasDifferentDate(ledgerData, index, index-1)) {
-            viewHolder.btnDay.setText(ledgerData.get(index).getPaymentTimestamp("yyyy-MM-dd"));
+            if (viewHolder.btnDay != null) {
+                viewHolder.btnDay.setText(ledgerData.get(index).getPaymentTimestamp("yyyy-MM-dd"));
+            }
         }
 
         viewHolder.tvCategory.setText("소비 분류 : " + ledgerData.get(index).getCategory());

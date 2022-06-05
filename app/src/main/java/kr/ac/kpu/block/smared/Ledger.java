@@ -1,8 +1,5 @@
 package kr.ac.kpu.block.smared;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.IgnoreExtraProperties;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
+
+import com.google.firebase.database.IgnoreExtraProperties;
 
 @IgnoreExtraProperties
 public class Ledger {
@@ -30,7 +29,8 @@ public class Ledger {
     }
     public String getPaymentTimestamp(String format) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());
-        return localDateTime.format(DateTimeFormatter.ofPattern(format));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        return localDateTime.format(formatter);
     }
     public void setPaymentTimestamp(long paymentTimestamp) {
         this.paymentTimestamp = paymentTimestamp;

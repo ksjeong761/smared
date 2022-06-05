@@ -70,7 +70,7 @@ public class LedgerEditDialog extends Dialog {
 
                 // 불러온 기존 내역을 수정한다.
                 ledger.setCategory(viewBinding.spnCategory.getSelectedItem().toString());
-                ledger.setTotalPrice(viewBinding.etTotalPrice.getText().toString());
+                ledger.setTotalPrice(Double.parseDouble(viewBinding.etTotalPrice.getText().toString()));
                 ledger.setDescription(viewBinding.etDescription.getText().toString());
 
                 // DB에서 수정하기 전 데이터를 삭제한다.

@@ -7,7 +7,7 @@
     tools:context="kr.ac.kpu.block.smared.LedgerViewFragment">
 
     <ImageButton
-        android:id="@+id/ibLastMonth"
+        android:id="@+id/ib_previous_month"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginLeft="85dp"
@@ -18,7 +18,7 @@
         android:id="@+id/tvLedgerMonth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toRightOf="@id/ibLastMonth"
+        android:layout_toRightOf="@id/ib_previous_month"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_marginTop="9dp"
@@ -44,7 +44,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvTotalincome"
+        android:id="@+id/tv_income"
         android:text="수입 합계"
         android:textSize="15dp"
         android:layout_centerHorizontal="true"
@@ -54,18 +54,18 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/tvTotalconsume"
-        android:layout_below="@id/tvTotalincome"
+        android:id="@+id/tv_expenditure"
+        android:layout_below="@id/tv_income"
         android:layout_centerHorizontal="true"
         android:text="지출 합계"
         android:textColor="@color/DarkBlue"
         android:textSize="15dp"/>
 
     <TextView
-        android:id="@+id/tvPlusMinus"
+        android:id="@+id/tv_result"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/tvTotalconsume"
+        android:layout_below="@id/tv_expenditure"
         android:text="수익"
         android:textSize="15dp"
         android:layout_centerHorizontal="true"

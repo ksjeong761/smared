@@ -125,7 +125,7 @@
             android:hint="분석중입니다..." />
 
         <Button
-            android:id="@+id/btnSave"
+            android:id="@+id/btn_save"
             android:layout_width="62dp"
             android:layout_height="35dp"
             android:layout_below="@+id/spnDescription"
@@ -140,7 +140,7 @@
             android:id="@+id/btnFinish"
             android:layout_width="155dp"
             android:layout_height="37dp"
-            android:layout_below="@id/btnSave"
+            android:layout_below="@id/btn_save"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="7dp"
             android:background="@drawable/mybutton"

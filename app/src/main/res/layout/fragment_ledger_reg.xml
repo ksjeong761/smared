@@ -74,7 +74,7 @@
             android:textSize="18sp" />
 
         <EditText
-            android:id="@+id/etPrice"
+            android:id="@+id/et_total_price"
             android:layout_width="185dp"
             android:layout_height="wrap_content"
             android:layout_below="@+id/spnCategory"
@@ -90,7 +90,7 @@
             android:layout_below="@+id/spnCategory"
             android:layout_marginLeft="1dp"
             android:layout_marginTop="20dp"
-            android:layout_toRightOf="@+id/etPrice"
+            android:layout_toRightOf="@+id/et_total_price"
             android:text="원"
             android:textColor="#000000"
             android:textSize="18sp" />
@@ -98,7 +98,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/etPrice"
+            android:layout_below="@+id/et_total_price"
             android:layout_marginLeft="25dp"
             android:layout_marginTop="10dp"
             android:text="내용"
@@ -109,7 +109,7 @@
             android:id="@+id/etDescription"
             android:layout_width="185dp"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/etPrice"
+            android:layout_below="@+id/et_total_price"
             android:layout_marginLeft="85dp"
             android:layout_marginTop="5dp"
             android:hint="내용을 입력해 주세요" />
@@ -123,7 +123,7 @@
             android:orientation="vertical">
 
             <Button
-                android:id="@+id/btnOcr"
+                android:id="@+id/btnOCR"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:background="@drawable/mybutton"
@@ -140,7 +140,7 @@
                 android:textColor="#FFFFFF" />
 
             <Button
-                android:id="@+id/btnSave"
+                android:id="@+id/btn_save"
                 android:layout_width="match_parent"
                 android:layout_height="35dp"
                 android:layout_marginTop="15dp"

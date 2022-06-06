@@ -60,7 +60,7 @@ public class SMSReceiver extends BroadcastReceiver {
             nextIntent.putExtra("smsdate", smsReceivedDate);
             PendingIntent pendnoti = PendingIntent.getActivity(context, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-            // 빌더 패턴을 이용해 푸시 알림 상세를 설정한다.
+            // 푸시 알림 상세를 설정한다.
             Notification.Builder builder = new Notification.Builder(context.getApplicationContext());
             builder.setSmallIcon(R.drawable.logo)           // 푸시 알림 왼쪽 아이콘
                 .setTicker("Ticker")                                    // 푸시 알림 발생시 잠깐 나오는 텍스트

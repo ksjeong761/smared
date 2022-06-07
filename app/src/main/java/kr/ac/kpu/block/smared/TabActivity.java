@@ -21,6 +21,7 @@ import kr.ac.kpu.block.smared.databinding.ActivityTabBinding;
 public class TabActivity extends AppCompatActivity  {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityTabBinding viewBinding;
+    private PermissionChecker permissionChecker;
 
     // 뒤로 가기를 연속으로 했을 경우에만 프로그램을 종료하도록 하기 위해 시간을 저장
     private long lastPressedTime;
@@ -30,6 +31,12 @@ public class TabActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         viewBinding = ActivityTabBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
+
+        final String[] necessaryPermissions = {
+                android.Manifest.permission.READ_SMS,
+                android.Manifest.permission.RECEIVE_SMS
+        };
+        permissionChecker = new PermissionChecker(this, necessaryPermissions);
 
         // SMSReceiver에서 등록한 푸시 알림을 터치했을 경우 PendingIndent를 통해 데이터를 넘겨받는다.
         Intent previousIntent = getIntent();
@@ -41,15 +48,6 @@ public class TabActivity extends AppCompatActivity  {
             SMSEditDialog editDialog = new SMSEditDialog(TabActivity.this, smsMessage, smsReceivedDate);
             editDialog.show();
         }
-
-        // DB에서 사용자 정보를 가져온다.
-        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-
-        // 토큰으로 로그인 상태를 관리한다.
-        Map<String, Object> token = new HashMap<>();
-        token.put("fcmToken", FirebaseInstanceId.getInstance().getToken());
-        myRef.child(user.getUid()).updateChildren(token);
 
         // 가계부 화면이 기본으로 보여진다.
         switchFragment(new LedgerHomeFragment());
@@ -89,5 +87,13 @@ public class TabActivity extends AppCompatActivity  {
 
         lastPressedTime = System.currentTimeMillis();
         Toast.makeText(this,"한번 더 누르시면 종료됩니다.",Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int grantResults[]) {
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(this, "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            finish();
+        }
     }
 }

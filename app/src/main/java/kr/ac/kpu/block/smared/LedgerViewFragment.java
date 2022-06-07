@@ -28,13 +28,10 @@ import org.apache.poi.ss.usermodel.Workbook;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.TimeZone;
 
 import kr.ac.kpu.block.smared.databinding.FragmentLedgerViewBinding;
 
@@ -76,7 +73,7 @@ public class LedgerViewFragment extends android.app.Fragment {
 
         // 이벤트 등록
         viewBinding.btnExport.setOnClickListener(view -> showExportExcelDialog());
-        viewBinding.ibLastMonth.setOnClickListener(view -> displayPreviousMonthData());
+        viewBinding.ibPreviousMonth.setOnClickListener(view -> displayPreviousMonthData());
         viewBinding.ibNextMonth.setOnClickListener(view -> displayNextMonthData());
 
         return viewBinding.getRoot();

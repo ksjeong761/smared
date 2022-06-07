@@ -38,10 +38,12 @@ public class PermissionChecker {
         return true;
     }
 
+    // 권한이 허용되었는지 확인한다.
     private boolean isPermissionGranted(String permission) {
         return (ContextCompat.checkSelfPermission(callerActivity, permission) == PackageManager.PERMISSION_GRANTED);
     }
 
+    // 부족한 권한 목록을 수집한다.
     private String[] collectLackingPermissions() {
         List<String> lackingPermissions = new ArrayList<>();
         for (String necessaryPermission : necessaryPermissions) {

@@ -1,10 +1,17 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.HashMap;
+public class Chat extends DTO{
+    private String userUid;
 
-public class Chat {
     private String message;
-    private UserInfo userInfo;
+    private long timestamp;
+
+    public String getUserUid() {
+        return userUid;
+    }
+    public void setUserUid(String userUid) {
+        this.userUid = userUid;
+    }
 
     public String getMessage() {
         return message;
@@ -13,32 +20,14 @@ public class Chat {
         this.message = message;
     }
 
-    public UserInfo getUserInfo() {
-        return userInfo;
+    public long getTimestamp() {
+        return timestamp;
     }
-    public void setUserInfo(UserInfo userInfo) {
-        this.userInfo = userInfo;
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public Chat() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
-        this.message = "";
-        this.userInfo = new UserInfo();
-    }
-
-    public Chat(String message, UserInfo userInfo) {
-        this.message = message;
-        this.userInfo = userInfo;
-    }
-
-    public HashMap<String, String> toHashMap() {
-        HashMap<String, String> hashMap = new HashMap<>();
-
-        hashMap.put("text", message);
-        hashMap.put("email", userInfo.getEmail());
-        hashMap.put("photo", userInfo.getPhotoUri());
-        hashMap.put("nickname", userInfo.getNickname());
-
-        return hashMap;
     }
 }

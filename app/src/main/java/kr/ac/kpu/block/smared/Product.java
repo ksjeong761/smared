@@ -3,7 +3,7 @@ package kr.ac.kpu.block.smared;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Product {
+public class Product extends DTO {
     private String name;
     private String category;
     private int quantity;
@@ -39,16 +39,5 @@ public class Product {
 
     public Product() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
-    }
-
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-
-        map.put("name", name);
-        map.put("category", category);
-        map.put("quantity", quantity);
-        map.put("price", price);
-
-        return map;
     }
 }

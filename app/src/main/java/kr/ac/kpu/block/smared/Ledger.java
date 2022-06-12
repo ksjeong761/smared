@@ -1,36 +1,36 @@
 package kr.ac.kpu.block.smared;
 
+import com.google.firebase.database.DataSnapshot;
+
+import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
-import com.google.firebase.database.IgnoreExtraProperties;
+public class Ledger extends DTO {
+    private long paymentTimestamp = 0; // 결제 시간
+    private String paymentMethod = "";    // 결제 수단
 
-@IgnoreExtraProperties
-public class Ledger {
-    private long paymentTimestamp; // 결제 시간
-    private String paymentMethod;    // 결제 수단
+    private String storeName = "";           // 가게 이름
+    private String storeAddress = "";        // 가게 주소
+    private String storeContact = "";        // 가게 연락처
 
-    private String storeName;           // 가게 이름
-    private String storeAddress;        // 가게 주소
+    private String totalCategory = "";        // 소비 카테고리
+    private double totalPrice = 0;             // 총 소비 금액
 
-    private String description;           // 비고
-    private String category;               // 소비 카테고리
-    private double totalPrice;             // 총 소비 금액
+    private String description = "";           // 비고
 
-    //private Product[] products;         // 구매한 상품 목록
+    private List<String> membersUid = new ArrayList<>();
+    private List<String> productsUid = new ArrayList<>();
 
     public long getPaymentTimestamp() {
         return paymentTimestamp;
-    }
-    public String getPaymentTimestamp(String format) {
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        return localDateTime.format(formatter);
     }
     public void setPaymentTimestamp(long paymentTimestamp) {
         this.paymentTimestamp = paymentTimestamp;
@@ -64,11 +64,11 @@ public class Ledger {
         this.description = description;
     }
 
-    public String getCategory() {
-        return category;
+    public String getTotalCategory() {
+        return totalCategory;
     }
-    public void setCategory(String category) {
-        this.category = category;
+    public void setTotalCategory(String totalCategory) {
+        this.totalCategory = totalCategory;
     }
 
     public double getTotalPrice() {
@@ -78,51 +78,55 @@ public class Ledger {
         this.totalPrice = totalPrice;
     }
 
-//    public Product[] getProducts() {
-//        return products;
-//    }
-//    public void setProducts(Product[] products) {
-//        this.products = products;
-//    }
+    public List<String> getProductsUid() {
+        return productsUid;
+    }
+    public void setProductsUid(List<String> productsUid) {
+        this.productsUid = productsUid;
+    }
+
+    public List<String> getMembersUid() {
+        return membersUid;
+    }
+    public void setMembersUid(List<String> membersUid) {
+        this.membersUid = membersUid;
+    }
+
+    public String getStoreContact() {
+        return storeContact;
+    }
+    public void setStoreContact(String storeContact) {
+        this.storeContact = storeContact;
+    }
 
     public Ledger() {
-        paymentTimestamp = 0;
-        paymentMethod = "";
-
-        storeName = "";
-        storeAddress = "";
-
-        description = "";
-        category = "";
-        totalPrice = 0;
-
-        //products = new Product[0];         // 구매한 상품 목록
     }
 
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-
-        map.put("paymentTimestamp", paymentTimestamp);
-        map.put("paymentMethod", paymentMethod);
-
-        map.put("storeName", storeName);
-        map.put("storeAddress", storeAddress);
-
-        map.put("description", description);
-        map.put("category", category);
-        map.put("totalPrice", totalPrice);
-
-//        map.put("productCount", products.length);
-//        for (int i = 0; i < products.length; i++) {
-//            map.put("product" + i, products[i].toMap());
+//    public Ledger(DataSnapshot ledgerUidSnapshot) {
+//        for (DataSnapshot ledgerFieldSnapshot : ledgerUidSnapshot.getChildren()) {
+//            String fieldName = ledgerFieldSnapshot.getKey();
+//            Object fieldValue = ledgerFieldSnapshot.getValue();
+//
+//            Ledger ledger = new Ledger();
+//
+//
+//
+//            Field[] fields = this.getClass().getFields();
+//            for (Field field : fields) {
+//
+//            }
 //        }
+//    }
 
-        return map;
+    public String getFormattedTimestamp(String format) {
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        return localDateTime.format(formatter);
     }
 
-    public int compareDate(Ledger that) {
+    public int compareDate(Ledger otherLedgerData) {
         LocalDate dateA = LocalDateTime.ofInstant(Instant.ofEpochMilli(this.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
-        LocalDate dateB = LocalDateTime.ofInstant(Instant.ofEpochMilli(that.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
+        LocalDate dateB = LocalDateTime.ofInstant(Instant.ofEpochMilli(otherLedgerData.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
 
         return dateA.compareTo(dateB);
     }
@@ -136,7 +140,7 @@ public class Ledger {
         map.put("생필품", 4);
         map.put("기타", 5);
 
-        Integer categoryIndex = map.get(category);
-        return (categoryIndex != null) ? categoryIndex : -1;
+        Integer categoryIndex = map.get(totalCategory);
+        return (categoryIndex == null) ? -1 : categoryIndex;
     }
 }

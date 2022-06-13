@@ -1,13 +1,10 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class Product extends DTO {
-    private String name;
-    private String category;
-    private int quantity;
-    private double price;
+    private String name = "";
+    private String category = "";
+    private int quantity = 0;
+    private double price = 0.0;
 
     public String getName() {
         return name;

@@ -1,12 +1,13 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ChatRoom extends DTO {
-    private String chatRoomName;
+    private String chatRoomName = "";
 
-    private List<String> chatsUid;
-    private List<String> membersUid;
+    private Map<String, Boolean> chatsUid = new HashMap<>();
+    private Map<String, Boolean> membersUid = new HashMap<>();
 
     public String getChatRoomName() {
         return chatRoomName;
@@ -15,17 +16,17 @@ public class ChatRoom extends DTO {
         this.chatRoomName = chatRoomName;
     }
 
-    public List<String> getMembersUid() {
+    public Map<String, Boolean> getMembersUid() {
         return membersUid;
     }
-    public void setMembersUid(List<String> membersUid) {
+    public void setMembersUid( Map<String, Boolean> membersUid) {
         this.membersUid = membersUid;
     }
 
-    public List<String> getChatsUid() {
+    public  Map<String, Boolean> getChatsUid() {
         return chatsUid;
     }
-    public void setChatsUid(List<String> chatsUid) {
+    public void setChatsUid (Map<String, Boolean> chatsUid) {
         this.chatsUid = chatsUid;
     }
 }

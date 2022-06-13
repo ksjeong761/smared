@@ -1,16 +1,16 @@
 package kr.ac.kpu.block.smared;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class UserInfo extends DTO {
     private String email = "";
     private String nickname = "";
     private String photoUri = "";
 
-    private List<String> friendsUid = new ArrayList<>();
-    private List<String> ledgersUid = new ArrayList<>();
-    private List<String> chatRoomsUid = new ArrayList<>();
+    private Map<String, Boolean> friendsUid = new HashMap<>();
+    private Map<String, Boolean> ledgersUid = new HashMap<>();
+    private Map<String, Boolean> chatRoomsUid = new HashMap<>();
 
     public String getEmail() {
         return email;
@@ -29,24 +29,24 @@ public class UserInfo extends DTO {
         this.photoUri = photoUri;
     }
 
-    public List<String> getChatRoomsUid() {
+    public  Map<String, Boolean> getChatRoomsUid() {
         return chatRoomsUid;
     }
-    public void setChatRoomsUid(List<String> chatRoomsUid) {
+    public void setChatRoomsUid( Map<String, Boolean> chatRoomsUid) {
         this.chatRoomsUid = chatRoomsUid;
     }
 
-    public List<String> getFriendsUid() {
+    public Map<String, Boolean> getFriendsUid() {
         return friendsUid;
     }
-    public void setFriendsUid(List<String> friendsUid) {
+    public void setFriendsUid( Map<String, Boolean> friendsUid) {
         this.friendsUid = friendsUid;
     }
 
-    public List<String> getLedgersUid() {
+    public  Map<String, Boolean> getLedgersUid() {
         return ledgersUid;
     }
-    public void setLedgersUid(List<String> ledgersUid) {
+    public void setLedgersUid(Map<String, Boolean> ledgersUid) {
         this.ledgersUid = ledgersUid;
     }
 

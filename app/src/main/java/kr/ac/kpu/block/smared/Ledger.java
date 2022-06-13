@@ -1,15 +1,10 @@
 package kr.ac.kpu.block.smared;
 
-import com.google.firebase.database.DataSnapshot;
-
-import java.lang.reflect.Field;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
@@ -26,8 +21,8 @@ public class Ledger extends DTO {
 
     private String description = "";           // 비고
 
-    private List<String> membersUid = new ArrayList<>();
-    private List<String> productsUid = new ArrayList<>();
+    private Map<String, Boolean> membersUid = new HashMap<>();
+    private Map<String, Boolean> productsUid = new HashMap<>();
 
     public long getPaymentTimestamp() {
         return paymentTimestamp;
@@ -57,6 +52,13 @@ public class Ledger extends DTO {
         this.storeName = storeName;
     }
 
+    public String getStoreContact() {
+        return storeContact;
+    }
+    public void setStoreContact(String storeContact) {
+        this.storeContact = storeContact;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -78,45 +80,22 @@ public class Ledger extends DTO {
         this.totalPrice = totalPrice;
     }
 
-    public List<String> getProductsUid() {
+    public  Map<String, Boolean> getProductsUid() {
         return productsUid;
     }
-    public void setProductsUid(List<String> productsUid) {
+    public void setProductsUid(Map<String, Boolean> productsUid) {
         this.productsUid = productsUid;
     }
 
-    public List<String> getMembersUid() {
+    public  Map<String, Boolean> getMembersUid() {
         return membersUid;
     }
-    public void setMembersUid(List<String> membersUid) {
+    public void setMembersUid(Map<String, Boolean> membersUid) {
         this.membersUid = membersUid;
-    }
-
-    public String getStoreContact() {
-        return storeContact;
-    }
-    public void setStoreContact(String storeContact) {
-        this.storeContact = storeContact;
     }
 
     public Ledger() {
     }
-
-//    public Ledger(DataSnapshot ledgerUidSnapshot) {
-//        for (DataSnapshot ledgerFieldSnapshot : ledgerUidSnapshot.getChildren()) {
-//            String fieldName = ledgerFieldSnapshot.getKey();
-//            Object fieldValue = ledgerFieldSnapshot.getValue();
-//
-//            Ledger ledger = new Ledger();
-//
-//
-//
-//            Field[] fields = this.getClass().getFields();
-//            for (Field field : fields) {
-//
-//            }
-//        }
-//    }
 
     public String getFormattedTimestamp(String format) {
         LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());

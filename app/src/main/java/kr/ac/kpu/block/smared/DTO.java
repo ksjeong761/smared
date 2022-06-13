@@ -2,9 +2,11 @@ package kr.ac.kpu.block.smared;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
+import com.google.firebase.database.IgnoreExtraProperties;
+
+@IgnoreExtraProperties
 public abstract class DTO {
     private String uid = "";
 
@@ -13,10 +15,6 @@ public abstract class DTO {
     }
     public void setUid(String uid) {
         this.uid = uid;
-    }
-
-    public String getDatabasePath() {
-        return this.getClass().getSimpleName() + "/" + uid;
     }
 
     /*
@@ -38,20 +36,7 @@ public abstract class DTO {
             }
 
             try {
-                // uid를 제외한 모든 필드를 Key, Value 쌍으로 변환한다.
-                Object mapObject = field.get(this).toString();
-
-                // 다른 데이터베이스 객체에 대한 참조 uid를 담고있는 리스트는
-                // Map 형태로 변환하여 하위 계층 으로 만든다.
-                if (field.getType() == List.class) {
-                    Map<String, Object> uidReferenceMap = new HashMap<>();
-                    for (String uidReference : (List<String>) field.get(this)) {
-                        uidReferenceMap.put(uidReference, true);
-                    }
-                    mapObject = uidReferenceMap;
-                }
-
-                resultMap.put(field.getName(), mapObject);
+                resultMap.put(field.getName(), field.get(this).toString());
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }

@@ -31,19 +31,6 @@ public class LedgerRegFragment extends android.app.Fragment {
         return viewBinding.getRoot();
     }
 
-    // 가계부 객체를 DB에 삽입한다.
-    private void insertLedgerToDB() {
-        Ledger ledger = gatherLedgerDataFromUI();
-        if (ledger == null) {
-            return;
-        }
-
-        DAO dao = new DAO();
-        dao.setSuccessCallback(arg -> afterSuccess());
-        dao.setFailureCallback(arg -> afterFailure());
-        dao.create(ledger, Ledger.class);
-    }
-
     // UI에 입력된 정보를 모아 가계부 객체를 만든다.
     private Ledger gatherLedgerDataFromUI() {
         if (viewBinding.etTotalPrice.getText().toString().isEmpty()) {
@@ -58,6 +45,19 @@ public class LedgerRegFragment extends android.app.Fragment {
         ledger.setPaymentTimestamp(selectedDate.getTimeInMillis());
 
         return ledger;
+    }
+
+    // 가계부 객체를 DB에 삽입한다.
+    private void insertLedgerToDB() {
+        Ledger ledger = gatherLedgerDataFromUI();
+        if (ledger == null) {
+            return;
+        }
+
+        DAO dao = new DAO();
+        dao.setSuccessCallback(arg -> afterSuccess());
+        dao.setFailureCallback(arg -> afterFailure());
+        dao.create(ledger, Ledger.class);
     }
 
     // DB 삽입 성공 시 동작

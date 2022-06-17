@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -85,11 +86,11 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
 
         if (hasDifferentDate(ledgerData, index, index-1)) {
             if (viewHolder.btnDay != null) {
-                viewHolder.btnDay.setText(ledgerData.get(index).getPaymentTimestamp("yyyy-MM-dd"));
+                viewHolder.btnDay.setText(ledgerData.get(index).getFormattedTimestamp("yyyy-MM-dd"));
             }
         }
 
-        viewHolder.tvCategory.setText("소비 분류 : " + ledgerData.get(index).getCategory());
+        viewHolder.tvCategory.setText("소비 분류 : " + ledgerData.get(index).getTotalCategory());
         viewHolder.tvPrice.setText("총 소비 금액 : " + ledgerData.get(index).getTotalPrice() + "원");
         viewHolder.tvDescription.setText("비고 : " + ledgerData.get(index).getDescription());
 
@@ -127,18 +128,19 @@ public class LedgerAdapter extends RecyclerView.Adapter<LedgerAdapter.ViewHolder
     }
 
     private void deleteLedgerDB(int deleteTargetIndex) {
-        String timestamp = String.valueOf(ledgerData.get(deleteTargetIndex).getPaymentTimestamp());
-        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String databasePath = "ledger" + "/"+ userUid + "/" + timestamp;
-        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
+        Ledger ledger = ledgerData.get(deleteTargetIndex);
 
-        ledgerDBRef.removeValue().addOnCompleteListener(task -> {
-            if (!task.isSuccessful()) {
-                Toast.makeText(parentContext, "삭제에 실패하였습니다.", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        DAO dao = new DAO();
+        dao.setSuccessCallback(arg -> afterSuccess(arg));
+        dao.setFailureCallback(arg -> afterFailure());
+        dao.delete(ledger, Ledger.class);
+    }
 
-            Toast.makeText(parentContext, "삭제되었습니다", Toast.LENGTH_SHORT).show();
-        });
+    private void afterSuccess(DataSnapshot dataSnapshot) {
+        Toast.makeText(parentContext, "삭제되었습니다", Toast.LENGTH_SHORT).show();
+    }
+
+    private void afterFailure() {
+        Toast.makeText(parentContext, "삭제에 실패하였습니다.", Toast.LENGTH_SHORT).show();
     }
 }

@@ -1,6 +1,6 @@
 package kr.ac.kpu.block.smared;
 
-public class Product extends DTO {
+public class LedgerProduct extends DTO {
     private String name = "";
     private String category = "";
     private int quantity = 0;
@@ -34,7 +34,7 @@ public class Product extends DTO {
         this.category = category;
     }
 
-    public Product() {
+    public LedgerProduct() {
         // Default constructor required for calls to DataSnapshot.getValue(Comment.class)
     }
 }

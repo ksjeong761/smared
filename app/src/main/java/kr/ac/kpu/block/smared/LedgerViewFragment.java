@@ -99,8 +99,8 @@ public class LedgerViewFragment extends android.app.Fragment {
         for (int ledgerIndex = 0; ledgerIndex < allLedgerData.size(); ledgerIndex++) {
             Row row = sheet.createRow(ledgerIndex + 1);
             String[] columnValues = {
-                    allLedgerData.get(ledgerIndex).getPaymentTimestamp("yyyy-MM-dd"),
-                    allLedgerData.get(ledgerIndex).getCategory(),
+                    allLedgerData.get(ledgerIndex).getFormattedTimestamp("yyyy-MM-dd"),
+                    allLedgerData.get(ledgerIndex).getTotalCategory(),
                     String.valueOf(allLedgerData.get(ledgerIndex).getTotalPrice()),
                     allLedgerData.get(ledgerIndex).getDescription()
             };
@@ -217,29 +217,30 @@ public class LedgerViewFragment extends android.app.Fragment {
     }
 
     private void readLedgerDB() {
-        // DB 경로 지정
-        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String databasePath = "ledger" + "/"+ userUid;
-        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
+        // [TODO] user 객체의 ledger 객체 수만큼 반복
+        {
+            Ledger ledger = new Ledger();
 
-        // DB 읽어오기
-        ledgerDBRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot userSnapshot) {
-                // 전체 데이터를 읽어온다.
-                for (DataSnapshot timesSnapshot : userSnapshot.getChildren()) {
-                    allLedgerData.add(timesSnapshot.getValue(Ledger.class));
-                }
+            DAO dao = new DAO();
+            dao.setSuccessCallback(arg -> afterSuccess(arg));
+            dao.setFailureCallback(arg -> afterFailure());
+            dao.readAll(ledger, Ledger.class);
 
-                // 이번 달 데이터만 잘라 표시한다.
-                displayOneMonthData(allLedgerData, displayedDateTime);
-            }
+            allLedgerData.add(ledger);
+        }
+    }
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(getActivity(), "Failed to read value : " + error.toException().getMessage(), Toast.LENGTH_SHORT).show();
-                logger.writeLog("Failed to read value : " + error.toException().getMessage());
-            }
-        });
+    private void afterSuccess(DataSnapshot dataSnapshot) {
+        // 전체 데이터를 읽어온다.
+        for (DataSnapshot timesSnapshot : dataSnapshot.getChildren()) {
+            allLedgerData.add(timesSnapshot.getValue(Ledger.class));
+        }
+
+        // 이번 달 데이터만 잘라 표시한다.
+        displayOneMonthData(allLedgerData, displayedDateTime);
+    }
+
+    private void afterFailure() {
+        Toast.makeText(getActivity(), "Failed to read value.", Toast.LENGTH_SHORT).show();
     }
 }

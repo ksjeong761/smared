@@ -18,12 +18,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -51,8 +46,8 @@ public class LedgerStatFragment extends android.app.Fragment {
 
         readLedgerDB();
 
-        viewBinding.ibLastMonth2.setOnClickListener(view -> displayPreviousMonthData());
-        viewBinding.ibNextMonth2.setOnClickListener(view -> displayNextMonthData());
+        viewBinding.ibPreviousMonth.setOnClickListener(view -> displayPreviousMonthData());
+        viewBinding.ibNextMonth.setOnClickListener(view -> displayNextMonthData());
 
         return viewBinding.getRoot();
     }
@@ -65,7 +60,7 @@ public class LedgerStatFragment extends android.app.Fragment {
 
         // 소비 카테고리 별 합계를 구한다.
         for (Ledger ledger : showingData) {
-            String category = ledger.getCategory();
+            String category = ledger.getTotalCategory();
             Double price = categoryTotalPrice.get(category);
             if (price == null) {
                 price = 0.0;
@@ -164,29 +159,32 @@ public class LedgerStatFragment extends android.app.Fragment {
     }
 
     private void readLedgerDB() {
-        // DB 경로 지정
-        String userUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String databasePath = "ledger" + "/"+ userUid;
-        DatabaseReference ledgerDBRef = FirebaseDatabase.getInstance().getReference(databasePath);
+        // [TODO] user 객체의 ledger 객체 수만큼 반복
+        {
+            Ledger ledger = new Ledger();
 
-        // DB 읽어오기
-        ledgerDBRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot userSnapshot) {
-                // 전체 데이터를 읽어온다.
-                for (DataSnapshot timesSnapshot : userSnapshot.getChildren()) {
-                    allLedgerData.add(timesSnapshot.getValue(Ledger.class));
-                }
+            DAO dao = new DAO();
+            dao.setSuccessCallback(arg -> afterSuccess(arg));
+            dao.setFailureCallback(arg -> afterFailure());
+            dao.readAll(ledger, Ledger.class);
 
-                // 이번 달 데이터만 잘라 표시한다.
-                displayOneMonthData(allLedgerData, displayedDateTime);
-            }
+            allLedgerData.add(ledger);
+        }
+    }
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(getActivity(), "Failed to read value : " + error.toException().getMessage(), Toast.LENGTH_SHORT).show();
-                logger.writeLog("Failed to read value : " + error.toException().getMessage());
-            }
-        });
+    // DB 읽기 성공 시 동작
+    private void afterSuccess(DataSnapshot userSnapshot) {
+        // 전체 데이터를 읽어온다.
+        for (DataSnapshot timesSnapshot : userSnapshot.getChildren()) {
+            allLedgerData.add(timesSnapshot.getValue(Ledger.class));
+        }
+
+        // 이번 달 데이터만 잘라 표시한다.
+        displayOneMonthData(allLedgerData, displayedDateTime);
+    }
+
+    // DB 읽기 실패 시 동작
+    private void afterFailure() {
+        Toast.makeText(getActivity(), "Failed to read value.", Toast.LENGTH_SHORT).show();
     }
 }

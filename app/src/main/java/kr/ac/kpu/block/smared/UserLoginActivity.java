@@ -1,7 +1,6 @@
 package kr.ac.kpu.block.smared;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +12,6 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Map;
@@ -25,23 +23,44 @@ public class LoginActivity extends AppCompatActivity {
     private FormattedLogger logger = new FormattedLogger();
     private ActivityLoginBinding viewBinding;
 
-    private FirebaseAuth mAuth;
-    private DatabaseReference myRef;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewBinding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(viewBinding.getRoot());
 
-        myRef = FirebaseDatabase.getInstance().getReference("users");
-        mAuth = FirebaseAuth.getInstance();
-
         viewBinding.btnRegister.setOnClickListener(view -> signUp());
         viewBinding.btnLogin.setOnClickListener(view -> signIn());
     }
 
     private void signUp() {
+        showSignUpDialog();
+    }
+
+    private void signIn() {
+        String email = viewBinding.etEmail.getText().toString();
+        String password = viewBinding.etPassword.getText().toString();
+
+        if (email.isEmpty()) {
+            Toast.makeText(LoginActivity.this, "이메일을 입력해주세요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (password.isEmpty()) {
+            Toast.makeText(LoginActivity.this, "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 로그인 중 프로그레스바 화면에 보이기
+        viewBinding.pbLogin.setVisibility(View.VISIBLE);
+
+        AuthDAO dao = new AuthDAO();
+        dao.setSuccessCallback(arg -> afterSuccess());
+        dao.setFailureCallback(arg -> afterFailure());
+        dao.signIn(email, password);
+    }
+
+    private void showSignUpDialog() {
         // 얼럿 다이얼로그 빌더
         final AlertDialog.Builder alertdialog = new AlertDialog.Builder(LoginActivity.this);
 
@@ -88,6 +107,7 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             // 파이어베이스를 통해 회원가입 요청을 보내고 응답이 왔을 때 실행할 콜백 등록
+            FirebaseAuth mAuth = FirebaseAuth.getInstance();
             mAuth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
                 // 회원가입 실패
                 if (!task.isSuccessful()) {
@@ -101,59 +121,42 @@ public class LoginActivity extends AppCompatActivity {
 
                 // HashTable에 회원가입에 필요한 정보 넣고
                 String photoUri =  "https://firebasestorage.googleapis.com/v0/b/smared-d1166.appspot.com/o/users%2Fnoimage.jpg?alt=media&token=a07b849c-87c6-4840-9364-be7b8ca7d8ef";
-                Map<String, String> userInfo = new UserInfo(email, photoUri, user.getUid(), "").toHashMap();
+                Map<String, Object> userInfo = new UserInfo(email, photoUri, user.getUid(), "").toMap();
 
                 // DB에 넣기
-                myRef.child(user.getUid()).setValue(userInfo);
+                FirebaseDatabase.getInstance().getReference("users").child(user.getUid()).setValue(userInfo);
             });
         });
 
-        // 취소 버튼 만들고 이벤트 등록
         alertdialog.setNegativeButton("취소", (dialog, which) -> { });
 
-        // 얼럿 다이얼로그 빌더를 통해 객체를 만들고 보여준다.
         alertdialog.create().show();
     }
 
-    private void signIn() {
-        String email = viewBinding.etEmail.getText().toString();
-        String password = viewBinding.etPassword.getText().toString();
+    private void afterSuccess() {
+        // 로그인 이후 프로그레스바 숨기기
+        viewBinding.pbLogin.setVisibility(View.GONE);
+        Toast.makeText(LoginActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
 
-        if (email.isEmpty()) {
-            Toast.makeText(LoginActivity.this, "이메일을 입력해주세요.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // 사용자 정보 읽어오기
+        UserInfo user = new UserInfo();
 
-        if (password.isEmpty()) {
-            Toast.makeText(LoginActivity.this, "비밀번호를 입력해주세요.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        DAO dao = new DAO();
+        dao.setSuccessCallback(arg -> {});
+        dao.setFailureCallback(arg -> {});
+        dao.readAll(user, UserInfo.class);
 
-        // 프로그레스바 화면에 보이기
-        viewBinding.pbLogin.setVisibility(View.VISIBLE);
+        // 사용자 정보를 싱글톤을 이용해 stack 영역에 보존한다.
+        UserInfoSingleton userInfoSingleton = UserInfoSingleton.getInstance();
+        userInfoSingleton.setUserInfo(user);
 
-        // 파이어베이스를 통해 로그인을 시도하고 완료 시 실행할 콜백 등록
-        mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(this, task -> {
-            // 프로그레스바 숨기기
-            viewBinding.pbLogin.setVisibility(View.GONE);
+        // 탭 액티비티 화면으로 넘어간다.
+        startActivity(new Intent(LoginActivity.this, TabActivity.class));
+    }
 
-            if (!task.isSuccessful()) {
-                Toast.makeText(LoginActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            Toast.makeText(LoginActivity.this, "로그인 성공", Toast.LENGTH_SHORT).show();
-
-            // 전역 객체에 사용자 정보 값을 저장해둔다.
-            FirebaseUser user = mAuth.getCurrentUser();
-            SharedPreferences sharedPreferences = getSharedPreferences("email", MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString("uid", user.getUid());
-            editor.putString("email", user.getEmail());
-            editor.apply();
-
-            // 탭 액티비티 화면으로 넘어간다.
-            startActivity(new Intent(LoginActivity.this, TabActivity.class));
-        });
+    private void afterFailure() {
+        // 로그인 이후 프로그레스바 숨기기
+        viewBinding.pbLogin.setVisibility(View.GONE);
+        Toast.makeText(LoginActivity.this, "로그인 실패", Toast.LENGTH_SHORT).show();
     }
 }

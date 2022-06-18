@@ -2,37 +2,22 @@ package kr.ac.kpu.block.smared;
 
 import android.app.AlertDialog;
 import android.app.Fragment;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import kr.ac.kpu.block.smared.databinding.FragmentUserProfileBinding;
 
@@ -41,12 +26,16 @@ public class UserProfileFragment extends Fragment {
     private FragmentUserProfileBinding viewBinding;
     private PermissionChecker permissionChecker;
 
-    private DatabaseReference myRef;
-    private DatabaseReference chatRef;
-    private FirebaseUser user;
+    private UserInfoSingleton userInfoSingleton = UserInfoSingleton.getInstance();
+    private UserInfo userInfo = userInfoSingleton.getCurrentUserInfo();
 
-    private String uid;
-    private String email;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
+            Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+            getActivity().finish();
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -58,140 +47,46 @@ public class UserProfileFragment extends Fragment {
         permissionChecker = new PermissionChecker(getActivity(), necessaryPermissions);
         permissionChecker.requestLackingPermissions();
 
-        myRef = FirebaseDatabase.getInstance().getReference();
-        chatRef = FirebaseDatabase.getInstance().getReference("chats");
-        user = FirebaseAuth.getInstance().getCurrentUser();
+        // UI 출력
+        // [TODO] 하드코딩된 다른 정보들 바꾸기
+        viewBinding.tvNickname.setText(userInfo.getNickname());
 
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("email", Context.MODE_PRIVATE);
-        uid = sharedPreferences.getString("uid","");
-        email = sharedPreferences.getString("email","");
-
-        // 사용자 닉네임, 프로필 이미지 URI 읽어오기
-        myRef.child("users").child(uid).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                // 화면에 닉네임 출력
-                String nickname = dataSnapshot.child("nickname").getValue().toString();
-                viewBinding.tvNickname.setText(nickname);
-
-                String photoUri = dataSnapshot.child("photo").getValue().toString();
-                if (TextUtils.isEmpty(photoUri)) {
-                    viewBinding.pbLogin.setVisibility(getView().GONE);
-                    return;
-                }
-
-                // 화면에 프로필 이미지 출력
-                Picasso.with(getActivity())
-                    .load(photoUri)
-                    .fit()
-                    .centerInside()
-                    .into(viewBinding.ivUser, new Callback.EmptyCallback() {
-                        @Override
-                        public void onSuccess() {
-                            // Index 0 is the image view.
-                            logger.writeLog("SUCCESS");
-                            viewBinding.pbLogin.setVisibility(getView().GONE);
-                        }
-                    });
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                logger.writeLog("Failed to read value : " + error.toException().getMessage());
-            }
-        });
-
-        // 프로필 사진 변경 버튼 이벤트
-        viewBinding.btnChangePhoto.setOnClickListener(view -> {
-            startActivityForResult(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI),1);
-            viewBinding.pbLogin.setVisibility(getView().VISIBLE);
-        });
-
-        // 로그아웃 버튼 이벤트
-        viewBinding.btnLogout.setOnClickListener(view -> {
-            FirebaseAuth.getInstance().signOut();
-            Toast.makeText(getActivity(),"로그아웃 되었습니다",Toast.LENGTH_SHORT).show();
-            getActivity().finish();
-        });
-
-        // 닉네임 변경 버튼 이벤트
-        viewBinding.btnChangeNickname.setOnClickListener(view -> {
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-            final EditText etNickname = new EditText(getActivity());
-            alertDialog.setTitle("닉네임 변경");
-            alertDialog.setView(etNickname);
-
-            alertDialog.setPositiveButton("확인", (dialog, which) -> {
-                String nicknameTo = etNickname.getText().toString();
-                viewBinding.tvNickname.setText("닉네임 : "+ nicknameTo);
-                myRef.child("users").child(uid).child("nickname").setValue(nicknameTo);
-            });
-
-            alertDialog.setNegativeButton("취소", (dialog, which) -> { });
-            alertDialog.show();
-        });
-
-        // 회원 탈퇴 버튼 이벤트
-        viewBinding.btnWithdrawal.setOnClickListener(view -> {
-            AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
-            alertDialog.setMessage("정말 탈퇴하시겠습니까?");
-
-            alertDialog.setPositiveButton("예", (dialog, which) -> user.delete().addOnCompleteListener(task -> {
-                if (!task.isSuccessful()) {
-                    return;
-                }
-
-                // 사용자 DB에서 정보를 삭제한다.
-                myRef.child("users").child(uid).removeValue();
-
-                // 채팅방 참가자 목록에서도 정보를 삭제한다.
-                chatRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot chatSnapshot : dataSnapshot.getChildren()) {
-                            for (DataSnapshot userSnapshot : chatSnapshot.getChildren()) {
-                                for (DataSnapshot uidSnapshot : userSnapshot.getChildren()) {
-                                    if (uidSnapshot.getKey().equals(uid)) {
-                                        chatRef.child(chatSnapshot.getKey()).child("user").child(uidSnapshot.getKey()).removeValue();
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) { }
-                });
-
-                Toast.makeText(getActivity(),"계정이 삭제되었습니다.",Toast.LENGTH_SHORT).show();
-                getActivity().finish();
-            }));
-
-            alertDialog.setNegativeButton("아니오", (dialog, which) -> { });
-            alertDialog.show();
-        });
+        // 이벤트 등록
+        viewBinding.btnChangePhoto.setOnClickListener(view -> startActivityForResult(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI),1));
+        viewBinding.btnLogout.setOnClickListener(view -> logout());
+        viewBinding.btnChangeNickname.setOnClickListener(view -> showChangeNicknameDialog());
+        viewBinding.btnWithdrawal.setOnClickListener(view -> showWithdrawalDialog());
 
         return viewBinding.getRoot();
     }
 
     // 변경할 프로필 사진 파일 업로드
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent priviousIntent) {
-        super.onActivityResult(requestCode, resultCode, priviousIntent);
+    public void onActivityResult(int requestCode, int resultCode, Intent previousIntent) {
+        super.onActivityResult(requestCode, resultCode, previousIntent);
 
         try {
-            Uri image = priviousIntent.getData();
-            try {
-                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),image);
-                uploadImage(bitmap);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } catch (NullPointerException e) {
-            viewBinding.pbLogin.setVisibility(getView().GONE);
+            Uri image = previousIntent.getData();
+            Bitmap bitmap = MediaStore.Images.Media.getBitmap(getActivity().getContentResolver(),image);
+            viewBinding.ivUser.setImageBitmap(bitmap);
+            uploadImage(bitmap);
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
+    private String createImageFileName() {
+        StringBuilder imageFileName = new StringBuilder();
+
+        imageFileName.append(System.currentTimeMillis());
+        imageFileName.append( ".jpg");
+
+        return imageFileName.toString();
+    }
 
     private void uploadImage(Bitmap bitmap) {
         ByteArrayOutputStream bitmapByteStream = new ByteArrayOutputStream();
@@ -199,44 +94,122 @@ public class UserProfileFragment extends Fragment {
         byte[] bitmapByte = bitmapByteStream.toByteArray();
 
         // 사용자 정보 테이블에 이미지 업로드 시도
-        StorageReference profileRef = FirebaseStorage.getInstance().getReference().child("users").child(uid + ".jpg");
-        UploadTask uploadTask = profileRef.putBytes(bitmapByte);
-
-        // 업로드 실패 시 다시 한 번 업로드 시도
-        uploadTask.addOnFailureListener(exception -> { }).addOnSuccessListener(taskSnapshot -> {
-            Map<String, Object> userInfo = new HashMap<>();
-            String nickname = viewBinding.tvNickname.getText().toString();
-            String photoUrl = String.valueOf(taskSnapshot.getDownloadUrl());
-            userInfo.put("email", email);
-            userInfo.put("key", uid);
-            userInfo.put("photo", photoUrl);
-            userInfo.put("nickname", nickname);
-
-            DatabaseReference myRef = FirebaseDatabase.getInstance().getReference("users");
-            myRef.child(uid).updateChildren(userInfo);
-            myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot == null ) {
-                        Toast.makeText(getActivity(), "사진 업로드 실패!",Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-
-                    Toast.makeText(getActivity(), "사진 업로드 완료",Toast.LENGTH_SHORT).show();
-                    viewBinding.ivUser.setImageBitmap(bitmap);
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) { }
-            });
-        });
+        StorageDAO storageDAO = new StorageDAO();
+        storageDAO.setSuccessCallback(arg -> afterSuccess(arg));
+        storageDAO.setFailureCallback(arg -> afterFailure());
+        storageDAO.upload(userInfo, UserInfo.class, createImageFileName(), bitmapByte);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (!permissionChecker.isPermissionRequestSuccessful(grantResults)) {
-            Toast.makeText(getActivity(), "권한 요청에 동의 해주셔야 이용 가능합니다. 설정에서 권한을 허용해주시기 바랍니다.", Toast.LENGTH_SHORT).show();
+    private void afterSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+        UserInfoSingleton userInfoSingleton = UserInfoSingleton.getInstance();
+        UserInfo userInfo = userInfoSingleton.getCurrentUserInfo();
+        userInfo.setNickname(viewBinding.tvNickname.getText().toString());
+        userInfo.setPhotoUri(String.valueOf(taskSnapshot.getDownloadUrl()));
+
+        DAO dao = new DAO();
+        dao.setSuccessCallback(arg -> Toast.makeText(getActivity(), "사진 업로드 완료", Toast.LENGTH_SHORT).show());
+        dao.setFailureCallback(arg -> afterFailure());
+        dao.update(userInfo, UserInfo.class);
+    }
+
+    private void afterFailure() {
+        Toast.makeText(getActivity(), "사진 업로드 실패!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void logout() {
+        UserAuthDAO userAuthDAO = new UserAuthDAO();
+        userAuthDAO.setSuccessCallback(arg -> {
+            // 싱글톤이 가진 사용자 정보 초기화
+            userInfo = new UserInfo();
+            Toast.makeText(getActivity(),"로그아웃 되었습니다",Toast.LENGTH_SHORT).show();
             getActivity().finish();
-        }
+        });
+        userAuthDAO.setFailureCallback(arg -> { });
+        userAuthDAO.signOut();
+    }
+
+    // [TODO] 하드코딩된 연관 테이블 접근 방식을 바꿔야 한다.
+    // [TODO] DB 접근 작업이 연달아서 일어나므로 작업 실패 시 트랜잭션 등 롤백할 방법을 찾아야 한다.
+    private void withdrawal() {
+        // 연관된 DB에서 데이터를 삭제한다.
+        userInfo.getLedgersUid().forEach((ledgerUid, dummy) -> {
+            DAO dao = new DAO();
+            dao.setSuccessCallback(dataSnapshot -> {
+                DAO ledgerDAO = new DAO();
+                String databasePath = Ledger.class.getSimpleName() + "/" + ledgerUid + "/" + "membersUid" + "/" + userInfo.getUid();
+                ledgerDAO.delete(databasePath);
+            });
+            dao.readAll(ledgerUid, Ledger.class);
+        });
+
+        // 연관된 DB에서 데이터를 삭제한다.
+        userInfo.getFriendsUid().forEach((friendUid, dummy) -> {
+            DAO dao = new DAO();
+            dao.setSuccessCallback(dataSnapshot -> {
+                DAO friendDAO = new DAO();
+                String databasePath = UserInfo.class.getSimpleName() + "/" + friendUid + "/" + "friendsUid" + "/" + userInfo.getUid();
+                friendDAO.delete(databasePath);
+            });
+            dao.readAll(friendUid, UserInfo.class);
+        });
+
+        // 연관된 DB에서 데이터를 삭제한다.
+        userInfo.getChatRoomsUid().forEach((chatRoomUid, dummy) -> {
+            DAO dao = new DAO();
+            dao.setSuccessCallback(dataSnapshot -> {
+                DAO chatRoomDAO = new DAO();
+                String databasePath = ChatRoom.class.getSimpleName() + "/" + chatRoomUid + "/" + "membersUid" + "/" + userInfo.getUid();
+                chatRoomDAO.delete(databasePath);
+            });
+            dao.readAll(chatRoomUid, ChatRoom.class);
+        });
+
+        // 사용자 정보 DB에서 데이터를 삭제한다.
+        DAO dao = new DAO();
+        dao.setSuccessCallback(arg -> {});
+        dao.setFailureCallback(arg -> {});
+        dao.delete(userInfo, UserInfo.class);
+
+        // 사용자 인증 DB에서 데이터를 삭제한다.
+        UserAuthDAO userAuthDAO = new UserAuthDAO();
+        userAuthDAO.setSuccessCallback(arg -> {});
+        userAuthDAO.setFailureCallback(arg -> {});
+        userAuthDAO.removeCurrentAccount();
+
+        // 싱글톤이 가진 사용자 정보 초기화
+        userInfo = new UserInfo();
+        Toast.makeText(getActivity(),"계정이 삭제되었습니다.",Toast.LENGTH_SHORT).show();
+        getActivity().finish();
+    }
+
+    private void showWithdrawalDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        alertDialog.setMessage("정말 탈퇴하시겠습니까?");
+
+        alertDialog.setPositiveButton("예", (dialog, which) -> withdrawal());
+        alertDialog.setNegativeButton("아니오", (dialog, which) -> {});
+
+        alertDialog.show();
+    }
+
+    private void showChangeNicknameDialog() {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(getActivity());
+        final EditText etNickname = new EditText(getActivity());
+        alertDialog.setTitle("닉네임 변경");
+        alertDialog.setView(etNickname);
+
+        alertDialog.setPositiveButton("확인", (dialog, which) -> {
+            String newNickname = etNickname.getText().toString();
+            userInfo.setNickname(newNickname);
+            viewBinding.tvNickname.setText("닉네임 : " + newNickname);
+
+            DAO dao = new DAO();
+            dao.setSuccessCallback((arg) -> {});
+            dao.setFailureCallback((arg) -> {});
+            dao.update(userInfo, UserInfo.class);
+        });
+
+        alertDialog.setNegativeButton("취소", (dialog, which) -> { });
+        alertDialog.show();
     }
 }

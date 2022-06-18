@@ -14,7 +14,7 @@ import java.util.List;
 
 import kr.ac.kpu.block.smared.databinding.ListFriendBinding;
 
-public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder> {
+public class UserFriendAdapter extends RecyclerView.Adapter<UserFriendAdapter.ViewHolder> {
     private FormattedLogger logger = new FormattedLogger();
 
     private List<UserInfo> friends;
@@ -32,7 +32,7 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
         }
     }
 
-    public FriendAdapter(List<UserInfo> friends , Context context) {
+    public UserFriendAdapter(List<UserInfo> friends , Context context) {
         this.friends = friends;
         this.context = context;
     }
@@ -41,7 +41,7 @@ public class FriendAdapter extends RecyclerView.Adapter<FriendAdapter.ViewHolder
     // 이 메서드를 통해 각 아이템을 위한 XML 레이아웃을 이용한 뷰 객체를 생성하고 뷰 홀더에 담아 리턴한다.
     // 이때는 뷰의 콘텐츠를 채우지 않는다. 왜냐하면 아직 ViewHolder가 특정 데이터에 바인딩된 상태가 아니기 때문이다.
     @Override
-    public FriendAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public UserFriendAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         ListFriendBinding viewBinding = ListFriendBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new ViewHolder(viewBinding);
     }

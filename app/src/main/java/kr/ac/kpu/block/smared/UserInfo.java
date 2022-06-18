@@ -1,12 +1,16 @@
 package kr.ac.kpu.block.smared;
 
 import java.util.HashMap;
+import java.util.Map;
 
-public class UserInfo {
-    private String email;
-    private String photoUri;
-    private String uid;
-    private String nickname;
+public class UserInfo extends DTO {
+    private String email = "";
+    private String nickname = "";
+    private String photoUri = "";
+
+    private Map<String, Boolean> friendsUid = new HashMap<>();
+    private Map<String, Boolean> ledgersUid = new HashMap<>();
+    private Map<String, Boolean> chatRoomsUid = new HashMap<>();
 
     public String getEmail() {
         return email;
@@ -15,6 +19,9 @@ public class UserInfo {
         this.email = email;
     }
 
+    public String getNickname() { return nickname; }
+    public void setNickname(String nickname) { this.nickname = nickname; }
+
     public String getPhotoUri() {
         return photoUri;
     }
@@ -22,38 +29,33 @@ public class UserInfo {
         this.photoUri = photoUri;
     }
 
-    public String getUid() {
-        return uid;
+    public  Map<String, Boolean> getChatRoomsUid() {
+        return chatRoomsUid;
     }
-    public void setUid(String uid) {
-        this.uid = uid;
+    public void setChatRoomsUid( Map<String, Boolean> chatRoomsUid) {
+        this.chatRoomsUid = chatRoomsUid;
     }
 
-    public String getNickname() { return nickname; }
-    public void setNickname(String nickname) { this.nickname = nickname; }
+    public Map<String, Boolean> getFriendsUid() {
+        return friendsUid;
+    }
+    public void setFriendsUid( Map<String, Boolean> friendsUid) {
+        this.friendsUid = friendsUid;
+    }
+
+    public  Map<String, Boolean> getLedgersUid() {
+        return ledgersUid;
+    }
+    public void setLedgersUid(Map<String, Boolean> ledgersUid) {
+        this.ledgersUid = ledgersUid;
+    }
 
     public UserInfo() {
-        this.email = "";
-        this.photoUri = "";
-        this.uid = "";
-        this.nickname = "";
     }
 
     public UserInfo(String email, String photoUri, String uid, String nickname) {
         this.email = email;
         this.photoUri = photoUri;
-        this.uid = uid;
         this.nickname = nickname;
-    }
-
-    public HashMap<String, String> toHashMap() {
-        HashMap<String, String> hashMap = new HashMap<>();
-
-        hashMap.put("email", email);
-        hashMap.put("photo", photoUri);
-        hashMap.put("key", uid);
-        hashMap.put("nickname", nickname);
-
-        return hashMap;
     }
 }

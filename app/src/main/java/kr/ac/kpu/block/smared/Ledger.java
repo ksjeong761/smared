@@ -8,29 +8,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TimeZone;
 
-import com.google.firebase.database.IgnoreExtraProperties;
+public class Ledger extends DTO {
+    private long paymentTimestamp = 0; // 결제 시간
+    private String paymentMethod = "";    // 결제 수단
 
-@IgnoreExtraProperties
-public class Ledger {
-    private long paymentTimestamp; // 결제 시간
-    private String paymentMethod;    // 결제 수단
+    private String storeName = "";           // 가게 이름
+    private String storeAddress = "";        // 가게 주소
+    private String storeContact = "";        // 가게 연락처
 
-    private String storeName;           // 가게 이름
-    private String storeAddress;        // 가게 주소
+    private String totalCategory = "";        // 소비 카테고리
+    private double totalPrice = 0;             // 총 소비 금액
 
-    private String description;           // 비고
-    private String category;               // 소비 카테고리
-    private double totalPrice;             // 총 소비 금액
+    private String description = "";           // 비고
 
-    //private Product[] products;         // 구매한 상품 목록
+    private Map<String, Boolean> membersUid = new HashMap<>();
+    private Map<String, Boolean> productsUid = new HashMap<>();
 
     public long getPaymentTimestamp() {
         return paymentTimestamp;
-    }
-    public String getPaymentTimestamp(String format) {
-        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
-        return localDateTime.format(formatter);
     }
     public void setPaymentTimestamp(long paymentTimestamp) {
         this.paymentTimestamp = paymentTimestamp;
@@ -57,6 +52,13 @@ public class Ledger {
         this.storeName = storeName;
     }
 
+    public String getStoreContact() {
+        return storeContact;
+    }
+    public void setStoreContact(String storeContact) {
+        this.storeContact = storeContact;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -64,11 +66,11 @@ public class Ledger {
         this.description = description;
     }
 
-    public String getCategory() {
-        return category;
+    public String getTotalCategory() {
+        return totalCategory;
     }
-    public void setCategory(String category) {
-        this.category = category;
+    public void setTotalCategory(String totalCategory) {
+        this.totalCategory = totalCategory;
     }
 
     public double getTotalPrice() {
@@ -78,51 +80,32 @@ public class Ledger {
         this.totalPrice = totalPrice;
     }
 
-//    public Product[] getProducts() {
-//        return products;
-//    }
-//    public void setProducts(Product[] products) {
-//        this.products = products;
-//    }
+    public  Map<String, Boolean> getProductsUid() {
+        return productsUid;
+    }
+    public void setProductsUid(Map<String, Boolean> productsUid) {
+        this.productsUid = productsUid;
+    }
+
+    public  Map<String, Boolean> getMembersUid() {
+        return membersUid;
+    }
+    public void setMembersUid(Map<String, Boolean> membersUid) {
+        this.membersUid = membersUid;
+    }
 
     public Ledger() {
-        paymentTimestamp = 0;
-        paymentMethod = "";
-
-        storeName = "";
-        storeAddress = "";
-
-        description = "";
-        category = "";
-        totalPrice = 0;
-
-        //products = new Product[0];         // 구매한 상품 목록
     }
 
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new HashMap<>();
-
-        map.put("paymentTimestamp", paymentTimestamp);
-        map.put("paymentMethod", paymentMethod);
-
-        map.put("storeName", storeName);
-        map.put("storeAddress", storeAddress);
-
-        map.put("description", description);
-        map.put("category", category);
-        map.put("totalPrice", totalPrice);
-
-//        map.put("productCount", products.length);
-//        for (int i = 0; i < products.length; i++) {
-//            map.put("product" + i, products[i].toMap());
-//        }
-
-        return map;
+    public String getFormattedTimestamp(String format) {
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(paymentTimestamp), TimeZone.getDefault().toZoneId());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(format);
+        return localDateTime.format(formatter);
     }
 
-    public int compareDate(Ledger that) {
+    public int compareDate(Ledger otherLedgerData) {
         LocalDate dateA = LocalDateTime.ofInstant(Instant.ofEpochMilli(this.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
-        LocalDate dateB = LocalDateTime.ofInstant(Instant.ofEpochMilli(that.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
+        LocalDate dateB = LocalDateTime.ofInstant(Instant.ofEpochMilli(otherLedgerData.paymentTimestamp), TimeZone.getDefault().toZoneId()).toLocalDate();
 
         return dateA.compareTo(dateB);
     }
@@ -136,7 +119,7 @@ public class Ledger {
         map.put("생필품", 4);
         map.put("기타", 5);
 
-        Integer categoryIndex = map.get(category);
-        return (categoryIndex != null) ? categoryIndex : -1;
+        Integer categoryIndex = map.get(totalCategory);
+        return (categoryIndex == null) ? -1 : categoryIndex;
     }
 }
